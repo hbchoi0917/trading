@@ -1,14 +1,15 @@
 # Options trading screener
+
 Project Overview
-This is an optimized, automated Python script designed to screen the S&P 500 universe for high-probability, low-risk candidates suitable for a Vertical Put Spread (Credit Put Spread) options strategy.
+: This is an optimized, automated Python script designed to screen the S&P 500 universe for high-probability, low-risk candidates suitable for a Vertical Put Spread (Credit Put Spread) options strategy.
 
 Technical Filters (The Logic)
-This screener uses a multi-factor technical analysis approach to isolate stocks that are briefly oversold but remain in a strong, confirmed bullish trend. This minimizes downside risk for premium collection strategies.
+: This screener uses a multi-factor technical analysis approach to isolate stocks that are briefly oversold but remain in a strong, confirmed bullish trend. This minimizes downside risk for premium collection strategies.
 
     RSI(14) < 35	
         Oversold Entry: Identifies short-term price weakness and signals a likely short-term bottoming or bounce.
     Price > SMA(50) & SMA(200)	
-        Trend Confirmation: Ensures the stock remains in a strong long-term (200-day) and intermediate-term (50-day) uptrend.
+        Trend Confirmation: Ensures the stock remains in a strong long-term (200-day) uptrend.
     Volume > AVG_VOL(50)
         Liquidity Check: Ensures the stock is highly liquid, which is essential for options trading to guarantee tight bid-ask spreads and efficient order execution.
 
