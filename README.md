@@ -8,7 +8,7 @@ Technical Filters (The Logic)
 
     RSI(14) < 35	
         Oversold Entry: Identifies short-term price weakness and signals a likely short-term bottoming or bounce.
-    Price > SMA(50) & SMA(200)	
+    Price > SMA(200)	
         Trend Confirmation: Ensures the stock remains in a strong long-term (200-day) uptrend.
     Volume > AVG_VOL(50)
         Liquidity Check: Ensures the stock is highly liquid, which is essential for options trading to guarantee tight bid-ask spreads and efficient order execution.
