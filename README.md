@@ -1,7 +1,7 @@
 # Options trading screener
 
 Project Overview
-: This is an optimized, automated Python script designed to screen the S&P 500 universe for high-probability, low-risk candidates suitable for a Vertical Put Spread (Credit Put Spread) options strategy.
+: This is an optimized, automated Python script designed to screen the S&P 500 universe for high-probability, low-risk candidates suitable for a Vertical Put Spread (Credit Put Spread) options strategy by leveraging the Gemini.
 
 Technical Filters (The Logic)
 : This screener uses a multi-factor technical analysis approach to isolate stocks that are briefly oversold but remain in a strong, confirmed bullish trend. This minimizes downside risk for premium collection strategies.
