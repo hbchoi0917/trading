@@ -1,0 +1,14 @@
+# Compiled Python Files
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+.venv/
+    
+# Data Output (Crucial for this project)
+options_premium_signals.csv
+    
+# OS generated files
+.DS_Store
+Thumbs.db
