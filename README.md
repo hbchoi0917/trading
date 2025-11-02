@@ -17,7 +17,10 @@ Files in this Repository
     options_premium_signals.csv: Example output file (ignored by Git) showing the final filtered signals for immediate trading review.
     .gitignore:	Standard file ensuring clean commits by excluding temporary data outputs and environment files.
 
+
+
 How to Run the Screener
+
 1.Clone the Repository:
 git clone https://github.com/YourUsername/RepoName.git
 cd RepoName
