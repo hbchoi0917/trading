@@ -2,15 +2,12 @@ import yfinance as yf
 import pandas_ta as ta
 import pandas as pd
 
-# Define settings and tickers (In the first place, tried listing the individual tickers interested)
+# 1. Define the list of stock tickers to check: In the first place, tried listing the individual tickers interested but changed to S&P 500 stocks for more candidates selection
 # FAV_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA','CLS','VOO','QQQM','QLD','IWM','AMD','STX','MARA','HIMS','ANET','ARM','LRCX','MP','OKLO','ORCL','AMAT','IONQ','RGTI','CRWD','NFLX','META','AVGO','MU','PLTR'] 
 
-# ----------------------------------------------------
-# Instead, pulling s&p 500 stocks automatically
-# ----------------------------------------------------
 def get_sp500_tickers():
     """Scrapes the current list of S&P 500 tickers from Wikipedia, or uses a robust fallback."""
-    # Robust Fallback List (my win list of put options)
+    # Robust fallback list below (my win list of put options)
     FALLBACK_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA','CLS','VOO','QQQM','QLD','IWM','AMD','STX','MARA','HIMS','ANET','ARM','LRCX','MP','OKLO','ORCL','AMAT','IONQ','RGTI','CRWD','NFLX','META','AVGO','MU','PLTR'] 
 
     try:
@@ -31,7 +28,8 @@ def get_sp500_tickers():
         print(f"⚠️ Error pulling S&P 500 list from Wikipedia: {e}. Using a fallback list ({len(FALLBACK_TICKERS)} tickers).")
         return FALLBACK_TICKERS
 
-# 1. Define the list of stock tickers to check and screening parameters
+
+# 2. Define the screening parameters to filter 
 TICKERS = get_sp500_tickers()
 RSI_PERIOD = 14
 RSI_THRESHOLD = 35 
@@ -39,15 +37,15 @@ RSI_THRESHOLD = 35
 oversold_stocks = {}
 
 print("\n--- Starting Options Premium Screener (Simple & Solid) ---")
-print(f"Criteria: RSI < {RSI_THRESHOLD}, Price > SMA 50/200, AND Active Volume")
+print(f"Criteria: RSI < {RSI_THRESHOLD}, Price > SMA 200, AND Active Volume")
 print("------------------------------------------------------------------")
 
 for ticker in TICKERS:
     try:
-        # 2. OPTIMIZED: Download data once (1 year)
+        # Optimized: Download data once (1 year)
         stock_data = yf.download(ticker, period='1y', interval='1d', progress=False, group_by=False) 
 
-        # ⭐️ FIX: FLATTEN MULTIINDEX COLUMNS & CAPITALIZE ⭐️
+        # Fix: Flatten multi index columns & capitalize
         if isinstance(stock_data.columns, pd.MultiIndex):
             stock_data.columns = stock_data.columns.droplevel(0)
         
@@ -58,34 +56,29 @@ for ticker in TICKERS:
             print(f"⚠️ Data error: Insufficient data for {ticker}. Skipping.")
             continue
         
-        # 3. Calculate SMAs, RSI, and Average Volume
+        # 3. Calculate SMA, RSI, and Average Volume
         stock_data['SMA_200'] = stock_data['Close'].rolling(window=200).mean()
-        stock_data['SMA_50'] = stock_data['Close'].rolling(window=50).mean()
-        stock_data['AVG_VOL_50'] = stock_data['Volume'].rolling(window=50).mean() # <--- NEW
-        
+        stock_data['AVG_VOL_50'] = stock_data['Volume'].rolling(window=50).mean() 
         stock_data.ta.rsi(length=RSI_PERIOD, append=True)
         rsi_column_name = f'RSI_{RSI_PERIOD}'
         
         # 4. Extract latest values
         latest_close = stock_data['Close'].iloc[-1]
         latest_sma_200 = stock_data['SMA_200'].iloc[-1]
-        latest_sma_50 = stock_data['SMA_50'].iloc[-1]
-        latest_volume = stock_data['Volume'].iloc[-1] # <--- NEW
-        latest_avg_vol_50 = stock_data['AVG_VOL_50'].iloc[-1] # <--- NEW
+        latest_volume = stock_data['Volume'].iloc[-1] 
+        latest_avg_vol_50 = stock_data['AVG_VOL_50'].iloc[-1] 
         current_rsi = stock_data[rsi_column_name].iloc[-1].round(2)
         
         # 5. Check the combined conditions
         is_oversold = current_rsi < RSI_THRESHOLD
         is_uptrend_long = latest_close > latest_sma_200
-        is_uptrend_short = latest_close > latest_sma_50
-        is_liquid = latest_volume > latest_avg_vol_50 # <--- NEW
+        is_liquid = latest_volume > latest_avg_vol_50 
 
         # FINAL SCREENING CRITERIA: RSI (Oversold) AND Bullish Trend AND Liquidity
         if is_oversold and is_uptrend_long and is_uptrend_short and is_liquid:
             oversold_stocks[ticker] = {
                 'RSI': current_rsi,
                 'Price': latest_close.round(2),
-                'SMA_50': latest_sma_50.round(2),
                 'SMA_200': latest_sma_200.round(2),
                 'Volume': latest_volume, 
                 'Avg_Vol_50': latest_avg_vol_50.round(0)
