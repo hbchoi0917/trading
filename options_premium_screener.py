@@ -1,8 +1,12 @@
 import yfinance as yf
-import pandas_ta as ta
 import pandas as pd
 import logging
 from datetime import datetime
+
+try:
+    import pandas_ta as ta
+except ImportError:
+    ta = None
 
 # ============ LOGGING SETUP ============
 logging.basicConfig(
@@ -92,7 +96,7 @@ def calculate_signal_strength(rsi, bb_pos, vol_surge, atr_pct):
 # ============ SCREENING PARAMETERS ============
 TICKERS = get_sp500_tickers()
 RSI_PERIOD = 14
-RSI_THRESHOLD = 35
+RSI_THRESHOLD = 40 # 35
 BB_PERIOD = 20
 ATR_PERIOD = 14
 
@@ -147,6 +151,13 @@ for ticker in TICKERS:
         # MACD
         stock_data.ta.macd(append=True)
         
+        # Check if TA indicators were successfully added
+        required_ta_columns = [rsi_column_name, atr_column_name, 'MACDh_12_26_9']
+        if not all(col in stock_data.columns for col in required_ta_columns):
+            logger.warning(f"TA indicators not calculated for {ticker}. Skipping.")
+            error_count += 1
+            continue
+        
         # ============ EXTRACT LATEST VALUES ============
         latest_close = stock_data['Close'].iloc[-1]
         latest_sma_200 = stock_data['SMA_200'].iloc[-1]
@@ -170,8 +181,8 @@ for ticker in TICKERS:
         is_oversold = current_rsi < RSI_THRESHOLD
         is_uptrend_long = latest_close > latest_sma_200
         is_liquid = latest_volume > latest_avg_vol_50
-        is_near_lower_bb = latest_bb_position < 0.3  # In lower 30% of BB range
-        is_adequate_volatility = atr_pct > 1.5  # At least 1.5% daily range
+        is_near_lower_bb = latest_bb_position < 0.4 # 0.3  # In lower 30% of BB range
+        is_adequate_volatility = atr_pct > 1.0 # 1.5  # At least 1.5% daily range
         is_volume_surge = volume_surge_ratio > 1.2  # 20% above average volume
         is_near_support = pct_above_support < 8  # Within 8% of recent support
         

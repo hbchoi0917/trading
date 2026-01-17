@@ -1,0 +1,2128 @@
+2026-01-17 15:29:05,367 - INFO - Successfully pulled 503 S&P 500 tickers from Wikipedia
+2026-01-17 15:29:05,369 - INFO - ======================================================================
+2026-01-17 15:29:05,370 - INFO - ENHANCED OPTIONS PREMIUM SCREENER
+2026-01-17 15:29:05,370 - INFO - ======================================================================
+2026-01-17 15:29:05,370 - INFO - Criteria: RSI < 35, Price > SMA 200, Active Volume
+2026-01-17 15:29:05,370 - INFO - Enhanced Filters: Bollinger Bands, ATR, Volume Surge, Support Levels
+2026-01-17 15:29:05,371 - INFO - ======================================================================
+2026-01-17 15:29:14,010 - ERROR - Error processing MMM: 'ATR_14'
+2026-01-17 15:29:14,408 - ERROR - Error processing AOS: 'ATR_14'
+2026-01-17 15:29:14,921 - ERROR - Error processing ABT: 'ATR_14'
+2026-01-17 15:29:15,232 - ERROR - Error processing ABBV: 'ATR_14'
+2026-01-17 15:29:15,550 - ERROR - Error processing ACN: 'ATR_14'
+2026-01-17 15:29:15,839 - ERROR - Error processing ADBE: 'ATR_14'
+2026-01-17 15:29:16,258 - ERROR - Error processing AMD: 'ATR_14'
+2026-01-17 15:29:16,596 - ERROR - Error processing AES: 'ATR_14'
+2026-01-17 15:29:17,120 - ERROR - Error processing AFL: 'ATR_14'
+2026-01-17 15:29:17,489 - ERROR - Error processing A: 'ATR_14'
+2026-01-17 15:29:17,834 - ERROR - Error processing APD: 'ATR_14'
+2026-01-17 15:29:18,070 - ERROR - Error processing ABNB: 'ATR_14'
+2026-01-17 15:29:18,423 - ERROR - Error processing AKAM: 'ATR_14'
+2026-01-17 15:29:18,756 - ERROR - Error processing ALB: 'ATR_14'
+2026-01-17 15:29:19,186 - ERROR - Error processing ARE: 'ATR_14'
+2026-01-17 15:29:19,434 - ERROR - Error processing ALGN: 'ATR_14'
+2026-01-17 15:29:19,677 - ERROR - Error processing ALLE: 'ATR_14'
+2026-01-17 15:29:19,963 - ERROR - Error processing LNT: 'ATR_14'
+2026-01-17 15:29:20,354 - ERROR - Error processing ALL: 'ATR_14'
+2026-01-17 15:29:20,625 - ERROR - Error processing GOOGL: 'ATR_14'
+2026-01-17 15:29:20,960 - ERROR - Error processing GOOG: 'ATR_14'
+2026-01-17 15:29:21,454 - ERROR - Error processing MO: 'ATR_14'
+2026-01-17 15:29:21,890 - ERROR - Error processing AMZN: 'ATR_14'
+2026-01-17 15:29:22,216 - ERROR - Error processing AMCR: 'ATR_14'
+2026-01-17 15:29:22,624 - ERROR - Error processing AEE: 'ATR_14'
+2026-01-17 15:29:23,025 - ERROR - Error processing AEP: 'ATR_14'
+2026-01-17 15:29:23,526 - ERROR - Error processing AXP: 'ATR_14'
+2026-01-17 15:29:23,844 - ERROR - Error processing AIG: 'ATR_14'
+2026-01-17 15:29:24,140 - ERROR - Error processing AMT: 'ATR_14'
+2026-01-17 15:29:24,470 - ERROR - Error processing AWK: 'ATR_14'
+2026-01-17 15:29:24,708 - ERROR - Error processing AMP: 'ATR_14'
+2026-01-17 15:29:25,025 - ERROR - Error processing AME: 'ATR_14'
+2026-01-17 15:29:25,309 - ERROR - Error processing AMGN: 'ATR_14'
+2026-01-17 15:29:25,643 - ERROR - Error processing APH: 'ATR_14'
+2026-01-17 15:29:26,101 - ERROR - Error processing ADI: 'ATR_14'
+2026-01-17 15:29:26,819 - ERROR - Error processing AON: 'ATR_14'
+2026-01-17 15:29:27,118 - ERROR - Error processing APA: 'ATR_14'
+2026-01-17 15:29:27,638 - ERROR - Error processing APO: 'ATR_14'
+2026-01-17 15:29:28,044 - ERROR - Error processing AAPL: 'ATR_14'
+2026-01-17 15:29:28,294 - ERROR - Error processing AMAT: 'ATR_14'
+2026-01-17 15:29:28,646 - ERROR - Error processing APP: 'ATR_14'
+2026-01-17 15:29:28,954 - ERROR - Error processing APTV: 'ATR_14'
+2026-01-17 15:29:29,266 - ERROR - Error processing ACGL: 'ATR_14'
+2026-01-17 15:29:29,586 - ERROR - Error processing ADM: 'ATR_14'
+2026-01-17 15:29:29,971 - ERROR - Error processing ARES: 'ATR_14'
+2026-01-17 15:29:30,293 - ERROR - Error processing ANET: 'ATR_14'
+2026-01-17 15:29:30,626 - ERROR - Error processing AJG: 'ATR_14'
+2026-01-17 15:29:31,106 - ERROR - Error processing AIZ: 'ATR_14'
+2026-01-17 15:29:31,372 - ERROR - Error processing T: 'ATR_14'
+2026-01-17 15:29:31,745 - ERROR - Error processing ATO: 'ATR_14'
+2026-01-17 15:29:31,985 - ERROR - Error processing ADSK: 'ATR_14'
+2026-01-17 15:29:32,660 - ERROR - Error processing ADP: 'ATR_14'
+2026-01-17 15:29:32,968 - ERROR - Error processing AZO: 'ATR_14'
+2026-01-17 15:29:33,262 - ERROR - Error processing AVB: 'ATR_14'
+2026-01-17 15:29:33,652 - ERROR - Error processing AVY: 'ATR_14'
+2026-01-17 15:29:33,972 - ERROR - Error processing AXON: 'ATR_14'
+2026-01-17 15:29:34,307 - ERROR - Error processing BKR: 'ATR_14'
+2026-01-17 15:29:34,699 - ERROR - Error processing BALL: 'ATR_14'
+2026-01-17 15:29:35,239 - ERROR - Error processing BAC: 'ATR_14'
+2026-01-17 15:29:35,572 - ERROR - Error processing BAX: 'ATR_14'
+2026-01-17 15:29:36,033 - ERROR - Error processing BDX: 'ATR_14'
+2026-01-17 15:29:36,342 - ERROR - Error processing BRK-B: 'ATR_14'
+2026-01-17 15:29:36,735 - ERROR - Error processing BBY: 'ATR_14'
+2026-01-17 15:29:37,070 - ERROR - Error processing TECH: 'ATR_14'
+2026-01-17 15:29:37,354 - ERROR - Error processing BIIB: 'ATR_14'
+2026-01-17 15:29:37,761 - ERROR - Error processing BLK: 'ATR_14'
+2026-01-17 15:29:38,063 - ERROR - Error processing BX: 'ATR_14'
+2026-01-17 15:29:38,377 - ERROR - Error processing XYZ: 'ATR_14'
+2026-01-17 15:29:38,690 - ERROR - Error processing BK: 'ATR_14'
+2026-01-17 15:29:39,196 - ERROR - Error processing BA: 'ATR_14'
+2026-01-17 15:29:39,721 - ERROR - Error processing BKNG: 'ATR_14'
+2026-01-17 15:29:40,052 - ERROR - Error processing BSX: 'ATR_14'
+2026-01-17 15:29:40,436 - ERROR - Error processing BMY: 'ATR_14'
+2026-01-17 15:29:40,727 - ERROR - Error processing AVGO: 'ATR_14'
+2026-01-17 15:29:41,036 - ERROR - Error processing BR: 'ATR_14'
+2026-01-17 15:29:41,295 - ERROR - Error processing BRO: 'ATR_14'
+2026-01-17 15:29:41,578 - ERROR - Error processing BF-B: 'ATR_14'
+2026-01-17 15:29:41,803 - ERROR - Error processing BLDR: 'ATR_14'
+2026-01-17 15:29:42,101 - ERROR - Error processing BG: 'ATR_14'
+2026-01-17 15:29:42,408 - ERROR - Error processing BXP: 'ATR_14'
+2026-01-17 15:29:42,778 - ERROR - Error processing CHRW: 'ATR_14'
+2026-01-17 15:29:43,071 - ERROR - Error processing CDNS: 'ATR_14'
+2026-01-17 15:29:43,530 - ERROR - Error processing CPT: 'ATR_14'
+2026-01-17 15:29:43,939 - ERROR - Error processing CPB: 'ATR_14'
+2026-01-17 15:29:44,456 - ERROR - Error processing COF: 'ATR_14'
+2026-01-17 15:29:44,863 - ERROR - Error processing CAH: 'ATR_14'
+2026-01-17 15:29:45,147 - ERROR - Error processing CCL: 'ATR_14'
+2026-01-17 15:29:45,454 - ERROR - Error processing CARR: 'ATR_14'
+2026-01-17 15:29:46,158 - ERROR - Error processing CVNA: 'ATR_14'
+2026-01-17 15:29:46,604 - ERROR - Error processing CAT: 'ATR_14'
+2026-01-17 15:29:46,890 - ERROR - Error processing CBOE: 'ATR_14'
+2026-01-17 15:29:47,161 - ERROR - Error processing CBRE: 'ATR_14'
+2026-01-17 15:29:47,496 - ERROR - Error processing CDW: 'ATR_14'
+2026-01-17 15:29:47,765 - ERROR - Error processing COR: 'ATR_14'
+2026-01-17 15:29:48,206 - ERROR - Error processing CNC: 'ATR_14'
+2026-01-17 15:29:48,738 - ERROR - Error processing CNP: 'ATR_14'
+2026-01-17 15:29:49,168 - ERROR - Error processing CF: 'ATR_14'
+2026-01-17 15:29:49,374 - ERROR - Error processing CRL: 'ATR_14'
+2026-01-17 15:29:49,672 - ERROR - Error processing SCHW: 'ATR_14'
+2026-01-17 15:29:50,025 - ERROR - Error processing CHTR: 'ATR_14'
+2026-01-17 15:29:50,475 - ERROR - Error processing CVX: 'ATR_14'
+2026-01-17 15:29:50,687 - ERROR - Error processing CMG: 'ATR_14'
+2026-01-17 15:29:51,046 - ERROR - Error processing CB: 'ATR_14'
+2026-01-17 15:29:51,389 - ERROR - Error processing CHD: 'ATR_14'
+2026-01-17 15:29:51,709 - ERROR - Error processing CI: 'ATR_14'
+2026-01-17 15:29:52,134 - ERROR - Error processing CINF: 'ATR_14'
+2026-01-17 15:29:53,001 - ERROR - Error processing CTAS: 'ATR_14'
+2026-01-17 15:29:53,245 - ERROR - Error processing CSCO: 'ATR_14'
+2026-01-17 15:29:53,660 - ERROR - Error processing C: 'ATR_14'
+2026-01-17 15:29:53,958 - ERROR - Error processing CFG: 'ATR_14'
+2026-01-17 15:29:54,354 - ERROR - Error processing CLX: 'ATR_14'
+2026-01-17 15:29:54,669 - ERROR - Error processing CME: 'ATR_14'
+2026-01-17 15:29:55,004 - ERROR - Error processing CMS: 'ATR_14'
+2026-01-17 15:29:55,519 - ERROR - Error processing KO: 'ATR_14'
+2026-01-17 15:29:55,822 - ERROR - Error processing CTSH: 'ATR_14'
+2026-01-17 15:29:56,118 - ERROR - Error processing COIN: 'ATR_14'
+2026-01-17 15:29:56,429 - ERROR - Error processing CL: 'ATR_14'
+2026-01-17 15:29:56,735 - ERROR - Error processing CMCSA: 'ATR_14'
+2026-01-17 15:29:57,371 - ERROR - Error processing FIX: 'ATR_14'
+2026-01-17 15:29:57,874 - ERROR - Error processing CAG: 'ATR_14'
+2026-01-17 15:29:58,266 - ERROR - Error processing COP: 'ATR_14'
+2026-01-17 15:29:58,766 - ERROR - Error processing ED: 'ATR_14'
+2026-01-17 15:29:59,285 - ERROR - Error processing STZ: 'ATR_14'
+2026-01-17 15:29:59,673 - ERROR - Error processing CEG: 'ATR_14'
+2026-01-17 15:30:00,187 - ERROR - Error processing COO: 'ATR_14'
+2026-01-17 15:30:00,484 - ERROR - Error processing CPRT: 'ATR_14'
+2026-01-17 15:30:00,806 - ERROR - Error processing GLW: 'ATR_14'
+2026-01-17 15:30:01,083 - ERROR - Error processing CPAY: 'ATR_14'
+2026-01-17 15:30:01,605 - ERROR - Error processing CTVA: 'ATR_14'
+2026-01-17 15:30:02,042 - ERROR - Error processing CSGP: 'ATR_14'
+2026-01-17 15:30:02,465 - ERROR - Error processing COST: 'ATR_14'
+2026-01-17 15:30:02,848 - ERROR - Error processing CTRA: 'ATR_14'
+2026-01-17 15:30:03,357 - ERROR - Error processing CRH: 'ATR_14'
+2026-01-17 15:30:03,766 - ERROR - Error processing CRWD: 'ATR_14'
+2026-01-17 15:30:04,173 - ERROR - Error processing CCI: 'ATR_14'
+2026-01-17 15:30:04,666 - ERROR - Error processing CSX: 'ATR_14'
+2026-01-17 15:30:05,320 - ERROR - Error processing CMI: 'ATR_14'
+2026-01-17 15:30:05,733 - ERROR - Error processing CVS: 'ATR_14'
+2026-01-17 15:30:05,978 - ERROR - Error processing DHR: 'ATR_14'
+2026-01-17 15:30:06,320 - ERROR - Error processing DRI: 'ATR_14'
+2026-01-17 15:30:06,518 - ERROR - Error processing DDOG: 'ATR_14'
+2026-01-17 15:30:06,794 - ERROR - Error processing DVA: 'ATR_14'
+2026-01-17 15:30:07,050 - ERROR - Error processing DAY: 'ATR_14'
+2026-01-17 15:30:07,299 - ERROR - Error processing DECK: 'ATR_14'
+2026-01-17 15:30:07,532 - ERROR - Error processing DE: 'ATR_14'
+2026-01-17 15:30:08,089 - ERROR - Error processing DELL: 'ATR_14'
+2026-01-17 15:30:08,383 - ERROR - Error processing DAL: 'ATR_14'
+2026-01-17 15:30:08,891 - ERROR - Error processing DVN: 'ATR_14'
+2026-01-17 15:30:09,252 - ERROR - Error processing DXCM: 'ATR_14'
+2026-01-17 15:30:09,493 - ERROR - Error processing FANG: 'ATR_14'
+2026-01-17 15:30:09,705 - ERROR - Error processing DLR: 'ATR_14'
+2026-01-17 15:30:09,932 - ERROR - Error processing DG: 'ATR_14'
+2026-01-17 15:30:10,174 - ERROR - Error processing DLTR: 'ATR_14'
+2026-01-17 15:30:10,422 - ERROR - Error processing D: 'ATR_14'
+2026-01-17 15:30:10,670 - ERROR - Error processing DPZ: 'ATR_14'
+2026-01-17 15:30:10,970 - ERROR - Error processing DASH: 'ATR_14'
+2026-01-17 15:30:11,362 - ERROR - Error processing DOV: 'ATR_14'
+2026-01-17 15:30:11,653 - ERROR - Error processing DOW: 'ATR_14'
+2026-01-17 15:30:12,283 - ERROR - Error processing DHI: 'ATR_14'
+2026-01-17 15:30:12,699 - ERROR - Error processing DTE: 'ATR_14'
+2026-01-17 15:30:13,094 - ERROR - Error processing DUK: 'ATR_14'
+2026-01-17 15:30:13,743 - ERROR - Error processing DD: 'ATR_14'
+2026-01-17 15:30:14,255 - ERROR - Error processing ETN: 'ATR_14'
+2026-01-17 15:30:14,644 - ERROR - Error processing EBAY: 'ATR_14'
+2026-01-17 15:30:14,901 - ERROR - Error processing ECL: 'ATR_14'
+2026-01-17 15:30:15,468 - ERROR - Error processing EIX: 'ATR_14'
+2026-01-17 15:30:15,759 - ERROR - Error processing EW: 'ATR_14'
+2026-01-17 15:30:16,368 - ERROR - Error processing EA: 'ATR_14'
+2026-01-17 15:30:17,009 - ERROR - Error processing ELV: 'ATR_14'
+2026-01-17 15:30:17,415 - ERROR - Error processing EME: 'ATR_14'
+2026-01-17 15:30:17,674 - ERROR - Error processing EMR: 'ATR_14'
+2026-01-17 15:30:18,016 - ERROR - Error processing ETR: 'ATR_14'
+2026-01-17 15:30:18,444 - ERROR - Error processing EOG: 'ATR_14'
+2026-01-17 15:30:18,841 - ERROR - Error processing EPAM: 'ATR_14'
+2026-01-17 15:30:19,417 - ERROR - Error processing EQT: 'ATR_14'
+2026-01-17 15:30:19,866 - ERROR - Error processing EFX: 'ATR_14'
+2026-01-17 15:30:20,284 - ERROR - Error processing EQIX: 'ATR_14'
+2026-01-17 15:30:20,615 - ERROR - Error processing EQR: 'ATR_14'
+2026-01-17 15:30:20,864 - ERROR - Error processing ERIE: 'ATR_14'
+2026-01-17 15:30:21,287 - ERROR - Error processing ESS: 'ATR_14'
+2026-01-17 15:30:21,803 - ERROR - Error processing EL: 'ATR_14'
+2026-01-17 15:30:22,239 - ERROR - Error processing EG: 'ATR_14'
+2026-01-17 15:30:22,606 - ERROR - Error processing EVRG: 'ATR_14'
+2026-01-17 15:30:23,032 - ERROR - Error processing ES: 'ATR_14'
+2026-01-17 15:30:23,564 - ERROR - Error processing EXC: 'ATR_14'
+2026-01-17 15:30:23,862 - ERROR - Error processing EXE: 'ATR_14'
+2026-01-17 15:30:24,258 - ERROR - Error processing EXPE: 'ATR_14'
+2026-01-17 15:30:24,582 - ERROR - Error processing EXPD: 'ATR_14'
+2026-01-17 15:30:24,994 - ERROR - Error processing EXR: 'ATR_14'
+2026-01-17 15:30:25,492 - ERROR - Error processing XOM: 'ATR_14'
+2026-01-17 15:30:25,779 - ERROR - Error processing FFIV: 'ATR_14'
+2026-01-17 15:30:26,104 - ERROR - Error processing FDS: 'ATR_14'
+2026-01-17 15:30:26,613 - ERROR - Error processing FICO: 'ATR_14'
+2026-01-17 15:30:26,923 - ERROR - Error processing FAST: 'ATR_14'
+2026-01-17 15:30:27,230 - ERROR - Error processing FRT: 'ATR_14'
+2026-01-17 15:30:27,553 - ERROR - Error processing FDX: 'ATR_14'
+2026-01-17 15:30:27,809 - ERROR - Error processing FIS: 'ATR_14'
+2026-01-17 15:30:28,120 - ERROR - Error processing FITB: 'ATR_14'
+2026-01-17 15:30:28,364 - ERROR - Error processing FSLR: 'ATR_14'
+2026-01-17 15:30:28,730 - ERROR - Error processing FE: 'ATR_14'
+2026-01-17 15:30:29,140 - ERROR - Error processing FISV: 'ATR_14'
+2026-01-17 15:30:29,713 - ERROR - Error processing F: 'ATR_14'
+2026-01-17 15:30:30,060 - ERROR - Error processing FTNT: 'ATR_14'
+2026-01-17 15:30:30,415 - ERROR - Error processing FTV: 'ATR_14'
+2026-01-17 15:30:30,732 - ERROR - Error processing FOXA: 'ATR_14'
+2026-01-17 15:30:31,050 - ERROR - Error processing FOX: 'ATR_14'
+2026-01-17 15:30:31,747 - ERROR - Error processing BEN: 'ATR_14'
+2026-01-17 15:30:32,145 - ERROR - Error processing FCX: 'ATR_14'
+2026-01-17 15:30:32,668 - ERROR - Error processing GRMN: 'ATR_14'
+2026-01-17 15:30:33,069 - ERROR - Error processing IT: 'ATR_14'
+2026-01-17 15:30:33,489 - ERROR - Error processing GE: 'ATR_14'
+2026-01-17 15:30:33,761 - ERROR - Error processing GEHC: 'ATR_14'
+2026-01-17 15:30:34,056 - ERROR - Error processing GEV: 'ATR_14'
+2026-01-17 15:30:34,399 - ERROR - Error processing GEN: 'ATR_14'
+2026-01-17 15:30:34,747 - ERROR - Error processing GNRC: 'ATR_14'
+2026-01-17 15:30:35,112 - ERROR - Error processing GD: 'ATR_14'
+2026-01-17 15:30:35,421 - ERROR - Error processing GIS: 'ATR_14'
+2026-01-17 15:30:35,739 - ERROR - Error processing GM: 'ATR_14'
+2026-01-17 15:30:36,043 - ERROR - Error processing GPC: 'ATR_14'
+2026-01-17 15:30:36,349 - ERROR - Error processing GILD: 'ATR_14'
+2026-01-17 15:30:36,851 - ERROR - Error processing GPN: 'ATR_14'
+2026-01-17 15:30:37,170 - ERROR - Error processing GL: 'ATR_14'
+2026-01-17 15:30:37,611 - ERROR - Error processing GDDY: 'ATR_14'
+2026-01-17 15:30:37,874 - ERROR - Error processing GS: 'ATR_14'
+2026-01-17 15:30:38,231 - ERROR - Error processing HAL: 'ATR_14'
+2026-01-17 15:30:38,610 - ERROR - Error processing HIG: 'ATR_14'
+2026-01-17 15:30:39,004 - ERROR - Error processing HAS: 'ATR_14'
+2026-01-17 15:30:39,470 - ERROR - Error processing HCA: 'ATR_14'
+2026-01-17 15:30:39,809 - ERROR - Error processing DOC: 'ATR_14'
+2026-01-17 15:30:40,350 - ERROR - Error processing HSIC: 'ATR_14'
+2026-01-17 15:30:40,643 - ERROR - Error processing HSY: 'ATR_14'
+2026-01-17 15:30:41,173 - ERROR - Error processing HPE: 'ATR_14'
+2026-01-17 15:30:41,405 - ERROR - Error processing HLT: 'ATR_14'
+2026-01-17 15:30:41,857 - ERROR - Error processing HOLX: 'ATR_14'
+2026-01-17 15:30:42,377 - ERROR - Error processing HD: 'ATR_14'
+2026-01-17 15:30:42,777 - ERROR - Error processing HON: 'ATR_14'
+2026-01-17 15:30:43,151 - ERROR - Error processing HRL: 'ATR_14'
+2026-01-17 15:30:43,424 - ERROR - Error processing HST: 'ATR_14'
+2026-01-17 15:30:43,816 - ERROR - Error processing HWM: 'ATR_14'
+2026-01-17 15:30:44,264 - ERROR - Error processing HPQ: 'ATR_14'
+2026-01-17 15:30:44,529 - ERROR - Error processing HUBB: 'ATR_14'
+2026-01-17 15:30:44,963 - ERROR - Error processing HUM: 'ATR_14'
+2026-01-17 15:30:45,264 - ERROR - Error processing HBAN: 'ATR_14'
+2026-01-17 15:30:45,773 - ERROR - Error processing HII: 'ATR_14'
+2026-01-17 15:30:46,173 - ERROR - Error processing IBM: 'ATR_14'
+2026-01-17 15:30:46,491 - ERROR - Error processing IEX: 'ATR_14'
+2026-01-17 15:30:46,742 - ERROR - Error processing IDXX: 'ATR_14'
+2026-01-17 15:30:47,019 - ERROR - Error processing ITW: 'ATR_14'
+2026-01-17 15:30:47,315 - ERROR - Error processing INCY: 'ATR_14'
+2026-01-17 15:30:47,607 - ERROR - Error processing IR: 'ATR_14'
+2026-01-17 15:30:47,857 - ERROR - Error processing PODD: 'ATR_14'
+2026-01-17 15:30:48,225 - ERROR - Error processing INTC: 'ATR_14'
+2026-01-17 15:30:48,640 - ERROR - Error processing IBKR: 'ATR_14'
+2026-01-17 15:30:48,937 - ERROR - Error processing ICE: 'ATR_14'
+2026-01-17 15:30:49,473 - ERROR - Error processing IFF: 'ATR_14'
+2026-01-17 15:30:50,028 - ERROR - Error processing IP: 'ATR_14'
+2026-01-17 15:30:50,371 - ERROR - Error processing INTU: 'ATR_14'
+2026-01-17 15:30:50,758 - ERROR - Error processing ISRG: 'ATR_14'
+2026-01-17 15:30:51,054 - ERROR - Error processing IVZ: 'ATR_14'
+2026-01-17 15:30:51,422 - ERROR - Error processing INVH: 'ATR_14'
+2026-01-17 15:30:51,788 - ERROR - Error processing IQV: 'ATR_14'
+2026-01-17 15:30:52,216 - ERROR - Error processing IRM: 'ATR_14'
+2026-01-17 15:30:52,599 - ERROR - Error processing JBHT: 'ATR_14'
+2026-01-17 15:30:52,912 - ERROR - Error processing JBL: 'ATR_14'
+2026-01-17 15:30:53,241 - ERROR - Error processing JKHY: 'ATR_14'
+2026-01-17 15:30:53,477 - ERROR - Error processing J: 'ATR_14'
+2026-01-17 15:30:53,861 - ERROR - Error processing JNJ: 'ATR_14'
+2026-01-17 15:30:54,164 - ERROR - Error processing JCI: 'ATR_14'
+2026-01-17 15:30:54,566 - ERROR - Error processing JPM: 'ATR_14'
+2026-01-17 15:30:54,829 - ERROR - Error processing KVUE: 'ATR_14'
+2026-01-17 15:30:55,212 - ERROR - Error processing KDP: 'ATR_14'
+2026-01-17 15:30:55,504 - ERROR - Error processing KEY: 'ATR_14'
+2026-01-17 15:30:55,996 - ERROR - Error processing KEYS: 'ATR_14'
+2026-01-17 15:30:56,313 - ERROR - Error processing KMB: 'ATR_14'
+2026-01-17 15:30:56,618 - ERROR - Error processing KIM: 'ATR_14'
+2026-01-17 15:30:56,948 - ERROR - Error processing KMI: 'ATR_14'
+2026-01-17 15:30:57,336 - ERROR - Error processing KKR: 'ATR_14'
+2026-01-17 15:30:57,645 - ERROR - Error processing KLAC: 'ATR_14'
+2026-01-17 15:30:57,845 - ERROR - Error processing KHC: 'ATR_14'
+2026-01-17 15:30:58,153 - ERROR - Error processing KR: 'ATR_14'
+2026-01-17 15:30:58,418 - ERROR - Error processing LHX: 'ATR_14'
+2026-01-17 15:30:58,774 - ERROR - Error processing LH: 'ATR_14'
+2026-01-17 15:30:59,079 - ERROR - Error processing LRCX: 'ATR_14'
+2026-01-17 15:30:59,399 - ERROR - Error processing LW: 'ATR_14'
+2026-01-17 15:30:59,708 - ERROR - Error processing LVS: 'ATR_14'
+2026-01-17 15:31:00,224 - ERROR - Error processing LDOS: 'ATR_14'
+2026-01-17 15:31:00,550 - ERROR - Error processing LEN: 'ATR_14'
+2026-01-17 15:31:00,929 - ERROR - Error processing LII: 'ATR_14'
+2026-01-17 15:31:01,335 - ERROR - Error processing LLY: 'ATR_14'
+2026-01-17 15:31:01,849 - ERROR - Error processing LIN: 'ATR_14'
+2026-01-17 15:31:02,136 - ERROR - Error processing LYV: 'ATR_14'
+2026-01-17 15:31:02,623 - ERROR - Error processing LMT: 'ATR_14'
+2026-01-17 15:31:03,067 - ERROR - Error processing L: 'ATR_14'
+2026-01-17 15:31:03,490 - ERROR - Error processing LOW: 'ATR_14'
+2026-01-17 15:31:03,727 - ERROR - Error processing LULU: 'ATR_14'
+2026-01-17 15:31:04,096 - ERROR - Error processing LYB: 'ATR_14'
+2026-01-17 15:31:04,568 - ERROR - Error processing MTB: 'ATR_14'
+2026-01-17 15:31:04,914 - ERROR - Error processing MPC: 'ATR_14'
+2026-01-17 15:31:05,421 - ERROR - Error processing MAR: 'ATR_14'
+2026-01-17 15:31:05,997 - WARNING - Insufficient data for MRSH. Skipping.
+2026-01-17 15:31:06,290 - ERROR - Error processing MLM: 'ATR_14'
+2026-01-17 15:31:06,609 - ERROR - Error processing MAS: 'ATR_14'
+2026-01-17 15:31:07,008 - ERROR - Error processing MA: 'ATR_14'
+2026-01-17 15:31:07,245 - ERROR - Error processing MTCH: 'ATR_14'
+2026-01-17 15:31:07,620 - ERROR - Error processing MKC: 'ATR_14'
+2026-01-17 15:31:08,048 - ERROR - Error processing MCD: 'ATR_14'
+2026-01-17 15:31:08,415 - ERROR - Error processing MCK: 'ATR_14'
+2026-01-17 15:31:08,703 - ERROR - Error processing MDT: 'ATR_14'
+2026-01-17 15:31:09,048 - ERROR - Error processing MRK: 'ATR_14'
+2026-01-17 15:31:09,310 - ERROR - Error processing META: 'ATR_14'
+2026-01-17 15:31:09,734 - ERROR - Error processing MET: 'ATR_14'
+2026-01-17 15:31:10,234 - ERROR - Error processing MTD: 'ATR_14'
+2026-01-17 15:31:10,533 - ERROR - Error processing MGM: 'ATR_14'
+2026-01-17 15:31:10,863 - ERROR - Error processing MCHP: 'ATR_14'
+2026-01-17 15:31:11,171 - ERROR - Error processing MU: 'ATR_14'
+2026-01-17 15:31:11,477 - ERROR - Error processing MSFT: 'ATR_14'
+2026-01-17 15:31:11,776 - ERROR - Error processing MAA: 'ATR_14'
+2026-01-17 15:31:11,979 - ERROR - Error processing MRNA: 'ATR_14'
+2026-01-17 15:31:12,391 - ERROR - Error processing MOH: 'ATR_14'
+2026-01-17 15:31:12,699 - ERROR - Error processing TAP: 'ATR_14'
+2026-01-17 15:31:13,015 - ERROR - Error processing MDLZ: 'ATR_14'
+2026-01-17 15:31:13,423 - ERROR - Error processing MPWR: 'ATR_14'
+2026-01-17 15:31:13,745 - ERROR - Error processing MNST: 'ATR_14'
+2026-01-17 15:31:14,115 - ERROR - Error processing MCO: 'ATR_14'
+2026-01-17 15:31:14,553 - ERROR - Error processing MS: 'ATR_14'
+2026-01-17 15:31:14,853 - ERROR - Error processing MOS: 'ATR_14'
+2026-01-17 15:31:15,254 - ERROR - Error processing MSI: 'ATR_14'
+2026-01-17 15:31:15,666 - ERROR - Error processing MSCI: 'ATR_14'
+2026-01-17 15:31:15,910 - ERROR - Error processing NDAQ: 'ATR_14'
+2026-01-17 15:31:16,297 - ERROR - Error processing NTAP: 'ATR_14'
+2026-01-17 15:31:16,723 - ERROR - Error processing NFLX: 'ATR_14'
+2026-01-17 15:31:17,116 - ERROR - Error processing NEM: 'ATR_14'
+2026-01-17 15:31:17,422 - ERROR - Error processing NWSA: 'ATR_14'
+2026-01-17 15:31:17,895 - ERROR - Error processing NWS: 'ATR_14'
+2026-01-17 15:31:18,265 - ERROR - Error processing NEE: 'ATR_14'
+2026-01-17 15:31:18,552 - ERROR - Error processing NKE: 'ATR_14'
+2026-01-17 15:31:19,145 - ERROR - Error processing NI: 'ATR_14'
+2026-01-17 15:31:19,639 - ERROR - Error processing NDSN: 'ATR_14'
+2026-01-17 15:31:20,001 - ERROR - Error processing NSC: 'ATR_14'
+2026-01-17 15:31:20,545 - ERROR - Error processing NTRS: 'ATR_14'
+2026-01-17 15:31:20,898 - ERROR - Error processing NOC: 'ATR_14'
+2026-01-17 15:31:21,210 - ERROR - Error processing NCLH: 'ATR_14'
+2026-01-17 15:31:21,521 - ERROR - Error processing NRG: 'ATR_14'
+2026-01-17 15:31:21,923 - ERROR - Error processing NUE: 'ATR_14'
+2026-01-17 15:31:22,216 - ERROR - Error processing NVDA: 'ATR_14'
+2026-01-17 15:31:22,530 - ERROR - Error processing NVR: 'ATR_14'
+2026-01-17 15:31:22,766 - ERROR - Error processing NXPI: 'ATR_14'
+2026-01-17 15:31:23,049 - ERROR - Error processing ORLY: 'ATR_14'
+2026-01-17 15:31:23,344 - ERROR - Error processing OXY: 'ATR_14'
+2026-01-17 15:31:23,616 - ERROR - Error processing ODFL: 'ATR_14'
+2026-01-17 15:31:24,070 - ERROR - Error processing OMC: 'ATR_14'
+2026-01-17 15:31:24,580 - ERROR - Error processing ON: 'ATR_14'
+2026-01-17 15:31:24,877 - ERROR - Error processing OKE: 'ATR_14'
+2026-01-17 15:31:25,165 - ERROR - Error processing ORCL: 'ATR_14'
+2026-01-17 15:31:25,483 - ERROR - Error processing OTIS: 'ATR_14'
+2026-01-17 15:31:25,901 - ERROR - Error processing PCAR: 'ATR_14'
+2026-01-17 15:31:26,294 - ERROR - Error processing PKG: 'ATR_14'
+2026-01-17 15:31:26,556 - ERROR - Error processing PLTR: 'ATR_14'
+2026-01-17 15:31:26,947 - ERROR - Error processing PANW: 'ATR_14'
+2026-01-17 15:31:27,229 - ERROR - Error processing PSKY: 'ATR_14'
+2026-01-17 15:31:27,679 - ERROR - Error processing PH: 'ATR_14'
+2026-01-17 15:31:27,928 - ERROR - Error processing PAYX: 'ATR_14'
+2026-01-17 15:31:28,286 - ERROR - Error processing PAYC: 'ATR_14'
+2026-01-17 15:31:28,798 - ERROR - Error processing PYPL: 'ATR_14'
+2026-01-17 15:31:29,190 - ERROR - Error processing PNR: 'ATR_14'
+2026-01-17 15:31:29,502 - ERROR - Error processing PEP: 'ATR_14'
+2026-01-17 15:31:29,931 - ERROR - Error processing PFE: 'ATR_14'
+2026-01-17 15:31:30,437 - ERROR - Error processing PCG: 'ATR_14'
+2026-01-17 15:31:30,730 - ERROR - Error processing PM: 'ATR_14'
+2026-01-17 15:31:31,116 - ERROR - Error processing PSX: 'ATR_14'
+2026-01-17 15:31:31,582 - ERROR - Error processing PNW: 'ATR_14'
+2026-01-17 15:31:31,843 - ERROR - Error processing PNC: 'ATR_14'
+2026-01-17 15:31:32,256 - ERROR - Error processing POOL: 'ATR_14'
+2026-01-17 15:31:32,846 - ERROR - Error processing PPG: 'ATR_14'
+2026-01-17 15:31:33,301 - ERROR - Error processing PPL: 'ATR_14'
+2026-01-17 15:31:33,585 - ERROR - Error processing PFG: 'ATR_14'
+2026-01-17 15:31:33,993 - ERROR - Error processing PG: 'ATR_14'
+2026-01-17 15:31:34,302 - ERROR - Error processing PGR: 'ATR_14'
+2026-01-17 15:31:34,607 - ERROR - Error processing PLD: 'ATR_14'
+2026-01-17 15:31:34,940 - ERROR - Error processing PRU: 'ATR_14'
+2026-01-17 15:31:35,385 - ERROR - Error processing PEG: 'ATR_14'
+2026-01-17 15:31:35,736 - ERROR - Error processing PTC: 'ATR_14'
+2026-01-17 15:31:36,006 - ERROR - Error processing PSA: 'ATR_14'
+2026-01-17 15:31:36,446 - ERROR - Error processing PHM: 'ATR_14'
+2026-01-17 15:31:36,791 - ERROR - Error processing PWR: 'ATR_14'
+2026-01-17 15:31:37,154 - ERROR - Error processing QCOM: 'ATR_14'
+2026-01-17 15:31:37,491 - ERROR - Error processing DGX: 'ATR_14'
+2026-01-17 15:31:37,762 - WARNING - Insufficient data for Q. Skipping.
+2026-01-17 15:31:38,447 - ERROR - Error processing RL: 'ATR_14'
+2026-01-17 15:31:38,788 - ERROR - Error processing RJF: 'ATR_14'
+2026-01-17 15:31:39,102 - ERROR - Error processing RTX: 'ATR_14'
+2026-01-17 15:31:39,429 - ERROR - Error processing O: 'ATR_14'
+2026-01-17 15:31:39,847 - ERROR - Error processing REG: 'ATR_14'
+2026-01-17 15:31:40,133 - ERROR - Error processing REGN: 'ATR_14'
+2026-01-17 15:31:40,472 - ERROR - Error processing RF: 'ATR_14'
+2026-01-17 15:31:40,785 - ERROR - Error processing RSG: 'ATR_14'
+2026-01-17 15:31:41,072 - ERROR - Error processing RMD: 'ATR_14'
+2026-01-17 15:31:41,383 - ERROR - Error processing RVTY: 'ATR_14'
+2026-01-17 15:31:41,768 - ERROR - Error processing HOOD: 'ATR_14'
+2026-01-17 15:31:42,189 - ERROR - Error processing ROK: 'ATR_14'
+2026-01-17 15:31:42,549 - ERROR - Error processing ROL: 'ATR_14'
+2026-01-17 15:31:42,906 - ERROR - Error processing ROP: 'ATR_14'
+2026-01-17 15:31:43,216 - ERROR - Error processing ROST: 'ATR_14'
+2026-01-17 15:31:43,764 - ERROR - Error processing RCL: 'ATR_14'
+2026-01-17 15:31:44,134 - ERROR - Error processing SPGI: 'ATR_14'
+2026-01-17 15:31:44,439 - ERROR - Error processing CRM: 'ATR_14'
+2026-01-17 15:31:45,017 - ERROR - Error processing SNDK: 'ATR_14'
+2026-01-17 15:31:45,336 - ERROR - Error processing SBAC: 'ATR_14'
+2026-01-17 15:31:45,638 - ERROR - Error processing SLB: 'ATR_14'
+2026-01-17 15:31:45,968 - ERROR - Error processing STX: 'ATR_14'
+2026-01-17 15:31:46,212 - ERROR - Error processing SRE: 'ATR_14'
+2026-01-17 15:31:46,570 - ERROR - Error processing NOW: 'ATR_14'
+2026-01-17 15:31:47,152 - ERROR - Error processing SHW: 'ATR_14'
+2026-01-17 15:31:47,542 - ERROR - Error processing SPG: 'ATR_14'
+2026-01-17 15:31:47,794 - ERROR - Error processing SWKS: 'ATR_14'
+2026-01-17 15:31:48,256 - ERROR - Error processing SJM: 'ATR_14'
+2026-01-17 15:31:48,675 - ERROR - Error processing SW: 'ATR_14'
+2026-01-17 15:31:48,960 - ERROR - Error processing SNA: 'ATR_14'
+2026-01-17 15:31:49,346 - ERROR - Error processing SOLV: 'ATR_14'
+2026-01-17 15:31:49,834 - ERROR - Error processing SO: 'ATR_14'
+2026-01-17 15:31:50,180 - ERROR - Error processing LUV: 'ATR_14'
+2026-01-17 15:31:50,592 - ERROR - Error processing SWK: 'ATR_14'
+2026-01-17 15:31:51,047 - ERROR - Error processing SBUX: 'ATR_14'
+2026-01-17 15:31:51,418 - ERROR - Error processing STT: 'ATR_14'
+2026-01-17 15:31:51,676 - ERROR - Error processing STLD: 'ATR_14'
+2026-01-17 15:31:52,006 - ERROR - Error processing STE: 'ATR_14'
+2026-01-17 15:31:52,472 - ERROR - Error processing SYK: 'ATR_14'
+2026-01-17 15:31:52,740 - ERROR - Error processing SMCI: 'ATR_14'
+2026-01-17 15:31:53,027 - ERROR - Error processing SYF: 'ATR_14'
+2026-01-17 15:31:53,437 - ERROR - Error processing SNPS: 'ATR_14'
+2026-01-17 15:31:53,890 - ERROR - Error processing SYY: 'ATR_14'
+2026-01-17 15:31:54,191 - ERROR - Error processing TMUS: 'ATR_14'
+2026-01-17 15:31:54,580 - ERROR - Error processing TROW: 'ATR_14'
+2026-01-17 15:31:55,001 - ERROR - Error processing TTWO: 'ATR_14'
+2026-01-17 15:31:55,386 - ERROR - Error processing TPR: 'ATR_14'
+2026-01-17 15:31:55,718 - ERROR - Error processing TRGP: 'ATR_14'
+2026-01-17 15:31:56,181 - ERROR - Error processing TGT: 'ATR_14'
+2026-01-17 15:31:56,524 - ERROR - Error processing TEL: 'ATR_14'
+2026-01-17 15:31:56,830 - ERROR - Error processing TDY: 'ATR_14'
+2026-01-17 15:31:57,138 - ERROR - Error processing TER: 'ATR_14'
+2026-01-17 15:31:57,532 - ERROR - Error processing TSLA: 'ATR_14'
+2026-01-17 15:31:57,851 - ERROR - Error processing TXN: 'ATR_14'
+2026-01-17 15:31:58,254 - ERROR - Error processing TPL: 'ATR_14'
+2026-01-17 15:31:58,861 - ERROR - Error processing TXT: 'ATR_14'
+2026-01-17 15:31:59,289 - ERROR - Error processing TMO: 'ATR_14'
+2026-01-17 15:31:59,611 - ERROR - Error processing TJX: 'ATR_14'
+2026-01-17 15:31:59,918 - ERROR - Error processing TKO: 'ATR_14'
+2026-01-17 15:32:00,642 - ERROR - Error processing TTD: 'ATR_14'
+2026-01-17 15:32:01,123 - ERROR - Error processing TSCO: 'ATR_14'
+2026-01-17 15:32:01,753 - ERROR - Error processing TT: 'ATR_14'
+2026-01-17 15:32:02,070 - ERROR - Error processing TDG: 'ATR_14'
+2026-01-17 15:32:02,417 - ERROR - Error processing TRV: 'ATR_14'
+2026-01-17 15:32:02,708 - ERROR - Error processing TRMB: 'ATR_14'
+2026-01-17 15:32:03,194 - ERROR - Error processing TFC: 'ATR_14'
+2026-01-17 15:32:03,425 - ERROR - Error processing TYL: 'ATR_14'
+2026-01-17 15:32:03,730 - ERROR - Error processing TSN: 'ATR_14'
+2026-01-17 15:32:04,093 - ERROR - Error processing USB: 'ATR_14'
+2026-01-17 15:32:04,412 - ERROR - Error processing UBER: 'ATR_14'
+2026-01-17 15:32:04,778 - ERROR - Error processing UDR: 'ATR_14'
+2026-01-17 15:32:05,021 - ERROR - Error processing ULTA: 'ATR_14'
+2026-01-17 15:32:05,436 - ERROR - Error processing UNP: 'ATR_14'
+2026-01-17 15:32:05,743 - ERROR - Error processing UAL: 'ATR_14'
+2026-01-17 15:32:06,389 - ERROR - Error processing UPS: 'ATR_14'
+2026-01-17 15:32:06,678 - ERROR - Error processing URI: 'ATR_14'
+2026-01-17 15:32:07,057 - ERROR - Error processing UNH: 'ATR_14'
+2026-01-17 15:32:07,396 - ERROR - Error processing UHS: 'ATR_14'
+2026-01-17 15:32:07,689 - ERROR - Error processing VLO: 'ATR_14'
+2026-01-17 15:32:08,273 - ERROR - Error processing VTR: 'ATR_14'
+2026-01-17 15:32:08,598 - ERROR - Error processing VLTO: 'ATR_14'
+2026-01-17 15:32:08,924 - ERROR - Error processing VRSN: 'ATR_14'
+2026-01-17 15:32:09,341 - ERROR - Error processing VRSK: 'ATR_14'
+2026-01-17 15:32:09,619 - ERROR - Error processing VZ: 'ATR_14'
+2026-01-17 15:32:10,059 - ERROR - Error processing VRTX: 'ATR_14'
+2026-01-17 15:32:10,534 - ERROR - Error processing VTRS: 'ATR_14'
+2026-01-17 15:32:10,886 - ERROR - Error processing VICI: 'ATR_14'
+2026-01-17 15:32:11,288 - ERROR - Error processing V: 'ATR_14'
+2026-01-17 15:32:11,583 - ERROR - Error processing VST: 'ATR_14'
+2026-01-17 15:32:12,206 - ERROR - Error processing VMC: 'ATR_14'
+2026-01-17 15:32:12,511 - ERROR - Error processing WRB: 'ATR_14'
+2026-01-17 15:32:13,016 - ERROR - Error processing GWW: 'ATR_14'
+2026-01-17 15:32:13,343 - ERROR - Error processing WAB: 'ATR_14'
+2026-01-17 15:32:13,808 - ERROR - Error processing WMT: 'ATR_14'
+2026-01-17 15:32:14,357 - ERROR - Error processing DIS: 'ATR_14'
+2026-01-17 15:32:14,868 - ERROR - Error processing WBD: 'ATR_14'
+2026-01-17 15:32:15,271 - ERROR - Error processing WM: 'ATR_14'
+2026-01-17 15:32:15,536 - ERROR - Error processing WAT: 'ATR_14'
+2026-01-17 15:32:16,208 - ERROR - Error processing WEC: 'ATR_14'
+2026-01-17 15:32:16,794 - ERROR - Error processing WFC: 'ATR_14'
+2026-01-17 15:32:17,083 - ERROR - Error processing WELL: 'ATR_14'
+2026-01-17 15:32:17,364 - ERROR - Error processing WST: 'ATR_14'
+2026-01-17 15:32:17,716 - ERROR - Error processing WDC: 'ATR_14'
+2026-01-17 15:32:18,390 - ERROR - Error processing WY: 'ATR_14'
+2026-01-17 15:32:18,708 - ERROR - Error processing WSM: 'ATR_14'
+2026-01-17 15:32:19,137 - ERROR - Error processing WMB: 'ATR_14'
+2026-01-17 15:32:19,655 - ERROR - Error processing WTW: 'ATR_14'
+2026-01-17 15:32:19,952 - ERROR - Error processing WDAY: 'ATR_14'
+2026-01-17 15:32:20,294 - ERROR - Error processing WYNN: 'ATR_14'
+2026-01-17 15:32:20,620 - ERROR - Error processing XEL: 'ATR_14'
+2026-01-17 15:32:20,889 - ERROR - Error processing XYL: 'ATR_14'
+2026-01-17 15:32:21,232 - ERROR - Error processing YUM: 'ATR_14'
+2026-01-17 15:32:21,459 - ERROR - Error processing ZBRA: 'ATR_14'
+2026-01-17 15:32:21,745 - ERROR - Error processing ZBH: 'ATR_14'
+2026-01-17 15:32:22,001 - ERROR - Error processing ZTS: 'ATR_14'
+2026-01-17 15:32:22,001 - INFO - ======================================================================
+2026-01-17 15:32:22,001 - INFO - SCREENING STATISTICS
+2026-01-17 15:32:22,002 - INFO - ======================================================================
+2026-01-17 15:32:22,002 - INFO - Total tickers analyzed: 503
+2026-01-17 15:32:22,002 - INFO - Successful analyses: 0
+2026-01-17 15:32:22,002 - INFO - Errors encountered: 503
+2026-01-17 15:32:22,003 - INFO - Signals generated: 0
+2026-01-17 15:32:22,003 - INFO - Signal rate: 0.00%
+2026-01-17 15:32:22,003 - INFO - ======================================================================
+2026-01-17 15:32:22,004 - INFO - No stocks found meeting the enhanced criteria today
+2026-01-17 15:32:22,004 - INFO - ======================================================================
+2026-01-17 15:32:22,004 - INFO - 
+Screening complete. Check log file for details.
+2026-01-17 15:48:24,412 - INFO - Successfully pulled 503 S&P 500 tickers from Wikipedia
+2026-01-17 15:48:24,417 - INFO - ======================================================================
+2026-01-17 15:48:24,437 - INFO - ENHANCED OPTIONS PREMIUM SCREENER
+2026-01-17 15:48:24,450 - INFO - ======================================================================
+2026-01-17 15:48:24,468 - INFO - Criteria: RSI < 35, Price > SMA 200, Active Volume
+2026-01-17 15:48:24,475 - INFO - Enhanced Filters: Bollinger Bands, ATR, Volume Surge, Support Levels
+2026-01-17 15:48:24,478 - INFO - ======================================================================
+2026-01-17 15:48:30,819 - ERROR - Error processing MMM: 'ATR_14'
+2026-01-17 15:48:31,277 - ERROR - Error processing AOS: 'ATR_14'
+2026-01-17 15:48:31,719 - ERROR - Error processing ABT: 'ATR_14'
+2026-01-17 15:48:32,082 - ERROR - Error processing ABBV: 'ATR_14'
+2026-01-17 15:48:32,442 - ERROR - Error processing ACN: 'ATR_14'
+2026-01-17 15:48:32,816 - ERROR - Error processing ADBE: 'ATR_14'
+2026-01-17 15:48:33,181 - ERROR - Error processing AMD: 'ATR_14'
+2026-01-17 15:48:33,668 - ERROR - Error processing AES: 'ATR_14'
+2026-01-17 15:48:34,036 - ERROR - Error processing AFL: 'ATR_14'
+2026-01-17 15:48:34,445 - ERROR - Error processing A: 'ATR_14'
+2026-01-17 15:48:34,996 - ERROR - Error processing APD: 'ATR_14'
+2026-01-17 15:48:35,483 - ERROR - Error processing ABNB: 'ATR_14'
+2026-01-17 15:48:35,766 - ERROR - Error processing AKAM: 'ATR_14'
+2026-01-17 15:48:36,176 - ERROR - Error processing ALB: 'ATR_14'
+2026-01-17 15:48:36,462 - ERROR - Error processing ARE: 'ATR_14'
+2026-01-17 15:48:36,822 - ERROR - Error processing ALGN: 'ATR_14'
+2026-01-17 15:48:37,081 - ERROR - Error processing ALLE: 'ATR_14'
+2026-01-17 15:48:37,386 - ERROR - Error processing LNT: 'ATR_14'
+2026-01-17 15:48:37,695 - ERROR - Error processing ALL: 'ATR_14'
+2026-01-17 15:48:38,118 - ERROR - Error processing GOOGL: 'ATR_14'
+2026-01-17 15:48:38,434 - ERROR - Error processing GOOG: 'ATR_14'
+2026-01-17 15:48:38,829 - ERROR - Error processing MO: 'ATR_14'
+2026-01-17 15:48:39,370 - ERROR - Error processing AMZN: 'ATR_14'
+2026-01-17 15:48:39,809 - ERROR - Error processing AMCR: 'ATR_14'
+2026-01-17 15:48:40,174 - ERROR - Error processing AEE: 'ATR_14'
+2026-01-17 15:48:40,546 - ERROR - Error processing AEP: 'ATR_14'
+2026-01-17 15:48:41,018 - ERROR - Error processing AXP: 'ATR_14'
+2026-01-17 15:48:41,431 - ERROR - Error processing AIG: 'ATR_14'
+2026-01-17 15:48:41,816 - ERROR - Error processing AMT: 'ATR_14'
+2026-01-17 15:48:42,422 - ERROR - Error processing AWK: 'ATR_14'
+2026-01-17 15:48:42,940 - ERROR - Error processing AMP: 'ATR_14'
+2026-01-17 15:48:43,663 - ERROR - Error processing AME: 'ATR_14'
+2026-01-17 15:48:44,082 - ERROR - Error processing AMGN: 'ATR_14'
+2026-01-17 15:48:44,355 - ERROR - Error processing APH: 'ATR_14'
+2026-01-17 15:48:44,613 - ERROR - Error processing ADI: 'ATR_14'
+2026-01-17 15:48:45,059 - ERROR - Error processing AON: 'ATR_14'
+2026-01-17 15:48:45,341 - ERROR - Error processing APA: 'ATR_14'
+2026-01-17 15:48:45,730 - ERROR - Error processing APO: 'ATR_14'
+2026-01-17 15:48:46,107 - ERROR - Error processing AAPL: 'ATR_14'
+2026-01-17 15:48:46,571 - ERROR - Error processing AMAT: 'ATR_14'
+2026-01-17 15:48:46,801 - ERROR - Error processing APP: 'ATR_14'
+2026-01-17 15:48:47,080 - ERROR - Error processing APTV: 'ATR_14'
+2026-01-17 15:48:47,310 - ERROR - Error processing ACGL: 'ATR_14'
+2026-01-17 15:48:47,661 - ERROR - Error processing ADM: 'ATR_14'
+2026-01-17 15:48:47,964 - ERROR - Error processing ARES: 'ATR_14'
+2026-01-17 15:48:48,273 - ERROR - Error processing ANET: 'ATR_14'
+2026-01-17 15:48:48,769 - ERROR - Error processing AJG: 'ATR_14'
+2026-01-17 15:48:49,149 - ERROR - Error processing AIZ: 'ATR_14'
+2026-01-17 15:48:49,643 - ERROR - Error processing T: 'ATR_14'
+2026-01-17 15:48:50,254 - ERROR - Error processing ATO: 'ATR_14'
+2026-01-17 15:48:50,535 - ERROR - Error processing ADSK: 'ATR_14'
+2026-01-17 15:48:50,837 - ERROR - Error processing ADP: 'ATR_14'
+2026-01-17 15:48:51,127 - ERROR - Error processing AZO: 'ATR_14'
+2026-01-17 15:48:51,539 - ERROR - Error processing AVB: 'ATR_14'
+2026-01-17 15:48:51,855 - ERROR - Error processing AVY: 'ATR_14'
+2026-01-17 15:48:52,354 - ERROR - Error processing AXON: 'ATR_14'
+2026-01-17 15:48:52,772 - ERROR - Error processing BKR: 'ATR_14'
+2026-01-17 15:48:53,081 - ERROR - Error processing BALL: 'ATR_14'
+2026-01-17 15:48:53,537 - ERROR - Error processing BAC: 'ATR_14'
+2026-01-17 15:48:53,912 - ERROR - Error processing BAX: 'ATR_14'
+2026-01-17 15:48:54,302 - ERROR - Error processing BDX: 'ATR_14'
+2026-01-17 15:48:54,701 - ERROR - Error processing BRK-B: 'ATR_14'
+2026-01-17 15:48:55,135 - ERROR - Error processing BBY: 'ATR_14'
+2026-01-17 15:48:55,490 - ERROR - Error processing TECH: 'ATR_14'
+2026-01-17 15:48:55,777 - ERROR - Error processing BIIB: 'ATR_14'
+2026-01-17 15:48:56,125 - ERROR - Error processing BLK: 'ATR_14'
+2026-01-17 15:48:56,454 - ERROR - Error processing BX: 'ATR_14'
+2026-01-17 15:48:56,918 - ERROR - Error processing XYZ: 'ATR_14'
+2026-01-17 15:48:57,169 - ERROR - Error processing BK: 'ATR_14'
+2026-01-17 15:48:57,685 - ERROR - Error processing BA: 'ATR_14'
+2026-01-17 15:48:58,151 - ERROR - Error processing BKNG: 'ATR_14'
+2026-01-17 15:48:58,448 - ERROR - Error processing BSX: 'ATR_14'
+2026-01-17 15:48:58,935 - ERROR - Error processing BMY: 'ATR_14'
+2026-01-17 15:48:59,337 - ERROR - Error processing AVGO: 'ATR_14'
+2026-01-17 15:48:59,678 - ERROR - Error processing BR: 'ATR_14'
+2026-01-17 15:48:59,949 - ERROR - Error processing BRO: 'ATR_14'
+2026-01-17 15:49:00,243 - ERROR - Error processing BF-B: 'ATR_14'
+2026-01-17 15:49:00,502 - ERROR - Error processing BLDR: 'ATR_14'
+2026-01-17 15:49:00,872 - ERROR - Error processing BG: 'ATR_14'
+2026-01-17 15:49:01,308 - ERROR - Error processing BXP: 'ATR_14'
+2026-01-17 15:49:01,763 - ERROR - Error processing CHRW: 'ATR_14'
+2026-01-17 15:49:02,190 - ERROR - Error processing CDNS: 'ATR_14'
+2026-01-17 15:49:02,614 - ERROR - Error processing CPT: 'ATR_14'
+2026-01-17 15:49:03,117 - ERROR - Error processing CPB: 'ATR_14'
+2026-01-17 15:49:03,510 - ERROR - Error processing COF: 'ATR_14'
+2026-01-17 15:49:03,987 - ERROR - Error processing CAH: 'ATR_14'
+2026-01-17 15:49:04,323 - ERROR - Error processing CCL: 'ATR_14'
+2026-01-17 15:49:04,659 - ERROR - Error processing CARR: 'ATR_14'
+2026-01-17 15:49:05,061 - ERROR - Error processing CVNA: 'ATR_14'
+2026-01-17 15:49:05,385 - ERROR - Error processing CAT: 'ATR_14'
+2026-01-17 15:49:05,784 - ERROR - Error processing CBOE: 'ATR_14'
+2026-01-17 15:49:06,117 - ERROR - Error processing CBRE: 'ATR_14'
+2026-01-17 15:49:06,498 - ERROR - Error processing CDW: 'ATR_14'
+2026-01-17 15:49:06,814 - ERROR - Error processing COR: 'ATR_14'
+2026-01-17 15:49:07,228 - ERROR - Error processing CNC: 'ATR_14'
+2026-01-17 15:49:07,630 - ERROR - Error processing CNP: 'ATR_14'
+2026-01-17 15:49:08,130 - ERROR - Error processing CF: 'ATR_14'
+2026-01-17 15:49:08,445 - ERROR - Error processing CRL: 'ATR_14'
+2026-01-17 15:49:08,763 - ERROR - Error processing SCHW: 'ATR_14'
+2026-01-17 15:49:08,966 - ERROR - Error processing CHTR: 'ATR_14'
+2026-01-17 15:49:09,392 - ERROR - Error processing CVX: 'ATR_14'
+2026-01-17 15:49:09,699 - ERROR - Error processing CMG: 'ATR_14'
+2026-01-17 15:49:09,975 - ERROR - Error processing CB: 'ATR_14'
+2026-01-17 15:49:10,331 - ERROR - Error processing CHD: 'ATR_14'
+2026-01-17 15:49:10,992 - ERROR - Error processing CI: 'ATR_14'
+2026-01-17 15:49:11,316 - ERROR - Error processing CINF: 'ATR_14'
+2026-01-17 15:49:11,633 - ERROR - Error processing CTAS: 'ATR_14'
+2026-01-17 15:49:12,006 - ERROR - Error processing CSCO: 'ATR_14'
+2026-01-17 15:49:12,688 - ERROR - Error processing C: 'ATR_14'
+2026-01-17 15:49:13,056 - ERROR - Error processing CFG: 'ATR_14'
+2026-01-17 15:49:13,460 - ERROR - Error processing CLX: 'ATR_14'
+2026-01-17 15:49:13,877 - ERROR - Error processing CME: 'ATR_14'
+2026-01-17 15:49:14,504 - ERROR - Error processing CMS: 'ATR_14'
+2026-01-17 15:49:15,211 - ERROR - Error processing KO: 'ATR_14'
+2026-01-17 15:49:15,555 - ERROR - Error processing CTSH: 'ATR_14'
+2026-01-17 15:49:15,812 - ERROR - Error processing COIN: 'ATR_14'
+2026-01-17 15:49:16,111 - ERROR - Error processing CL: 'ATR_14'
+2026-01-17 15:49:16,386 - ERROR - Error processing CMCSA: 'ATR_14'
+2026-01-17 15:49:16,647 - ERROR - Error processing FIX: 'ATR_14'
+2026-01-17 15:49:17,027 - ERROR - Error processing CAG: 'ATR_14'
+2026-01-17 15:49:17,454 - ERROR - Error processing COP: 'ATR_14'
+2026-01-17 15:49:17,863 - ERROR - Error processing ED: 'ATR_14'
+2026-01-17 15:49:18,280 - ERROR - Error processing STZ: 'ATR_14'
+2026-01-17 15:49:18,699 - ERROR - Error processing CEG: 'ATR_14'
+2026-01-17 15:49:19,081 - ERROR - Error processing COO: 'ATR_14'
+2026-01-17 15:49:19,591 - ERROR - Error processing CPRT: 'ATR_14'
+2026-01-17 15:49:20,027 - ERROR - Error processing GLW: 'ATR_14'
+2026-01-17 15:49:20,218 - ERROR - Error processing CPAY: 'ATR_14'
+2026-01-17 15:49:20,650 - ERROR - Error processing CTVA: 'ATR_14'
+2026-01-17 15:49:21,028 - ERROR - Error processing CSGP: 'ATR_14'
+2026-01-17 15:49:21,341 - ERROR - Error processing COST: 'ATR_14'
+2026-01-17 15:49:21,644 - ERROR - Error processing CTRA: 'ATR_14'
+2026-01-17 15:49:21,965 - ERROR - Error processing CRH: 'ATR_14'
+2026-01-17 15:49:22,443 - ERROR - Error processing CRWD: 'ATR_14'
+2026-01-17 15:49:22,779 - ERROR - Error processing CCI: 'ATR_14'
+2026-01-17 15:49:23,150 - ERROR - Error processing CSX: 'ATR_14'
+2026-01-17 15:49:23,683 - ERROR - Error processing CMI: 'ATR_14'
+2026-01-17 15:49:24,039 - ERROR - Error processing CVS: 'ATR_14'
+2026-01-17 15:49:24,521 - ERROR - Error processing DHR: 'ATR_14'
+2026-01-17 15:49:24,827 - ERROR - Error processing DRI: 'ATR_14'
+2026-01-17 15:49:25,148 - ERROR - Error processing DDOG: 'ATR_14'
+2026-01-17 15:49:25,424 - ERROR - Error processing DVA: 'ATR_14'
+2026-01-17 15:49:25,702 - ERROR - Error processing DAY: 'ATR_14'
+2026-01-17 15:49:26,071 - ERROR - Error processing DECK: 'ATR_14'
+2026-01-17 15:49:26,476 - ERROR - Error processing DE: 'ATR_14'
+2026-01-17 15:49:26,777 - ERROR - Error processing DELL: 'ATR_14'
+2026-01-17 15:49:27,104 - ERROR - Error processing DAL: 'ATR_14'
+2026-01-17 15:49:27,598 - ERROR - Error processing DVN: 'ATR_14'
+2026-01-17 15:49:27,879 - ERROR - Error processing DXCM: 'ATR_14'
+2026-01-17 15:49:28,207 - ERROR - Error processing FANG: 'ATR_14'
+2026-01-17 15:49:28,605 - ERROR - Error processing DLR: 'ATR_14'
+2026-01-17 15:49:28,898 - ERROR - Error processing DG: 'ATR_14'
+2026-01-17 15:49:29,331 - ERROR - Error processing DLTR: 'ATR_14'
+2026-01-17 15:49:29,629 - ERROR - Error processing D: 'ATR_14'
+2026-01-17 15:49:30,182 - ERROR - Error processing DPZ: 'ATR_14'
+2026-01-17 15:49:30,550 - ERROR - Error processing DASH: 'ATR_14'
+2026-01-17 15:49:30,975 - ERROR - Error processing DOV: 'ATR_14'
+2026-01-17 15:49:31,299 - ERROR - Error processing DOW: 'ATR_14'
+2026-01-17 15:49:31,686 - ERROR - Error processing DHI: 'ATR_14'
+2026-01-17 15:49:32,094 - ERROR - Error processing DTE: 'ATR_14'
+2026-01-17 15:49:32,513 - ERROR - Error processing DUK: 'ATR_14'
+2026-01-17 15:49:33,104 - ERROR - Error processing DD: 'ATR_14'
+2026-01-17 15:49:33,515 - ERROR - Error processing ETN: 'ATR_14'
+2026-01-17 15:49:33,794 - ERROR - Error processing EBAY: 'ATR_14'
+2026-01-17 15:49:34,153 - ERROR - Error processing ECL: 'ATR_14'
+2026-01-17 15:49:34,512 - ERROR - Error processing EIX: 'ATR_14'
+2026-01-17 15:49:34,825 - ERROR - Error processing EW: 'ATR_14'
+2026-01-17 15:49:35,088 - ERROR - Error processing EA: 'ATR_14'
+2026-01-17 15:49:35,383 - ERROR - Error processing ELV: 'ATR_14'
+2026-01-17 15:49:35,773 - ERROR - Error processing EME: 'ATR_14'
+2026-01-17 15:49:36,273 - ERROR - Error processing EMR: 'ATR_14'
+2026-01-17 15:49:36,701 - ERROR - Error processing ETR: 'ATR_14'
+2026-01-17 15:49:37,214 - ERROR - Error processing EOG: 'ATR_14'
+2026-01-17 15:49:37,708 - ERROR - Error processing EPAM: 'ATR_14'
+2026-01-17 15:49:38,229 - ERROR - Error processing EQT: 'ATR_14'
+2026-01-17 15:49:38,747 - ERROR - Error processing EFX: 'ATR_14'
+2026-01-17 15:49:39,265 - ERROR - Error processing EQIX: 'ATR_14'
+2026-01-17 15:49:39,597 - ERROR - Error processing EQR: 'ATR_14'
+2026-01-17 15:49:39,996 - ERROR - Error processing ERIE: 'ATR_14'
+2026-01-17 15:49:40,485 - ERROR - Error processing ESS: 'ATR_14'
+2026-01-17 15:49:41,107 - ERROR - Error processing EL: 'ATR_14'
+2026-01-17 15:49:41,510 - ERROR - Error processing EG: 'ATR_14'
+2026-01-17 15:49:41,948 - ERROR - Error processing EVRG: 'ATR_14'
+2026-01-17 15:49:42,518 - ERROR - Error processing ES: 'ATR_14'
+2026-01-17 15:49:42,974 - ERROR - Error processing EXC: 'ATR_14'
+2026-01-17 15:49:43,359 - ERROR - Error processing EXE: 'ATR_14'
+2026-01-17 15:49:43,620 - ERROR - Error processing EXPE: 'ATR_14'
+2026-01-17 15:49:43,888 - ERROR - Error processing EXPD: 'ATR_14'
+2026-01-17 15:49:44,249 - ERROR - Error processing EXR: 'ATR_14'
+2026-01-17 15:49:44,673 - ERROR - Error processing XOM: 'ATR_14'
+2026-01-17 15:49:44,965 - ERROR - Error processing FFIV: 'ATR_14'
+2026-01-17 15:49:45,230 - ERROR - Error processing FDS: 'ATR_14'
+2026-01-17 15:49:45,606 - ERROR - Error processing FICO: 'ATR_14'
+2026-01-17 15:49:46,113 - ERROR - Error processing FAST: 'ATR_14'
+2026-01-17 15:49:46,426 - ERROR - Error processing FRT: 'ATR_14'
+2026-01-17 15:49:46,814 - ERROR - Error processing FDX: 'ATR_14'
+2026-01-17 15:49:47,141 - ERROR - Error processing FIS: 'ATR_14'
+2026-01-17 15:49:47,556 - ERROR - Error processing FITB: 'ATR_14'
+2026-01-17 15:49:47,848 - ERROR - Error processing FSLR: 'ATR_14'
+2026-01-17 15:49:48,162 - ERROR - Error processing FE: 'ATR_14'
+2026-01-17 15:49:48,478 - ERROR - Error processing FISV: 'ATR_14'
+2026-01-17 15:49:48,807 - ERROR - Error processing F: 'ATR_14'
+2026-01-17 15:49:49,311 - ERROR - Error processing FTNT: 'ATR_14'
+2026-01-17 15:49:49,725 - ERROR - Error processing FTV: 'ATR_14'
+2026-01-17 15:49:50,010 - ERROR - Error processing FOXA: 'ATR_14'
+2026-01-17 15:49:50,348 - ERROR - Error processing FOX: 'ATR_14'
+2026-01-17 15:49:50,831 - ERROR - Error processing BEN: 'ATR_14'
+2026-01-17 15:49:51,246 - ERROR - Error processing FCX: 'ATR_14'
+2026-01-17 15:49:51,634 - ERROR - Error processing GRMN: 'ATR_14'
+2026-01-17 15:49:52,284 - ERROR - Error processing IT: 'ATR_14'
+2026-01-17 15:49:52,689 - ERROR - Error processing GE: 'ATR_14'
+2026-01-17 15:49:53,100 - ERROR - Error processing GEHC: 'ATR_14'
+2026-01-17 15:49:53,388 - ERROR - Error processing GEV: 'ATR_14'
+2026-01-17 15:49:53,680 - ERROR - Error processing GEN: 'ATR_14'
+2026-01-17 15:49:54,089 - ERROR - Error processing GNRC: 'ATR_14'
+2026-01-17 15:49:54,712 - ERROR - Error processing GD: 'ATR_14'
+2026-01-17 15:49:55,034 - ERROR - Error processing GIS: 'ATR_14'
+2026-01-17 15:49:55,453 - ERROR - Error processing GM: 'ATR_14'
+2026-01-17 15:49:55,876 - ERROR - Error processing GPC: 'ATR_14'
+2026-01-17 15:49:56,231 - ERROR - Error processing GILD: 'ATR_14'
+2026-01-17 15:49:56,579 - ERROR - Error processing GPN: 'ATR_14'
+2026-01-17 15:49:57,191 - ERROR - Error processing GL: 'ATR_14'
+2026-01-17 15:49:57,809 - ERROR - Error processing GDDY: 'ATR_14'
+2026-01-17 15:49:58,276 - ERROR - Error processing GS: 'ATR_14'
+2026-01-17 15:49:58,707 - ERROR - Error processing HAL: 'ATR_14'
+2026-01-17 15:49:59,378 - ERROR - Error processing HIG: 'ATR_14'
+2026-01-17 15:49:59,734 - ERROR - Error processing HAS: 'ATR_14'
+2026-01-17 15:50:00,047 - ERROR - Error processing HCA: 'ATR_14'
+2026-01-17 15:50:00,581 - ERROR - Error processing DOC: 'ATR_14'
+2026-01-17 15:50:00,787 - ERROR - Error processing HSIC: 'ATR_14'
+2026-01-17 15:50:01,230 - ERROR - Error processing HSY: 'ATR_14'
+2026-01-17 15:50:01,753 - ERROR - Error processing HPE: 'ATR_14'
+2026-01-17 15:50:01,950 - ERROR - Error processing HLT: 'ATR_14'
+2026-01-17 15:50:02,368 - ERROR - Error processing HOLX: 'ATR_14'
+2026-01-17 15:50:02,710 - ERROR - Error processing HD: 'ATR_14'
+2026-01-17 15:50:03,218 - ERROR - Error processing HON: 'ATR_14'
+2026-01-17 15:50:03,631 - ERROR - Error processing HRL: 'ATR_14'
+2026-01-17 15:50:04,103 - ERROR - Error processing HST: 'ATR_14'
+2026-01-17 15:50:04,448 - ERROR - Error processing HWM: 'ATR_14'
+2026-01-17 15:50:04,983 - ERROR - Error processing HPQ: 'ATR_14'
+2026-01-17 15:50:05,370 - ERROR - Error processing HUBB: 'ATR_14'
+2026-01-17 15:50:05,884 - ERROR - Error processing HUM: 'ATR_14'
+2026-01-17 15:50:06,391 - ERROR - Error processing HBAN: 'ATR_14'
+2026-01-17 15:50:06,630 - ERROR - Error processing HII: 'ATR_14'
+2026-01-17 15:50:07,210 - ERROR - Error processing IBM: 'ATR_14'
+2026-01-17 15:50:07,534 - ERROR - Error processing IEX: 'ATR_14'
+2026-01-17 15:50:07,852 - ERROR - Error processing IDXX: 'ATR_14'
+2026-01-17 15:50:08,385 - ERROR - Error processing ITW: 'ATR_14'
+2026-01-17 15:50:08,738 - ERROR - Error processing INCY: 'ATR_14'
+2026-01-17 15:50:09,384 - ERROR - Error processing IR: 'ATR_14'
+2026-01-17 15:50:09,605 - ERROR - Error processing PODD: 'ATR_14'
+2026-01-17 15:50:09,992 - ERROR - Error processing INTC: 'ATR_14'
+2026-01-17 15:50:10,305 - ERROR - Error processing IBKR: 'ATR_14'
+2026-01-17 15:50:10,681 - ERROR - Error processing ICE: 'ATR_14'
+2026-01-17 15:50:11,071 - ERROR - Error processing IFF: 'ATR_14'
+2026-01-17 15:50:11,431 - ERROR - Error processing IP: 'ATR_14'
+2026-01-17 15:50:11,932 - ERROR - Error processing INTU: 'ATR_14'
+2026-01-17 15:50:12,308 - ERROR - Error processing ISRG: 'ATR_14'
+2026-01-17 15:50:12,730 - ERROR - Error processing IVZ: 'ATR_14'
+2026-01-17 15:50:13,258 - ERROR - Error processing INVH: 'ATR_14'
+2026-01-17 15:50:13,573 - ERROR - Error processing IQV: 'ATR_14'
+2026-01-17 15:50:13,970 - ERROR - Error processing IRM: 'ATR_14'
+2026-01-17 15:50:14,451 - ERROR - Error processing JBHT: 'ATR_14'
+2026-01-17 15:50:14,811 - ERROR - Error processing JBL: 'ATR_14'
+2026-01-17 15:50:15,218 - ERROR - Error processing JKHY: 'ATR_14'
+2026-01-17 15:50:15,498 - ERROR - Error processing J: 'ATR_14'
+2026-01-17 15:50:15,974 - ERROR - Error processing JNJ: 'ATR_14'
+2026-01-17 15:50:16,458 - ERROR - Error processing JCI: 'ATR_14'
+2026-01-17 15:50:16,811 - ERROR - Error processing JPM: 'ATR_14'
+2026-01-17 15:50:17,337 - ERROR - Error processing KVUE: 'ATR_14'
+2026-01-17 15:50:17,740 - ERROR - Error processing KDP: 'ATR_14'
+2026-01-17 15:50:18,049 - ERROR - Error processing KEY: 'ATR_14'
+2026-01-17 15:50:18,397 - ERROR - Error processing KEYS: 'ATR_14'
+2026-01-17 15:50:18,644 - ERROR - Error processing KMB: 'ATR_14'
+2026-01-17 15:50:18,935 - ERROR - Error processing KIM: 'ATR_14'
+2026-01-17 15:50:19,209 - ERROR - Error processing KMI: 'ATR_14'
+2026-01-17 15:50:19,668 - ERROR - Error processing KKR: 'ATR_14'
+2026-01-17 15:50:19,953 - ERROR - Error processing KLAC: 'ATR_14'
+2026-01-17 15:50:20,234 - ERROR - Error processing KHC: 'ATR_14'
+2026-01-17 15:50:20,647 - ERROR - Error processing KR: 'ATR_14'
+2026-01-17 15:50:20,942 - ERROR - Error processing LHX: 'ATR_14'
+2026-01-17 15:50:21,234 - ERROR - Error processing LH: 'ATR_14'
+2026-01-17 15:50:21,470 - ERROR - Error processing LRCX: 'ATR_14'
+2026-01-17 15:50:21,762 - ERROR - Error processing LW: 'ATR_14'
+2026-01-17 15:50:22,066 - ERROR - Error processing LVS: 'ATR_14'
+2026-01-17 15:50:22,501 - ERROR - Error processing LDOS: 'ATR_14'
+2026-01-17 15:50:22,787 - ERROR - Error processing LEN: 'ATR_14'
+2026-01-17 15:50:23,200 - ERROR - Error processing LII: 'ATR_14'
+2026-01-17 15:50:23,614 - ERROR - Error processing LLY: 'ATR_14'
+2026-01-17 15:50:23,920 - ERROR - Error processing LIN: 'ATR_14'
+2026-01-17 15:50:24,304 - ERROR - Error processing LYV: 'ATR_14'
+2026-01-17 15:50:24,819 - ERROR - Error processing LMT: 'ATR_14'
+2026-01-17 15:50:25,198 - ERROR - Error processing L: 'ATR_14'
+2026-01-17 15:50:25,504 - ERROR - Error processing LOW: 'ATR_14'
+2026-01-17 15:50:25,836 - ERROR - Error processing LULU: 'ATR_14'
+2026-01-17 15:50:26,253 - ERROR - Error processing LYB: 'ATR_14'
+2026-01-17 15:50:26,676 - ERROR - Error processing MTB: 'ATR_14'
+2026-01-17 15:50:27,039 - ERROR - Error processing MPC: 'ATR_14'
+2026-01-17 15:50:27,421 - ERROR - Error processing MAR: 'ATR_14'
+2026-01-17 15:50:27,774 - WARNING - Insufficient data for MRSH. Skipping.
+2026-01-17 15:50:28,212 - ERROR - Error processing MLM: 'ATR_14'
+2026-01-17 15:50:28,635 - ERROR - Error processing MAS: 'ATR_14'
+2026-01-17 15:50:28,903 - ERROR - Error processing MA: 'ATR_14'
+2026-01-17 15:50:29,254 - ERROR - Error processing MTCH: 'ATR_14'
+2026-01-17 15:50:29,555 - ERROR - Error processing MKC: 'ATR_14'
+2026-01-17 15:50:30,054 - ERROR - Error processing MCD: 'ATR_14'
+2026-01-17 15:50:30,366 - ERROR - Error processing MCK: 'ATR_14'
+2026-01-17 15:50:30,669 - ERROR - Error processing MDT: 'ATR_14'
+2026-01-17 15:50:31,000 - ERROR - Error processing MRK: 'ATR_14'
+2026-01-17 15:50:31,385 - ERROR - Error processing META: 'ATR_14'
+2026-01-17 15:50:31,783 - ERROR - Error processing MET: 'ATR_14'
+2026-01-17 15:50:31,976 - ERROR - Error processing MTD: 'ATR_14'
+2026-01-17 15:50:32,285 - ERROR - Error processing MGM: 'ATR_14'
+2026-01-17 15:50:32,741 - ERROR - Error processing MCHP: 'ATR_14'
+2026-01-17 15:50:33,057 - ERROR - Error processing MU: 'ATR_14'
+2026-01-17 15:50:33,751 - ERROR - Error processing MSFT: 'ATR_14'
+2026-01-17 15:50:34,171 - ERROR - Error processing MAA: 'ATR_14'
+2026-01-17 15:50:34,438 - ERROR - Error processing MRNA: 'ATR_14'
+2026-01-17 15:50:34,763 - ERROR - Error processing MOH: 'ATR_14'
+2026-01-17 15:50:35,145 - ERROR - Error processing TAP: 'ATR_14'
+2026-01-17 15:50:35,442 - ERROR - Error processing MDLZ: 'ATR_14'
+2026-01-17 15:50:35,675 - ERROR - Error processing MPWR: 'ATR_14'
+2026-01-17 15:50:35,886 - ERROR - Error processing MNST: 'ATR_14'
+2026-01-17 15:50:36,108 - ERROR - Error processing MCO: 'ATR_14'
+2026-01-17 15:50:36,345 - ERROR - Error processing MS: 'ATR_14'
+2026-01-17 15:50:36,661 - ERROR - Error processing MOS: 'ATR_14'
+2026-01-17 15:50:37,005 - ERROR - Error processing MSI: 'ATR_14'
+2026-01-17 15:50:37,550 - ERROR - Error processing MSCI: 'ATR_14'
+2026-01-17 15:50:37,928 - ERROR - Error processing NDAQ: 'ATR_14'
+2026-01-17 15:50:38,447 - ERROR - Error processing NTAP: 'ATR_14'
+2026-01-17 15:50:38,798 - ERROR - Error processing NFLX: 'ATR_14'
+2026-01-17 15:50:39,268 - ERROR - Error processing NEM: 'ATR_14'
+2026-01-17 15:50:39,763 - ERROR - Error processing NWSA: 'ATR_14'
+2026-01-17 15:50:40,184 - ERROR - Error processing NWS: 'ATR_14'
+2026-01-17 15:50:40,688 - ERROR - Error processing NEE: 'ATR_14'
+2026-01-17 15:50:40,984 - ERROR - Error processing NKE: 'ATR_14'
+2026-01-17 15:50:41,524 - ERROR - Error processing NI: 'ATR_14'
+2026-01-17 15:50:42,029 - ERROR - Error processing NDSN: 'ATR_14'
+2026-01-17 15:50:42,315 - ERROR - Error processing NSC: 'ATR_14'
+2026-01-17 15:50:42,854 - ERROR - Error processing NTRS: 'ATR_14'
+2026-01-17 15:50:43,229 - ERROR - Error processing NOC: 'ATR_14'
+2026-01-17 15:50:43,446 - ERROR - Error processing NCLH: 'ATR_14'
+2026-01-17 15:50:43,810 - ERROR - Error processing NRG: 'ATR_14'
+2026-01-17 15:50:44,167 - ERROR - Error processing NUE: 'ATR_14'
+2026-01-17 15:50:44,502 - ERROR - Error processing NVDA: 'ATR_14'
+2026-01-17 15:50:44,740 - ERROR - Error processing NVR: 'ATR_14'
+2026-01-17 15:50:45,073 - ERROR - Error processing NXPI: 'ATR_14'
+2026-01-17 15:50:45,301 - ERROR - Error processing ORLY: 'ATR_14'
+2026-01-17 15:50:45,700 - ERROR - Error processing OXY: 'ATR_14'
+2026-01-17 15:50:46,129 - ERROR - Error processing ODFL: 'ATR_14'
+2026-01-17 15:50:46,436 - ERROR - Error processing OMC: 'ATR_14'
+2026-01-17 15:50:46,752 - ERROR - Error processing ON: 'ATR_14'
+2026-01-17 15:50:47,148 - ERROR - Error processing OKE: 'ATR_14'
+2026-01-17 15:50:47,441 - ERROR - Error processing ORCL: 'ATR_14'
+2026-01-17 15:50:47,910 - ERROR - Error processing OTIS: 'ATR_14'
+2026-01-17 15:50:48,280 - ERROR - Error processing PCAR: 'ATR_14'
+2026-01-17 15:50:48,587 - ERROR - Error processing PKG: 'ATR_14'
+2026-01-17 15:50:48,784 - ERROR - Error processing PLTR: 'ATR_14'
+2026-01-17 15:50:49,194 - ERROR - Error processing PANW: 'ATR_14'
+2026-01-17 15:50:49,606 - ERROR - Error processing PSKY: 'ATR_14'
+2026-01-17 15:50:50,015 - ERROR - Error processing PH: 'ATR_14'
+2026-01-17 15:50:50,328 - ERROR - Error processing PAYX: 'ATR_14'
+2026-01-17 15:50:50,617 - ERROR - Error processing PAYC: 'ATR_14'
+2026-01-17 15:50:51,044 - ERROR - Error processing PYPL: 'ATR_14'
+2026-01-17 15:50:51,377 - ERROR - Error processing PNR: 'ATR_14'
+2026-01-17 15:50:52,015 - ERROR - Error processing PEP: 'ATR_14'
+2026-01-17 15:50:52,481 - ERROR - Error processing PFE: 'ATR_14'
+2026-01-17 15:50:52,900 - ERROR - Error processing PCG: 'ATR_14'
+2026-01-17 15:50:53,192 - ERROR - Error processing PM: 'ATR_14'
+2026-01-17 15:50:53,500 - ERROR - Error processing PSX: 'ATR_14'
+2026-01-17 15:50:53,981 - ERROR - Error processing PNW: 'ATR_14'
+2026-01-17 15:50:54,356 - ERROR - Error processing PNC: 'ATR_14'
+2026-01-17 15:50:54,639 - ERROR - Error processing POOL: 'ATR_14'
+2026-01-17 15:50:55,030 - ERROR - Error processing PPG: 'ATR_14'
+2026-01-17 15:50:55,545 - ERROR - Error processing PPL: 'ATR_14'
+2026-01-17 15:50:55,807 - ERROR - Error processing PFG: 'ATR_14'
+2026-01-17 15:50:56,399 - ERROR - Error processing PG: 'ATR_14'
+2026-01-17 15:50:56,714 - ERROR - Error processing PGR: 'ATR_14'
+2026-01-17 15:50:57,114 - ERROR - Error processing PLD: 'ATR_14'
+2026-01-17 15:50:57,530 - ERROR - Error processing PRU: 'ATR_14'
+2026-01-17 15:50:57,819 - ERROR - Error processing PEG: 'ATR_14'
+2026-01-17 15:50:58,120 - ERROR - Error processing PTC: 'ATR_14'
+2026-01-17 15:50:58,750 - ERROR - Error processing PSA: 'ATR_14'
+2026-01-17 15:50:59,268 - ERROR - Error processing PHM: 'ATR_14'
+2026-01-17 15:50:59,746 - ERROR - Error processing PWR: 'ATR_14'
+2026-01-17 15:51:00,350 - ERROR - Error processing QCOM: 'ATR_14'
+2026-01-17 15:51:00,813 - ERROR - Error processing DGX: 'ATR_14'
+2026-01-17 15:51:01,057 - WARNING - Insufficient data for Q. Skipping.
+2026-01-17 15:51:01,421 - ERROR - Error processing RL: 'ATR_14'
+2026-01-17 15:51:01,923 - ERROR - Error processing RJF: 'ATR_14'
+2026-01-17 15:51:02,422 - ERROR - Error processing RTX: 'ATR_14'
+2026-01-17 15:51:02,923 - ERROR - Error processing O: 'ATR_14'
+2026-01-17 15:51:03,319 - ERROR - Error processing REG: 'ATR_14'
+2026-01-17 15:51:03,636 - ERROR - Error processing REGN: 'ATR_14'
+2026-01-17 15:51:04,149 - ERROR - Error processing RF: 'ATR_14'
+2026-01-17 15:51:04,536 - ERROR - Error processing RSG: 'ATR_14'
+2026-01-17 15:51:04,869 - ERROR - Error processing RMD: 'ATR_14'
+2026-01-17 15:51:05,401 - ERROR - Error processing RVTY: 'ATR_14'
+2026-01-17 15:51:05,640 - ERROR - Error processing HOOD: 'ATR_14'
+2026-01-17 15:51:05,994 - ERROR - Error processing ROK: 'ATR_14'
+2026-01-17 15:51:06,317 - ERROR - Error processing ROL: 'ATR_14'
+2026-01-17 15:51:06,732 - ERROR - Error processing ROP: 'ATR_14'
+2026-01-17 15:51:07,117 - ERROR - Error processing ROST: 'ATR_14'
+2026-01-17 15:51:07,444 - ERROR - Error processing RCL: 'ATR_14'
+2026-01-17 15:51:07,756 - ERROR - Error processing SPGI: 'ATR_14'
+2026-01-17 15:51:08,139 - ERROR - Error processing CRM: 'ATR_14'
+2026-01-17 15:51:08,432 - ERROR - Error processing SNDK: 'ATR_14'
+2026-01-17 15:51:08,771 - ERROR - Error processing SBAC: 'ATR_14'
+2026-01-17 15:51:09,166 - ERROR - Error processing SLB: 'ATR_14'
+2026-01-17 15:51:09,458 - ERROR - Error processing STX: 'ATR_14'
+2026-01-17 15:51:09,887 - ERROR - Error processing SRE: 'ATR_14'
+2026-01-17 15:51:10,212 - ERROR - Error processing NOW: 'ATR_14'
+2026-01-17 15:51:10,607 - ERROR - Error processing SHW: 'ATR_14'
+2026-01-17 15:51:11,019 - ERROR - Error processing SPG: 'ATR_14'
+2026-01-17 15:51:11,395 - ERROR - Error processing SWKS: 'ATR_14'
+2026-01-17 15:51:11,738 - ERROR - Error processing SJM: 'ATR_14'
+2026-01-17 15:51:12,033 - ERROR - Error processing SW: 'ATR_14'
+2026-01-17 15:51:12,468 - ERROR - Error processing SNA: 'ATR_14'
+2026-01-17 15:51:13,119 - ERROR - Error processing SOLV: 'ATR_14'
+2026-01-17 15:51:13,443 - ERROR - Error processing SO: 'ATR_14'
+2026-01-17 15:51:14,333 - ERROR - Error processing LUV: 'ATR_14'
+2026-01-17 15:51:14,708 - ERROR - Error processing SWK: 'ATR_14'
+2026-01-17 15:51:15,015 - ERROR - Error processing SBUX: 'ATR_14'
+2026-01-17 15:51:15,328 - ERROR - Error processing STT: 'ATR_14'
+2026-01-17 15:51:15,778 - ERROR - Error processing STLD: 'ATR_14'
+2026-01-17 15:51:16,253 - ERROR - Error processing STE: 'ATR_14'
+2026-01-17 15:51:16,599 - ERROR - Error processing SYK: 'ATR_14'
+2026-01-17 15:51:16,947 - ERROR - Error processing SMCI: 'ATR_14'
+2026-01-17 15:51:17,377 - ERROR - Error processing SYF: 'ATR_14'
+2026-01-17 15:51:17,664 - ERROR - Error processing SNPS: 'ATR_14'
+2026-01-17 15:51:18,064 - ERROR - Error processing SYY: 'ATR_14'
+2026-01-17 15:51:18,732 - ERROR - Error processing TMUS: 'ATR_14'
+2026-01-17 15:51:19,182 - ERROR - Error processing TROW: 'ATR_14'
+2026-01-17 15:51:19,624 - ERROR - Error processing TTWO: 'ATR_14'
+2026-01-17 15:51:20,232 - ERROR - Error processing TPR: 'ATR_14'
+2026-01-17 15:51:20,578 - ERROR - Error processing TRGP: 'ATR_14'
+2026-01-17 15:51:20,967 - ERROR - Error processing TGT: 'ATR_14'
+2026-01-17 15:51:21,377 - ERROR - Error processing TEL: 'ATR_14'
+2026-01-17 15:51:21,686 - ERROR - Error processing TDY: 'ATR_14'
+2026-01-17 15:51:22,149 - ERROR - Error processing TER: 'ATR_14'
+2026-01-17 15:51:22,496 - ERROR - Error processing TSLA: 'ATR_14'
+2026-01-17 15:51:22,874 - ERROR - Error processing TXN: 'ATR_14'
+2026-01-17 15:51:23,214 - ERROR - Error processing TPL: 'ATR_14'
+2026-01-17 15:51:23,698 - ERROR - Error processing TXT: 'ATR_14'
+2026-01-17 15:51:23,976 - ERROR - Error processing TMO: 'ATR_14'
+2026-01-17 15:51:24,428 - ERROR - Error processing TJX: 'ATR_14'
+2026-01-17 15:51:24,751 - ERROR - Error processing TKO: 'ATR_14'
+2026-01-17 15:51:25,045 - ERROR - Error processing TTD: 'ATR_14'
+2026-01-17 15:51:25,462 - ERROR - Error processing TSCO: 'ATR_14'
+2026-01-17 15:51:25,863 - ERROR - Error processing TT: 'ATR_14'
+2026-01-17 15:51:26,259 - ERROR - Error processing TDG: 'ATR_14'
+2026-01-17 15:51:26,565 - ERROR - Error processing TRV: 'ATR_14'
+2026-01-17 15:51:26,999 - ERROR - Error processing TRMB: 'ATR_14'
+2026-01-17 15:51:27,423 - ERROR - Error processing TFC: 'ATR_14'
+2026-01-17 15:51:27,874 - ERROR - Error processing TYL: 'ATR_14'
+2026-01-17 15:51:28,214 - ERROR - Error processing TSN: 'ATR_14'
+2026-01-17 15:51:28,543 - ERROR - Error processing USB: 'ATR_14'
+2026-01-17 15:51:28,921 - ERROR - Error processing UBER: 'ATR_14'
+2026-01-17 15:51:29,351 - ERROR - Error processing UDR: 'ATR_14'
+2026-01-17 15:51:29,727 - ERROR - Error processing ULTA: 'ATR_14'
+2026-01-17 15:51:30,219 - ERROR - Error processing UNP: 'ATR_14'
+2026-01-17 15:51:30,624 - ERROR - Error processing UAL: 'ATR_14'
+2026-01-17 15:51:30,980 - ERROR - Error processing UPS: 'ATR_14'
+2026-01-17 15:51:31,376 - ERROR - Error processing URI: 'ATR_14'
+2026-01-17 15:51:31,796 - ERROR - Error processing UNH: 'ATR_14'
+2026-01-17 15:51:32,278 - ERROR - Error processing UHS: 'ATR_14'
+2026-01-17 15:51:32,719 - ERROR - Error processing VLO: 'ATR_14'
+2026-01-17 15:51:33,010 - ERROR - Error processing VTR: 'ATR_14'
+2026-01-17 15:51:33,852 - ERROR - Error processing VLTO: 'ATR_14'
+2026-01-17 15:51:34,172 - ERROR - Error processing VRSN: 'ATR_14'
+2026-01-17 15:51:34,872 - ERROR - Error processing VRSK: 'ATR_14'
+2026-01-17 15:51:35,381 - ERROR - Error processing VZ: 'ATR_14'
+2026-01-17 15:51:35,910 - ERROR - Error processing VRTX: 'ATR_14'
+2026-01-17 15:51:36,199 - ERROR - Error processing VTRS: 'ATR_14'
+2026-01-17 15:51:36,527 - ERROR - Error processing VICI: 'ATR_14'
+2026-01-17 15:51:36,881 - ERROR - Error processing V: 'ATR_14'
+2026-01-17 15:51:37,185 - ERROR - Error processing VST: 'ATR_14'
+2026-01-17 15:51:37,629 - ERROR - Error processing VMC: 'ATR_14'
+2026-01-17 15:51:38,050 - ERROR - Error processing WRB: 'ATR_14'
+2026-01-17 15:51:38,665 - ERROR - Error processing GWW: 'ATR_14'
+2026-01-17 15:51:39,175 - ERROR - Error processing WAB: 'ATR_14'
+2026-01-17 15:51:39,780 - ERROR - Error processing WMT: 'ATR_14'
+2026-01-17 15:51:40,291 - ERROR - Error processing DIS: 'ATR_14'
+2026-01-17 15:51:40,549 - ERROR - Error processing WBD: 'ATR_14'
+2026-01-17 15:51:41,031 - ERROR - Error processing WM: 'ATR_14'
+2026-01-17 15:51:41,536 - ERROR - Error processing WAT: 'ATR_14'
+2026-01-17 15:51:41,840 - ERROR - Error processing WEC: 'ATR_14'
+2026-01-17 15:51:42,458 - ERROR - Error processing WFC: 'ATR_14'
+2026-01-17 15:51:42,819 - ERROR - Error processing WELL: 'ATR_14'
+2026-01-17 15:51:43,278 - ERROR - Error processing WST: 'ATR_14'
+2026-01-17 15:51:43,657 - ERROR - Error processing WDC: 'ATR_14'
+2026-01-17 15:51:44,083 - ERROR - Error processing WY: 'ATR_14'
+2026-01-17 15:51:44,571 - ERROR - Error processing WSM: 'ATR_14'
+2026-01-17 15:51:45,092 - ERROR - Error processing WMB: 'ATR_14'
+2026-01-17 15:51:45,498 - ERROR - Error processing WTW: 'ATR_14'
+2026-01-17 15:51:45,831 - ERROR - Error processing WDAY: 'ATR_14'
+2026-01-17 15:51:46,234 - ERROR - Error processing WYNN: 'ATR_14'
+2026-01-17 15:51:46,748 - ERROR - Error processing XEL: 'ATR_14'
+2026-01-17 15:51:47,226 - ERROR - Error processing XYL: 'ATR_14'
+2026-01-17 15:51:47,630 - ERROR - Error processing YUM: 'ATR_14'
+2026-01-17 15:51:47,930 - ERROR - Error processing ZBRA: 'ATR_14'
+2026-01-17 15:51:48,290 - ERROR - Error processing ZBH: 'ATR_14'
+2026-01-17 15:51:48,630 - ERROR - Error processing ZTS: 'ATR_14'
+2026-01-17 15:51:48,631 - INFO - ======================================================================
+2026-01-17 15:51:48,631 - INFO - SCREENING STATISTICS
+2026-01-17 15:51:48,631 - INFO - ======================================================================
+2026-01-17 15:51:48,632 - INFO - Total tickers analyzed: 503
+2026-01-17 15:51:48,632 - INFO - Successful analyses: 0
+2026-01-17 15:51:48,632 - INFO - Errors encountered: 503
+2026-01-17 15:51:48,632 - INFO - Signals generated: 0
+2026-01-17 15:51:48,633 - INFO - Signal rate: 0.00%
+2026-01-17 15:51:48,633 - INFO - ======================================================================
+2026-01-17 15:51:48,633 - INFO - No stocks found meeting the enhanced criteria today
+2026-01-17 15:51:48,634 - INFO - ======================================================================
+2026-01-17 15:51:48,634 - INFO - 
+Screening complete. Check log file for details.
+2026-01-17 15:51:53,904 - INFO - Successfully pulled 503 S&P 500 tickers from Wikipedia
+2026-01-17 15:51:53,905 - INFO - ======================================================================
+2026-01-17 15:51:53,906 - INFO - ENHANCED OPTIONS PREMIUM SCREENER
+2026-01-17 15:51:53,906 - INFO - ======================================================================
+2026-01-17 15:51:53,906 - INFO - Criteria: RSI < 35, Price > SMA 200, Active Volume
+2026-01-17 15:51:53,907 - INFO - Enhanced Filters: Bollinger Bands, ATR, Volume Surge, Support Levels
+2026-01-17 15:51:53,907 - INFO - ======================================================================
+2026-01-17 15:51:54,733 - WARNING - TA indicators not calculated for MMM. Skipping.
+2026-01-17 15:51:55,098 - WARNING - TA indicators not calculated for AOS. Skipping.
+2026-01-17 15:51:55,437 - WARNING - TA indicators not calculated for ABT. Skipping.
+2026-01-17 15:51:55,690 - WARNING - TA indicators not calculated for ABBV. Skipping.
+2026-01-17 15:51:55,981 - WARNING - TA indicators not calculated for ACN. Skipping.
+2026-01-17 15:51:56,362 - WARNING - TA indicators not calculated for ADBE. Skipping.
+2026-01-17 15:51:56,662 - WARNING - TA indicators not calculated for AMD. Skipping.
+2026-01-17 15:51:56,993 - WARNING - TA indicators not calculated for AES. Skipping.
+2026-01-17 15:51:57,399 - WARNING - TA indicators not calculated for AFL. Skipping.
+2026-01-17 15:51:57,719 - WARNING - TA indicators not calculated for A. Skipping.
+2026-01-17 15:51:58,046 - WARNING - TA indicators not calculated for APD. Skipping.
+2026-01-17 15:51:58,463 - WARNING - TA indicators not calculated for ABNB. Skipping.
+2026-01-17 15:51:58,830 - WARNING - TA indicators not calculated for AKAM. Skipping.
+2026-01-17 15:51:59,329 - WARNING - TA indicators not calculated for ALB. Skipping.
+2026-01-17 15:51:59,764 - WARNING - TA indicators not calculated for ARE. Skipping.
+2026-01-17 15:52:00,173 - WARNING - TA indicators not calculated for ALGN. Skipping.
+2026-01-17 15:52:00,562 - WARNING - TA indicators not calculated for ALLE. Skipping.
+2026-01-17 15:52:00,845 - WARNING - TA indicators not calculated for LNT. Skipping.
+2026-01-17 15:52:01,145 - WARNING - TA indicators not calculated for ALL. Skipping.
+2026-01-17 15:52:01,551 - WARNING - TA indicators not calculated for GOOGL. Skipping.
+2026-01-17 15:52:01,908 - WARNING - TA indicators not calculated for GOOG. Skipping.
+2026-01-17 15:52:02,453 - WARNING - TA indicators not calculated for MO. Skipping.
+2026-01-17 15:52:02,825 - WARNING - TA indicators not calculated for AMZN. Skipping.
+2026-01-17 15:52:03,264 - WARNING - TA indicators not calculated for AMCR. Skipping.
+2026-01-17 15:52:03,510 - WARNING - TA indicators not calculated for AEE. Skipping.
+2026-01-17 15:52:03,940 - WARNING - TA indicators not calculated for AEP. Skipping.
+2026-01-17 15:52:04,475 - WARNING - TA indicators not calculated for AXP. Skipping.
+2026-01-17 15:52:05,096 - WARNING - TA indicators not calculated for AIG. Skipping.
+2026-01-17 15:52:05,501 - WARNING - TA indicators not calculated for AMT. Skipping.
+2026-01-17 15:52:16,188 - INFO - Successfully pulled 503 S&P 500 tickers from Wikipedia
+2026-01-17 15:52:16,189 - INFO - ======================================================================
+2026-01-17 15:52:16,189 - INFO - ENHANCED OPTIONS PREMIUM SCREENER
+2026-01-17 15:52:16,190 - INFO - ======================================================================
+2026-01-17 15:52:16,190 - INFO - Criteria: RSI < 35, Price > SMA 200, Active Volume
+2026-01-17 15:52:16,190 - INFO - Enhanced Filters: Bollinger Bands, ATR, Volume Surge, Support Levels
+2026-01-17 15:52:16,191 - INFO - ======================================================================
+2026-01-17 15:52:16,820 - WARNING - TA indicators not calculated for MMM. Skipping.
+2026-01-17 15:52:17,147 - WARNING - TA indicators not calculated for AOS. Skipping.
+2026-01-17 15:52:17,401 - WARNING - TA indicators not calculated for ABT. Skipping.
+2026-01-17 15:52:17,652 - WARNING - TA indicators not calculated for ABBV. Skipping.
+2026-01-17 15:52:17,890 - WARNING - TA indicators not calculated for ACN. Skipping.
+2026-01-17 15:52:18,295 - WARNING - TA indicators not calculated for ADBE. Skipping.
+2026-01-17 15:52:18,591 - WARNING - TA indicators not calculated for AMD. Skipping.
+2026-01-17 15:52:19,095 - WARNING - TA indicators not calculated for AES. Skipping.
+2026-01-17 15:52:19,515 - WARNING - TA indicators not calculated for AFL. Skipping.
+2026-01-17 15:52:19,827 - WARNING - TA indicators not calculated for A. Skipping.
+2026-01-17 15:52:20,347 - WARNING - TA indicators not calculated for APD. Skipping.
+2026-01-17 15:52:20,642 - WARNING - TA indicators not calculated for ABNB. Skipping.
+2026-01-17 15:52:21,083 - WARNING - TA indicators not calculated for AKAM. Skipping.
+2026-01-17 15:52:21,459 - WARNING - TA indicators not calculated for ALB. Skipping.
+2026-01-17 15:52:21,970 - WARNING - TA indicators not calculated for ARE. Skipping.
+2026-01-17 15:52:22,346 - WARNING - TA indicators not calculated for ALGN. Skipping.
+2026-01-17 15:52:22,856 - WARNING - TA indicators not calculated for ALLE. Skipping.
+2026-01-17 15:52:23,201 - WARNING - TA indicators not calculated for LNT. Skipping.
+2026-01-17 15:52:23,805 - WARNING - TA indicators not calculated for ALL. Skipping.
+2026-01-17 15:52:24,224 - WARNING - TA indicators not calculated for GOOGL. Skipping.
+2026-01-17 15:52:24,638 - WARNING - TA indicators not calculated for GOOG. Skipping.
+2026-01-17 15:52:25,054 - WARNING - TA indicators not calculated for MO. Skipping.
+2026-01-17 15:52:25,452 - WARNING - TA indicators not calculated for AMZN. Skipping.
+2026-01-17 15:52:26,984 - WARNING - TA indicators not calculated for AMCR. Skipping.
+2026-01-17 15:52:27,375 - WARNING - TA indicators not calculated for AEE. Skipping.
+2026-01-17 15:52:27,718 - WARNING - TA indicators not calculated for AEP. Skipping.
+2026-01-17 15:52:28,220 - WARNING - TA indicators not calculated for AXP. Skipping.
+2026-01-17 15:52:28,698 - WARNING - TA indicators not calculated for AIG. Skipping.
+2026-01-17 15:52:29,151 - WARNING - TA indicators not calculated for AMT. Skipping.
+2026-01-17 15:52:29,478 - WARNING - TA indicators not calculated for AWK. Skipping.
+2026-01-17 15:52:29,781 - WARNING - TA indicators not calculated for AMP. Skipping.
+2026-01-17 15:52:30,292 - WARNING - TA indicators not calculated for AME. Skipping.
+2026-01-17 15:52:30,617 - WARNING - TA indicators not calculated for AMGN. Skipping.
+2026-01-17 15:52:30,899 - WARNING - TA indicators not calculated for APH. Skipping.
+2026-01-17 15:52:31,417 - WARNING - TA indicators not calculated for ADI. Skipping.
+2026-01-17 15:52:31,744 - WARNING - TA indicators not calculated for AON. Skipping.
+2026-01-17 15:52:32,132 - WARNING - TA indicators not calculated for APA. Skipping.
+2026-01-17 15:52:32,539 - WARNING - TA indicators not calculated for APO. Skipping.
+2026-01-17 15:52:32,906 - WARNING - TA indicators not calculated for AAPL. Skipping.
+2026-01-17 15:52:33,447 - WARNING - TA indicators not calculated for AMAT. Skipping.
+2026-01-17 15:52:33,752 - WARNING - TA indicators not calculated for APP. Skipping.
+2026-01-17 15:52:34,619 - WARNING - TA indicators not calculated for APTV. Skipping.
+2026-01-17 15:52:34,994 - WARNING - TA indicators not calculated for ACGL. Skipping.
+2026-01-17 15:52:35,318 - WARNING - TA indicators not calculated for ADM. Skipping.
+2026-01-17 15:52:35,640 - WARNING - TA indicators not calculated for ARES. Skipping.
+2026-01-17 15:52:36,117 - WARNING - TA indicators not calculated for ANET. Skipping.
+2026-01-17 15:52:36,747 - WARNING - TA indicators not calculated for AJG. Skipping.
+2026-01-17 15:52:37,160 - WARNING - TA indicators not calculated for AIZ. Skipping.
+2026-01-17 15:52:37,658 - WARNING - TA indicators not calculated for T. Skipping.
+2026-01-17 15:52:37,922 - WARNING - TA indicators not calculated for ATO. Skipping.
+2026-01-17 15:52:38,172 - WARNING - TA indicators not calculated for ADSK. Skipping.
+2026-01-17 15:52:38,452 - WARNING - TA indicators not calculated for ADP. Skipping.
+2026-01-17 15:52:39,015 - WARNING - TA indicators not calculated for AZO. Skipping.
+2026-01-17 15:52:39,419 - WARNING - TA indicators not calculated for AVB. Skipping.
+2026-01-17 15:52:39,904 - WARNING - TA indicators not calculated for AVY. Skipping.
+2026-01-17 15:52:40,268 - WARNING - TA indicators not calculated for AXON. Skipping.
+2026-01-17 15:52:40,623 - WARNING - TA indicators not calculated for BKR. Skipping.
+2026-01-17 15:52:41,027 - WARNING - TA indicators not calculated for BALL. Skipping.
+2026-01-17 15:52:41,538 - WARNING - TA indicators not calculated for BAC. Skipping.
+2026-01-17 15:52:41,998 - WARNING - TA indicators not calculated for BAX. Skipping.
+2026-01-17 15:52:42,541 - WARNING - TA indicators not calculated for BDX. Skipping.
+2026-01-17 15:52:42,873 - WARNING - TA indicators not calculated for BRK-B. Skipping.
+2026-01-17 15:52:43,379 - WARNING - TA indicators not calculated for BBY. Skipping.
+2026-01-17 15:52:43,706 - WARNING - TA indicators not calculated for TECH. Skipping.
+2026-01-17 15:52:43,978 - WARNING - TA indicators not calculated for BIIB. Skipping.
+2026-01-17 15:52:44,304 - WARNING - TA indicators not calculated for BLK. Skipping.
+2026-01-17 15:52:44,607 - WARNING - TA indicators not calculated for BX. Skipping.
+2026-01-17 15:52:44,911 - WARNING - TA indicators not calculated for XYZ. Skipping.
+2026-01-17 15:52:45,250 - WARNING - TA indicators not calculated for BK. Skipping.
+2026-01-17 15:52:45,731 - WARNING - TA indicators not calculated for BA. Skipping.
+2026-01-17 15:52:46,201 - WARNING - TA indicators not calculated for BKNG. Skipping.
+2026-01-17 15:52:46,520 - WARNING - TA indicators not calculated for BSX. Skipping.
+2026-01-17 15:52:47,040 - WARNING - TA indicators not calculated for BMY. Skipping.
+2026-01-17 15:52:47,386 - WARNING - TA indicators not calculated for AVGO. Skipping.
+2026-01-17 15:52:47,676 - WARNING - TA indicators not calculated for BR. Skipping.
+2026-01-17 15:52:48,038 - WARNING - TA indicators not calculated for BRO. Skipping.
+2026-01-17 15:52:48,499 - WARNING - TA indicators not calculated for BF-B. Skipping.
+2026-01-17 15:52:48,812 - WARNING - TA indicators not calculated for BLDR. Skipping.
+2026-01-17 15:52:49,227 - WARNING - TA indicators not calculated for BG. Skipping.
+2026-01-17 15:52:49,616 - WARNING - TA indicators not calculated for BXP. Skipping.
+2026-01-17 15:52:49,879 - WARNING - TA indicators not calculated for CHRW. Skipping.
+2026-01-17 15:52:50,344 - WARNING - TA indicators not calculated for CDNS. Skipping.
+2026-01-17 15:52:50,872 - WARNING - TA indicators not calculated for CPT. Skipping.
+2026-01-17 15:52:51,251 - WARNING - TA indicators not calculated for CPB. Skipping.
+2026-01-17 15:52:51,599 - WARNING - TA indicators not calculated for COF. Skipping.
+2026-01-17 15:52:52,079 - WARNING - TA indicators not calculated for CAH. Skipping.
+2026-01-17 15:52:52,609 - WARNING - TA indicators not calculated for CCL. Skipping.
+2026-01-17 15:52:52,946 - WARNING - TA indicators not calculated for CARR. Skipping.
+2026-01-17 15:52:53,246 - WARNING - TA indicators not calculated for CVNA. Skipping.
+2026-01-17 15:52:53,639 - WARNING - TA indicators not calculated for CAT. Skipping.
+2026-01-17 15:52:54,227 - WARNING - TA indicators not calculated for CBOE. Skipping.
+2026-01-17 15:52:54,521 - WARNING - TA indicators not calculated for CBRE. Skipping.
+2026-01-17 15:52:54,872 - WARNING - TA indicators not calculated for CDW. Skipping.
+2026-01-17 15:52:55,146 - WARNING - TA indicators not calculated for COR. Skipping.
+2026-01-17 15:52:55,572 - WARNING - TA indicators not calculated for CNC. Skipping.
+2026-01-17 15:52:56,017 - WARNING - TA indicators not calculated for CNP. Skipping.
+2026-01-17 15:52:56,387 - WARNING - TA indicators not calculated for CF. Skipping.
+2026-01-17 15:52:56,622 - WARNING - TA indicators not calculated for CRL. Skipping.
+2026-01-17 15:52:56,950 - WARNING - TA indicators not calculated for SCHW. Skipping.
+2026-01-17 15:52:57,417 - WARNING - TA indicators not calculated for CHTR. Skipping.
+2026-01-17 15:52:57,825 - WARNING - TA indicators not calculated for CVX. Skipping.
+2026-01-17 15:52:58,126 - WARNING - TA indicators not calculated for CMG. Skipping.
+2026-01-17 15:52:58,482 - WARNING - TA indicators not calculated for CB. Skipping.
+2026-01-17 15:52:58,738 - WARNING - TA indicators not calculated for CHD. Skipping.
+2026-01-17 15:52:59,088 - WARNING - TA indicators not calculated for CI. Skipping.
+2026-01-17 15:52:59,354 - WARNING - TA indicators not calculated for CINF. Skipping.
+2026-01-17 15:52:59,719 - WARNING - TA indicators not calculated for CTAS. Skipping.
+2026-01-17 15:52:59,971 - WARNING - TA indicators not calculated for CSCO. Skipping.
+2026-01-17 15:53:00,425 - WARNING - TA indicators not calculated for C. Skipping.
+2026-01-17 15:53:00,745 - WARNING - TA indicators not calculated for CFG. Skipping.
+2026-01-17 15:53:01,117 - WARNING - TA indicators not calculated for CLX. Skipping.
+2026-01-17 15:53:01,530 - WARNING - TA indicators not calculated for CME. Skipping.
+2026-01-17 15:53:01,888 - WARNING - TA indicators not calculated for CMS. Skipping.
+2026-01-17 15:53:02,313 - WARNING - TA indicators not calculated for KO. Skipping.
+2026-01-17 15:53:02,629 - WARNING - TA indicators not calculated for CTSH. Skipping.
+2026-01-17 15:53:02,872 - WARNING - TA indicators not calculated for COIN. Skipping.
+2026-01-17 15:53:03,230 - WARNING - TA indicators not calculated for CL. Skipping.
+2026-01-17 15:53:03,493 - WARNING - TA indicators not calculated for CMCSA. Skipping.
+2026-01-17 15:53:03,736 - WARNING - TA indicators not calculated for FIX. Skipping.
+2026-01-17 15:53:04,018 - WARNING - TA indicators not calculated for CAG. Skipping.
+2026-01-17 15:53:04,249 - WARNING - TA indicators not calculated for COP. Skipping.
+2026-01-17 15:53:04,894 - WARNING - TA indicators not calculated for ED. Skipping.
+2026-01-17 15:53:05,172 - WARNING - TA indicators not calculated for STZ. Skipping.
+2026-01-17 15:53:05,496 - WARNING - TA indicators not calculated for CEG. Skipping.
+2026-01-17 15:53:05,922 - WARNING - TA indicators not calculated for COO. Skipping.
+2026-01-17 15:53:06,180 - WARNING - TA indicators not calculated for CPRT. Skipping.
+2026-01-17 15:53:06,736 - WARNING - TA indicators not calculated for GLW. Skipping.
+2026-01-17 15:53:07,031 - WARNING - TA indicators not calculated for CPAY. Skipping.
+2026-01-17 15:53:07,334 - WARNING - TA indicators not calculated for CTVA. Skipping.
+2026-01-17 15:53:07,646 - WARNING - TA indicators not calculated for CSGP. Skipping.
+2026-01-17 15:53:08,092 - WARNING - TA indicators not calculated for COST. Skipping.
+2026-01-17 15:53:08,408 - WARNING - TA indicators not calculated for CTRA. Skipping.
+2026-01-17 15:53:09,094 - WARNING - TA indicators not calculated for CRH. Skipping.
+2026-01-17 15:53:09,343 - WARNING - TA indicators not calculated for CRWD. Skipping.
+2026-01-17 15:53:09,788 - WARNING - TA indicators not calculated for CCI. Skipping.
+2026-01-17 15:53:10,310 - WARNING - TA indicators not calculated for CSX. Skipping.
+2026-01-17 15:53:10,741 - WARNING - TA indicators not calculated for CMI. Skipping.
+2026-01-17 15:53:11,572 - WARNING - TA indicators not calculated for CVS. Skipping.
+2026-01-17 15:53:12,047 - WARNING - TA indicators not calculated for DHR. Skipping.
+2026-01-17 15:53:12,478 - WARNING - TA indicators not calculated for DRI. Skipping.
+2026-01-17 15:53:12,764 - WARNING - TA indicators not calculated for DDOG. Skipping.
+2026-01-17 15:53:13,196 - WARNING - TA indicators not calculated for DVA. Skipping.
+2026-01-17 15:53:13,871 - WARNING - TA indicators not calculated for DAY. Skipping.
+2026-01-17 15:53:14,250 - WARNING - TA indicators not calculated for DECK. Skipping.
+2026-01-17 15:53:15,053 - WARNING - TA indicators not calculated for DE. Skipping.
+2026-01-17 15:53:15,437 - WARNING - TA indicators not calculated for DELL. Skipping.
+2026-01-17 15:53:15,751 - WARNING - TA indicators not calculated for DAL. Skipping.
+2026-01-17 15:53:16,148 - WARNING - TA indicators not calculated for DVN. Skipping.
+2026-01-17 15:53:16,457 - WARNING - TA indicators not calculated for DXCM. Skipping.
+2026-01-17 15:53:17,162 - WARNING - TA indicators not calculated for FANG. Skipping.
+2026-01-17 15:53:17,613 - WARNING - TA indicators not calculated for DLR. Skipping.
+2026-01-17 15:53:17,996 - WARNING - TA indicators not calculated for DG. Skipping.
+2026-01-17 15:53:18,428 - WARNING - TA indicators not calculated for DLTR. Skipping.
+2026-01-17 15:53:18,685 - WARNING - TA indicators not calculated for D. Skipping.
+2026-01-17 15:53:19,024 - WARNING - TA indicators not calculated for DPZ. Skipping.
+2026-01-17 15:53:19,216 - WARNING - TA indicators not calculated for DASH. Skipping.
+2026-01-17 15:53:19,636 - WARNING - TA indicators not calculated for DOV. Skipping.
+2026-01-17 15:53:20,054 - WARNING - TA indicators not calculated for DOW. Skipping.
+2026-01-17 15:53:20,643 - WARNING - TA indicators not calculated for DHI. Skipping.
+2026-01-17 15:53:21,294 - WARNING - TA indicators not calculated for DTE. Skipping.
+2026-01-17 15:53:21,904 - WARNING - TA indicators not calculated for DUK. Skipping.
+2026-01-17 15:53:22,211 - WARNING - TA indicators not calculated for DD. Skipping.
+2026-01-17 15:53:22,625 - WARNING - TA indicators not calculated for ETN. Skipping.
+2026-01-17 15:53:22,962 - WARNING - TA indicators not calculated for EBAY. Skipping.
+2026-01-17 15:53:23,420 - WARNING - TA indicators not calculated for ECL. Skipping.
+2026-01-17 15:53:23,861 - WARNING - TA indicators not calculated for EIX. Skipping.
+2026-01-17 15:53:24,248 - WARNING - TA indicators not calculated for EW. Skipping.
+2026-01-17 15:53:24,757 - WARNING - TA indicators not calculated for EA. Skipping.
+2026-01-17 15:53:25,228 - WARNING - TA indicators not calculated for ELV. Skipping.
+2026-01-17 15:53:25,680 - WARNING - TA indicators not calculated for EME. Skipping.
+2026-01-17 15:53:26,060 - WARNING - TA indicators not calculated for EMR. Skipping.
+2026-01-17 15:53:26,388 - WARNING - TA indicators not calculated for ETR. Skipping.
+2026-01-17 15:53:26,858 - WARNING - TA indicators not calculated for EOG. Skipping.
+2026-01-17 15:53:27,181 - WARNING - TA indicators not calculated for EPAM. Skipping.
+2026-01-17 15:53:27,622 - WARNING - TA indicators not calculated for EQT. Skipping.
+2026-01-17 15:53:28,171 - WARNING - TA indicators not calculated for EFX. Skipping.
+2026-01-17 15:53:28,752 - WARNING - TA indicators not calculated for EQIX. Skipping.
+2026-01-17 15:53:29,138 - WARNING - TA indicators not calculated for EQR. Skipping.
+2026-01-17 15:53:29,567 - WARNING - TA indicators not calculated for ERIE. Skipping.
+2026-01-17 15:53:29,954 - WARNING - TA indicators not calculated for ESS. Skipping.
+2026-01-17 15:53:30,433 - WARNING - TA indicators not calculated for EL. Skipping.
+2026-01-17 15:53:30,816 - WARNING - TA indicators not calculated for EG. Skipping.
+2026-01-17 15:53:31,197 - WARNING - TA indicators not calculated for EVRG. Skipping.
+2026-01-17 15:53:31,635 - WARNING - TA indicators not calculated for ES. Skipping.
+2026-01-17 15:53:31,927 - WARNING - TA indicators not calculated for EXC. Skipping.
+2026-01-17 15:53:32,314 - WARNING - TA indicators not calculated for EXE. Skipping.
+2026-01-17 15:53:32,636 - WARNING - TA indicators not calculated for EXPE. Skipping.
+2026-01-17 15:53:32,948 - WARNING - TA indicators not calculated for EXPD. Skipping.
+2026-01-17 15:53:33,559 - WARNING - TA indicators not calculated for EXR. Skipping.
+2026-01-17 15:53:34,204 - WARNING - TA indicators not calculated for XOM. Skipping.
+2026-01-17 15:53:34,458 - WARNING - TA indicators not calculated for FFIV. Skipping.
+2026-01-17 15:53:34,780 - WARNING - TA indicators not calculated for FDS. Skipping.
+2026-01-17 15:53:35,102 - WARNING - TA indicators not calculated for FICO. Skipping.
+2026-01-17 15:53:35,435 - WARNING - TA indicators not calculated for FAST. Skipping.
+2026-01-17 15:53:35,824 - WARNING - TA indicators not calculated for FRT. Skipping.
+2026-01-17 15:53:36,144 - WARNING - TA indicators not calculated for FDX. Skipping.
+2026-01-17 15:53:36,741 - WARNING - TA indicators not calculated for FIS. Skipping.
+2026-01-17 15:53:37,242 - WARNING - TA indicators not calculated for FITB. Skipping.
+2026-01-17 15:53:37,669 - WARNING - TA indicators not calculated for FSLR. Skipping.
+2026-01-17 15:53:38,087 - WARNING - TA indicators not calculated for FE. Skipping.
+2026-01-17 15:53:38,559 - WARNING - TA indicators not calculated for FISV. Skipping.
+2026-01-17 15:53:39,178 - WARNING - TA indicators not calculated for F. Skipping.
+2026-01-17 15:53:39,426 - WARNING - TA indicators not calculated for FTNT. Skipping.
+2026-01-17 15:53:39,711 - WARNING - TA indicators not calculated for FTV. Skipping.
+2026-01-17 15:53:40,117 - WARNING - TA indicators not calculated for FOXA. Skipping.
+2026-01-17 15:53:40,444 - WARNING - TA indicators not calculated for FOX. Skipping.
+2026-01-17 15:53:40,755 - WARNING - TA indicators not calculated for BEN. Skipping.
+2026-01-17 15:53:41,279 - WARNING - TA indicators not calculated for FCX. Skipping.
+2026-01-17 15:53:41,662 - WARNING - TA indicators not calculated for GRMN. Skipping.
+2026-01-17 15:53:41,925 - WARNING - TA indicators not calculated for IT. Skipping.
+2026-01-17 15:53:42,379 - WARNING - TA indicators not calculated for GE. Skipping.
+2026-01-17 15:53:42,691 - WARNING - TA indicators not calculated for GEHC. Skipping.
+2026-01-17 15:53:42,973 - WARNING - TA indicators not calculated for GEV. Skipping.
+2026-01-17 15:53:43,524 - WARNING - TA indicators not calculated for GEN. Skipping.
+2026-01-17 15:53:43,813 - WARNING - TA indicators not calculated for GNRC. Skipping.
+2026-01-17 15:53:44,226 - WARNING - TA indicators not calculated for GD. Skipping.
+2026-01-17 15:53:44,864 - WARNING - TA indicators not calculated for GIS. Skipping.
+2026-01-17 15:53:45,107 - WARNING - TA indicators not calculated for GM. Skipping.
+2026-01-17 15:53:45,488 - WARNING - TA indicators not calculated for GPC. Skipping.
+2026-01-17 15:53:45,993 - WARNING - TA indicators not calculated for GILD. Skipping.
+2026-01-17 15:53:46,363 - WARNING - TA indicators not calculated for GPN. Skipping.
+2026-01-17 15:53:46,869 - WARNING - TA indicators not calculated for GL. Skipping.
+2026-01-17 15:53:47,204 - WARNING - TA indicators not calculated for GDDY. Skipping.
+2026-01-17 15:53:47,547 - WARNING - TA indicators not calculated for GS. Skipping.
+2026-01-17 15:53:48,007 - WARNING - TA indicators not calculated for HAL. Skipping.
+2026-01-17 15:53:48,510 - WARNING - TA indicators not calculated for HIG. Skipping.
+2026-01-17 15:53:49,152 - WARNING - TA indicators not calculated for HAS. Skipping.
+2026-01-17 15:53:49,427 - WARNING - TA indicators not calculated for HCA. Skipping.
+2026-01-17 15:53:49,840 - WARNING - TA indicators not calculated for DOC. Skipping.
+2026-01-17 15:53:50,134 - WARNING - TA indicators not calculated for HSIC. Skipping.
+2026-01-17 15:53:50,555 - WARNING - TA indicators not calculated for HSY. Skipping.
+2026-01-17 15:53:50,839 - WARNING - TA indicators not calculated for HPE. Skipping.
+2026-01-17 15:53:51,195 - WARNING - TA indicators not calculated for HLT. Skipping.
+2026-01-17 15:53:51,655 - WARNING - TA indicators not calculated for HOLX. Skipping.
+2026-01-17 15:53:52,303 - WARNING - TA indicators not calculated for HD. Skipping.
+2026-01-17 15:53:52,708 - WARNING - TA indicators not calculated for HON. Skipping.
+2026-01-17 15:53:52,993 - WARNING - TA indicators not calculated for HRL. Skipping.
+2026-01-17 15:53:53,280 - WARNING - TA indicators not calculated for HST. Skipping.
+2026-01-17 15:53:53,730 - WARNING - TA indicators not calculated for HWM. Skipping.
+2026-01-17 15:53:54,163 - WARNING - TA indicators not calculated for HPQ. Skipping.
+2026-01-17 15:53:54,466 - WARNING - TA indicators not calculated for HUBB. Skipping.
+2026-01-17 15:53:54,906 - WARNING - TA indicators not calculated for HUM. Skipping.
+2026-01-17 15:53:55,356 - WARNING - TA indicators not calculated for HBAN. Skipping.
+2026-01-17 15:53:55,684 - WARNING - TA indicators not calculated for HII. Skipping.
+2026-01-17 15:53:56,245 - WARNING - TA indicators not calculated for IBM. Skipping.
+2026-01-17 15:53:56,610 - WARNING - TA indicators not calculated for IEX. Skipping.
+2026-01-17 15:53:56,866 - WARNING - TA indicators not calculated for IDXX. Skipping.
+2026-01-17 15:53:57,193 - WARNING - TA indicators not calculated for ITW. Skipping.
+2026-01-17 15:53:57,422 - WARNING - TA indicators not calculated for INCY. Skipping.
+2026-01-17 15:53:57,711 - WARNING - TA indicators not calculated for IR. Skipping.
+2026-01-17 15:53:58,130 - WARNING - TA indicators not calculated for PODD. Skipping.
+2026-01-17 15:53:58,465 - WARNING - TA indicators not calculated for INTC. Skipping.
+2026-01-17 15:53:58,845 - WARNING - TA indicators not calculated for IBKR. Skipping.
+2026-01-17 15:53:59,174 - WARNING - TA indicators not calculated for ICE. Skipping.
+2026-01-17 15:53:59,654 - WARNING - TA indicators not calculated for IFF. Skipping.
+2026-01-17 15:54:00,278 - WARNING - TA indicators not calculated for IP. Skipping.
+2026-01-17 15:54:00,687 - WARNING - TA indicators not calculated for INTU. Skipping.
+2026-01-17 15:54:01,079 - WARNING - TA indicators not calculated for ISRG. Skipping.
+2026-01-17 15:54:01,486 - WARNING - TA indicators not calculated for IVZ. Skipping.
+2026-01-17 15:54:02,011 - WARNING - TA indicators not calculated for INVH. Skipping.
+2026-01-17 15:54:02,435 - WARNING - TA indicators not calculated for IQV. Skipping.
+2026-01-17 15:54:02,801 - WARNING - TA indicators not calculated for IRM. Skipping.
+2026-01-17 15:54:03,118 - WARNING - TA indicators not calculated for JBHT. Skipping.
+2026-01-17 15:54:04,067 - WARNING - TA indicators not calculated for JBL. Skipping.
+2026-01-17 15:54:04,480 - WARNING - TA indicators not calculated for JKHY. Skipping.
+2026-01-17 15:54:04,924 - WARNING - TA indicators not calculated for J. Skipping.
+2026-01-17 15:54:05,399 - WARNING - TA indicators not calculated for JNJ. Skipping.
+2026-01-17 15:54:05,703 - WARNING - TA indicators not calculated for JCI. Skipping.
+2026-01-17 15:54:06,043 - WARNING - TA indicators not calculated for JPM. Skipping.
+2026-01-17 15:54:06,311 - WARNING - TA indicators not calculated for KVUE. Skipping.
+2026-01-17 15:54:06,640 - WARNING - TA indicators not calculated for KDP. Skipping.
+2026-01-17 15:54:07,091 - WARNING - TA indicators not calculated for KEY. Skipping.
+2026-01-17 15:54:07,348 - WARNING - TA indicators not calculated for KEYS. Skipping.
+2026-01-17 15:54:07,857 - WARNING - TA indicators not calculated for KMB. Skipping.
+2026-01-17 15:54:08,345 - WARNING - TA indicators not calculated for KIM. Skipping.
+2026-01-17 15:54:08,711 - WARNING - TA indicators not calculated for KMI. Skipping.
+2026-01-17 15:54:09,188 - WARNING - TA indicators not calculated for KKR. Skipping.
+2026-01-17 15:54:09,604 - WARNING - TA indicators not calculated for KLAC. Skipping.
+2026-01-17 15:54:10,106 - WARNING - TA indicators not calculated for KHC. Skipping.
+2026-01-17 15:54:10,617 - WARNING - TA indicators not calculated for KR. Skipping.
+2026-01-17 15:54:11,137 - WARNING - TA indicators not calculated for LHX. Skipping.
+2026-01-17 15:54:11,738 - WARNING - TA indicators not calculated for LH. Skipping.
+2026-01-17 15:54:12,267 - WARNING - TA indicators not calculated for LRCX. Skipping.
+2026-01-17 15:54:12,664 - WARNING - TA indicators not calculated for LW. Skipping.
+2026-01-17 15:54:12,942 - WARNING - TA indicators not calculated for LVS. Skipping.
+2026-01-17 15:54:13,269 - WARNING - TA indicators not calculated for LDOS. Skipping.
+2026-01-17 15:54:13,624 - WARNING - TA indicators not calculated for LEN. Skipping.
+2026-01-17 15:54:13,994 - WARNING - TA indicators not calculated for LII. Skipping.
+2026-01-17 15:54:14,511 - WARNING - TA indicators not calculated for LLY. Skipping.
+2026-01-17 15:54:15,026 - WARNING - TA indicators not calculated for LIN. Skipping.
+2026-01-17 15:54:15,301 - WARNING - TA indicators not calculated for LYV. Skipping.
+2026-01-17 15:54:15,673 - WARNING - TA indicators not calculated for LMT. Skipping.
+2026-01-17 15:54:16,069 - WARNING - TA indicators not calculated for L. Skipping.
+2026-01-17 15:54:16,446 - WARNING - TA indicators not calculated for LOW. Skipping.
+2026-01-17 15:54:16,764 - WARNING - TA indicators not calculated for LULU. Skipping.
+2026-01-17 15:54:17,068 - WARNING - TA indicators not calculated for LYB. Skipping.
+2026-01-17 15:54:17,372 - WARNING - TA indicators not calculated for MTB. Skipping.
+2026-01-17 15:54:17,662 - WARNING - TA indicators not calculated for MPC. Skipping.
+2026-01-17 15:54:17,966 - WARNING - TA indicators not calculated for MAR. Skipping.
+2026-01-17 15:54:18,275 - WARNING - Insufficient data for MRSH. Skipping.
+2026-01-17 15:54:18,561 - WARNING - TA indicators not calculated for MLM. Skipping.
+2026-01-17 15:54:18,964 - WARNING - TA indicators not calculated for MAS. Skipping.
+2026-01-17 15:54:19,450 - WARNING - TA indicators not calculated for MA. Skipping.
+2026-01-17 15:54:19,926 - WARNING - TA indicators not calculated for MTCH. Skipping.
+2026-01-17 15:54:20,533 - WARNING - TA indicators not calculated for MKC. Skipping.
+2026-01-17 15:54:20,901 - WARNING - TA indicators not calculated for MCD. Skipping.
+2026-01-17 15:54:21,384 - WARNING - TA indicators not calculated for MCK. Skipping.
+2026-01-17 15:54:21,784 - WARNING - TA indicators not calculated for MDT. Skipping.
+2026-01-17 15:54:22,211 - WARNING - TA indicators not calculated for MRK. Skipping.
+2026-01-17 15:54:22,604 - WARNING - TA indicators not calculated for META. Skipping.
+2026-01-17 15:54:22,919 - WARNING - TA indicators not calculated for MET. Skipping.
+2026-01-17 15:54:23,309 - WARNING - TA indicators not calculated for MTD. Skipping.
+2026-01-17 15:54:23,720 - WARNING - TA indicators not calculated for MGM. Skipping.
+2026-01-17 15:54:24,204 - WARNING - TA indicators not calculated for MCHP. Skipping.
+2026-01-17 15:54:24,489 - WARNING - TA indicators not calculated for MU. Skipping.
+2026-01-17 15:54:24,777 - WARNING - TA indicators not calculated for MSFT. Skipping.
+2026-01-17 15:54:25,177 - WARNING - TA indicators not calculated for MAA. Skipping.
+2026-01-17 15:54:25,545 - WARNING - TA indicators not calculated for MRNA. Skipping.
+2026-01-17 15:54:25,909 - WARNING - TA indicators not calculated for MOH. Skipping.
+2026-01-17 15:54:26,223 - WARNING - TA indicators not calculated for TAP. Skipping.
+2026-01-17 15:54:26,559 - WARNING - TA indicators not calculated for MDLZ. Skipping.
+2026-01-17 15:54:26,874 - WARNING - TA indicators not calculated for MPWR. Skipping.
+2026-01-17 15:54:27,204 - WARNING - TA indicators not calculated for MNST. Skipping.
+2026-01-17 15:54:27,459 - WARNING - TA indicators not calculated for MCO. Skipping.
+2026-01-17 15:54:27,751 - WARNING - TA indicators not calculated for MS. Skipping.
+2026-01-17 15:54:28,312 - WARNING - TA indicators not calculated for MOS. Skipping.
+2026-01-17 15:54:28,659 - WARNING - TA indicators not calculated for MSI. Skipping.
+2026-01-17 15:54:28,980 - WARNING - TA indicators not calculated for MSCI. Skipping.
+2026-01-17 15:54:29,212 - WARNING - TA indicators not calculated for NDAQ. Skipping.
+2026-01-17 15:54:29,569 - WARNING - TA indicators not calculated for NTAP. Skipping.
+2026-01-17 15:54:30,204 - WARNING - TA indicators not calculated for NFLX. Skipping.
+2026-01-17 15:54:30,496 - WARNING - TA indicators not calculated for NEM. Skipping.
+2026-01-17 15:54:30,767 - WARNING - TA indicators not calculated for NWSA. Skipping.
+2026-01-17 15:54:31,090 - WARNING - TA indicators not calculated for NWS. Skipping.
+2026-01-17 15:54:31,688 - WARNING - TA indicators not calculated for NEE. Skipping.
+2026-01-17 15:54:32,009 - WARNING - TA indicators not calculated for NKE. Skipping.
+2026-01-17 15:54:32,575 - WARNING - TA indicators not calculated for NI. Skipping.
+2026-01-17 15:54:33,040 - WARNING - TA indicators not calculated for NDSN. Skipping.
+2026-01-17 15:54:33,476 - WARNING - TA indicators not calculated for NSC. Skipping.
+2026-01-17 15:54:33,841 - WARNING - TA indicators not calculated for NTRS. Skipping.
+2026-01-17 15:54:34,191 - WARNING - TA indicators not calculated for NOC. Skipping.
+2026-01-17 15:54:34,478 - WARNING - TA indicators not calculated for NCLH. Skipping.
+2026-01-17 15:54:34,933 - WARNING - TA indicators not calculated for NRG. Skipping.
+2026-01-17 15:54:35,303 - WARNING - TA indicators not calculated for NUE. Skipping.
+2026-01-17 15:54:35,717 - WARNING - TA indicators not calculated for NVDA. Skipping.
+2026-01-17 15:54:36,074 - WARNING - TA indicators not calculated for NVR. Skipping.
+2026-01-17 15:54:36,369 - WARNING - TA indicators not calculated for NXPI. Skipping.
+2026-01-17 15:54:36,723 - WARNING - TA indicators not calculated for ORLY. Skipping.
+2026-01-17 15:54:37,003 - WARNING - TA indicators not calculated for OXY. Skipping.
+2026-01-17 15:54:37,350 - WARNING - TA indicators not calculated for ODFL. Skipping.
+2026-01-17 15:54:37,651 - WARNING - TA indicators not calculated for OMC. Skipping.
+2026-01-17 15:54:38,066 - WARNING - TA indicators not calculated for ON. Skipping.
+2026-01-17 15:54:38,363 - WARNING - TA indicators not calculated for OKE. Skipping.
+2026-01-17 15:54:38,754 - WARNING - TA indicators not calculated for ORCL. Skipping.
+2026-01-17 15:54:39,212 - WARNING - TA indicators not calculated for OTIS. Skipping.
+2026-01-17 15:54:39,691 - WARNING - TA indicators not calculated for PCAR. Skipping.
+2026-01-17 15:54:40,007 - WARNING - TA indicators not calculated for PKG. Skipping.
+2026-01-17 15:54:40,428 - WARNING - TA indicators not calculated for PLTR. Skipping.
+2026-01-17 15:54:40,711 - WARNING - TA indicators not calculated for PANW. Skipping.
+2026-01-17 15:54:41,085 - WARNING - TA indicators not calculated for PSKY. Skipping.
+2026-01-17 15:54:41,504 - WARNING - TA indicators not calculated for PH. Skipping.
+2026-01-17 15:54:41,920 - WARNING - TA indicators not calculated for PAYX. Skipping.
+2026-01-17 15:54:42,408 - WARNING - TA indicators not calculated for PAYC. Skipping.
+2026-01-17 15:54:42,709 - WARNING - TA indicators not calculated for PYPL. Skipping.
+2026-01-17 15:54:43,117 - WARNING - TA indicators not calculated for PNR. Skipping.
+2026-01-17 15:54:43,554 - WARNING - TA indicators not calculated for PEP. Skipping.
+2026-01-17 15:54:44,122 - WARNING - TA indicators not calculated for PFE. Skipping.
+2026-01-17 15:54:44,443 - WARNING - TA indicators not calculated for PCG. Skipping.
+2026-01-17 15:54:45,193 - WARNING - TA indicators not calculated for PM. Skipping.
+2026-01-17 15:54:45,634 - WARNING - TA indicators not calculated for PSX. Skipping.
+2026-01-17 15:54:45,970 - WARNING - TA indicators not calculated for PNW. Skipping.
+2026-01-17 15:54:46,432 - WARNING - TA indicators not calculated for PNC. Skipping.
+2026-01-17 15:54:46,774 - WARNING - TA indicators not calculated for POOL. Skipping.
+2026-01-17 15:54:47,195 - WARNING - TA indicators not calculated for PPG. Skipping.
+2026-01-17 15:54:47,501 - WARNING - TA indicators not calculated for PPL. Skipping.
+2026-01-17 15:54:47,739 - WARNING - TA indicators not calculated for PFG. Skipping.
+2026-01-17 15:54:48,316 - WARNING - TA indicators not calculated for PG. Skipping.
+2026-01-17 15:54:48,809 - WARNING - TA indicators not calculated for PGR. Skipping.
+2026-01-17 15:54:49,124 - WARNING - TA indicators not calculated for PLD. Skipping.
+2026-01-17 15:54:49,418 - WARNING - TA indicators not calculated for PRU. Skipping.
+2026-01-17 15:54:49,917 - WARNING - TA indicators not calculated for PEG. Skipping.
+2026-01-17 15:54:50,320 - WARNING - TA indicators not calculated for PTC. Skipping.
+2026-01-17 15:54:50,643 - WARNING - TA indicators not calculated for PSA. Skipping.
+2026-01-17 15:54:51,191 - WARNING - TA indicators not calculated for PHM. Skipping.
+2026-01-17 15:54:51,458 - WARNING - TA indicators not calculated for PWR. Skipping.
+2026-01-17 15:54:51,908 - WARNING - TA indicators not calculated for QCOM. Skipping.
+2026-01-17 15:54:52,161 - WARNING - TA indicators not calculated for DGX. Skipping.
+2026-01-17 15:54:52,512 - WARNING - Insufficient data for Q. Skipping.
+2026-01-17 15:54:52,826 - WARNING - TA indicators not calculated for RL. Skipping.
+2026-01-17 15:54:53,436 - WARNING - TA indicators not calculated for RJF. Skipping.
+2026-01-17 15:54:53,754 - WARNING - TA indicators not calculated for RTX. Skipping.
+2026-01-17 15:54:54,100 - WARNING - TA indicators not calculated for O. Skipping.
+2026-01-17 15:54:54,469 - WARNING - TA indicators not calculated for REG. Skipping.
+2026-01-17 15:54:54,764 - WARNING - TA indicators not calculated for REGN. Skipping.
+2026-01-17 15:54:55,080 - WARNING - TA indicators not calculated for RF. Skipping.
+2026-01-17 15:54:55,340 - WARNING - TA indicators not calculated for RSG. Skipping.
+2026-01-17 15:54:55,675 - WARNING - TA indicators not calculated for RMD. Skipping.
+2026-01-17 15:54:56,315 - WARNING - TA indicators not calculated for RVTY. Skipping.
+2026-01-17 15:54:56,610 - WARNING - TA indicators not calculated for HOOD. Skipping.
+2026-01-17 15:54:56,929 - WARNING - TA indicators not calculated for ROK. Skipping.
+2026-01-17 15:54:57,273 - WARNING - TA indicators not calculated for ROL. Skipping.
+2026-01-17 15:54:57,771 - WARNING - TA indicators not calculated for ROP. Skipping.
+2026-01-17 15:54:58,168 - WARNING - TA indicators not calculated for ROST. Skipping.
+2026-01-17 15:54:58,676 - WARNING - TA indicators not calculated for RCL. Skipping.
+2026-01-17 15:54:59,148 - WARNING - TA indicators not calculated for SPGI. Skipping.
+2026-01-17 15:54:59,649 - WARNING - TA indicators not calculated for CRM. Skipping.
+2026-01-17 15:55:00,133 - WARNING - TA indicators not calculated for SNDK. Skipping.
+2026-01-17 15:55:00,542 - WARNING - TA indicators not calculated for SBAC. Skipping.
+2026-01-17 15:55:01,029 - WARNING - TA indicators not calculated for SLB. Skipping.
+2026-01-17 15:55:01,294 - WARNING - TA indicators not calculated for STX. Skipping.
+2026-01-17 15:55:01,655 - WARNING - TA indicators not calculated for SRE. Skipping.
+2026-01-17 15:55:01,938 - WARNING - TA indicators not calculated for NOW. Skipping.
+2026-01-17 15:55:02,256 - WARNING - TA indicators not calculated for SHW. Skipping.
+2026-01-17 15:55:02,573 - WARNING - TA indicators not calculated for SPG. Skipping.
+2026-01-17 15:55:03,036 - WARNING - TA indicators not calculated for SWKS. Skipping.
+2026-01-17 15:55:03,331 - WARNING - TA indicators not calculated for SJM. Skipping.
+2026-01-17 15:55:03,757 - WARNING - TA indicators not calculated for SW. Skipping.
+2026-01-17 15:55:04,198 - WARNING - TA indicators not calculated for SNA. Skipping.
+2026-01-17 15:55:04,473 - WARNING - TA indicators not calculated for SOLV. Skipping.
+2026-01-17 15:55:04,987 - WARNING - TA indicators not calculated for SO. Skipping.
+2026-01-17 15:55:05,235 - WARNING - TA indicators not calculated for LUV. Skipping.
+2026-01-17 15:55:05,618 - WARNING - TA indicators not calculated for SWK. Skipping.
+2026-01-17 15:55:06,131 - WARNING - TA indicators not calculated for SBUX. Skipping.
+2026-01-17 15:55:06,517 - WARNING - TA indicators not calculated for STT. Skipping.
+2026-01-17 15:55:07,054 - WARNING - TA indicators not calculated for STLD. Skipping.
+2026-01-17 15:55:07,361 - WARNING - TA indicators not calculated for STE. Skipping.
+2026-01-17 15:55:07,869 - WARNING - TA indicators not calculated for SYK. Skipping.
+2026-01-17 15:55:08,164 - WARNING - TA indicators not calculated for SMCI. Skipping.
+2026-01-17 15:55:08,596 - WARNING - TA indicators not calculated for SYF. Skipping.
+2026-01-17 15:55:08,976 - WARNING - TA indicators not calculated for SNPS. Skipping.
+2026-01-17 15:55:09,401 - WARNING - TA indicators not calculated for SYY. Skipping.
+2026-01-17 15:55:09,827 - WARNING - TA indicators not calculated for TMUS. Skipping.
+2026-01-17 15:55:10,206 - WARNING - TA indicators not calculated for TROW. Skipping.
+2026-01-17 15:55:10,620 - WARNING - TA indicators not calculated for TTWO. Skipping.
+2026-01-17 15:55:11,047 - WARNING - TA indicators not calculated for TPR. Skipping.
+2026-01-17 15:55:11,486 - WARNING - TA indicators not calculated for TRGP. Skipping.
+2026-01-17 15:55:12,169 - WARNING - TA indicators not calculated for TGT. Skipping.
+2026-01-17 15:55:12,583 - WARNING - TA indicators not calculated for TEL. Skipping.
+2026-01-17 15:55:13,102 - WARNING - TA indicators not calculated for TDY. Skipping.
+2026-01-17 15:55:13,509 - WARNING - TA indicators not calculated for TER. Skipping.
+2026-01-17 15:55:13,801 - WARNING - TA indicators not calculated for TSLA. Skipping.
+2026-01-17 15:55:14,098 - WARNING - TA indicators not calculated for TXN. Skipping.
+2026-01-17 15:55:14,654 - WARNING - TA indicators not calculated for TPL. Skipping.
+2026-01-17 15:55:15,252 - WARNING - TA indicators not calculated for TXT. Skipping.
+2026-01-17 15:55:15,769 - WARNING - TA indicators not calculated for TMO. Skipping.
+2026-01-17 15:55:16,310 - WARNING - TA indicators not calculated for TJX. Skipping.
+2026-01-17 15:55:16,775 - WARNING - TA indicators not calculated for TKO. Skipping.
+2026-01-17 15:55:17,064 - WARNING - TA indicators not calculated for TTD. Skipping.
+2026-01-17 15:55:17,398 - WARNING - TA indicators not calculated for TSCO. Skipping.
+2026-01-17 15:55:17,918 - WARNING - TA indicators not calculated for TT. Skipping.
+2026-01-17 15:55:18,199 - WARNING - TA indicators not calculated for TDG. Skipping.
+2026-01-17 15:55:18,725 - WARNING - TA indicators not calculated for TRV. Skipping.
+2026-01-17 15:55:19,118 - WARNING - TA indicators not calculated for TRMB. Skipping.
+2026-01-17 15:55:19,424 - WARNING - TA indicators not calculated for TFC. Skipping.
+2026-01-17 15:55:19,872 - WARNING - TA indicators not calculated for TYL. Skipping.
+2026-01-17 15:55:20,157 - WARNING - TA indicators not calculated for TSN. Skipping.
+2026-01-17 15:55:20,535 - WARNING - TA indicators not calculated for USB. Skipping.
+2026-01-17 15:55:20,816 - WARNING - TA indicators not calculated for UBER. Skipping.
+2026-01-17 15:55:21,198 - WARNING - TA indicators not calculated for UDR. Skipping.
+2026-01-17 15:55:21,500 - WARNING - TA indicators not calculated for ULTA. Skipping.
+2026-01-17 15:55:22,017 - WARNING - TA indicators not calculated for UNP. Skipping.
+2026-01-17 15:55:22,399 - WARNING - TA indicators not calculated for UAL. Skipping.
+2026-01-17 15:55:22,799 - WARNING - TA indicators not calculated for UPS. Skipping.
+2026-01-17 15:55:23,118 - WARNING - TA indicators not calculated for URI. Skipping.
+2026-01-17 15:55:23,491 - WARNING - TA indicators not calculated for UNH. Skipping.
+2026-01-17 15:55:23,851 - WARNING - TA indicators not calculated for UHS. Skipping.
+2026-01-17 15:55:24,513 - WARNING - TA indicators not calculated for VLO. Skipping.
+2026-01-17 15:55:24,989 - WARNING - TA indicators not calculated for VTR. Skipping.
+2026-01-17 15:55:25,355 - WARNING - TA indicators not calculated for VLTO. Skipping.
+2026-01-17 15:55:25,611 - WARNING - TA indicators not calculated for VRSN. Skipping.
+2026-01-17 15:55:25,995 - WARNING - TA indicators not calculated for VRSK. Skipping.
+2026-01-17 15:55:26,419 - WARNING - TA indicators not calculated for VZ. Skipping.
+2026-01-17 15:55:26,706 - WARNING - TA indicators not calculated for VRTX. Skipping.
+2026-01-17 15:55:27,113 - WARNING - TA indicators not calculated for VTRS. Skipping.
+2026-01-17 15:55:27,517 - WARNING - TA indicators not calculated for VICI. Skipping.
+2026-01-17 15:55:28,058 - WARNING - TA indicators not calculated for V. Skipping.
+2026-01-17 15:55:28,319 - WARNING - TA indicators not calculated for VST. Skipping.
+2026-01-17 15:55:28,595 - WARNING - TA indicators not calculated for VMC. Skipping.
+2026-01-17 15:55:28,961 - WARNING - TA indicators not calculated for WRB. Skipping.
+2026-01-17 15:55:29,371 - WARNING - TA indicators not calculated for GWW. Skipping.
+2026-01-17 15:55:29,818 - WARNING - TA indicators not calculated for WAB. Skipping.
+2026-01-17 15:55:30,277 - WARNING - TA indicators not calculated for WMT. Skipping.
+2026-01-17 15:55:30,651 - WARNING - TA indicators not calculated for DIS. Skipping.
+2026-01-17 15:55:30,914 - WARNING - TA indicators not calculated for WBD. Skipping.
+2026-01-17 15:55:31,404 - WARNING - TA indicators not calculated for WM. Skipping.
+2026-01-17 15:55:31,719 - WARNING - TA indicators not calculated for WAT. Skipping.
+2026-01-17 15:55:32,357 - WARNING - TA indicators not calculated for WEC. Skipping.
+2026-01-17 15:55:33,056 - WARNING - TA indicators not calculated for WFC. Skipping.
+2026-01-17 15:55:33,370 - WARNING - TA indicators not calculated for WELL. Skipping.
+2026-01-17 15:55:33,893 - WARNING - TA indicators not calculated for WST. Skipping.
+2026-01-17 15:55:34,217 - WARNING - TA indicators not calculated for WDC. Skipping.
+2026-01-17 15:55:34,812 - WARNING - TA indicators not calculated for WY. Skipping.
+2026-01-17 15:55:35,114 - WARNING - TA indicators not calculated for WSM. Skipping.
+2026-01-17 15:55:35,568 - WARNING - TA indicators not calculated for WMB. Skipping.
+2026-01-17 15:55:35,920 - WARNING - TA indicators not calculated for WTW. Skipping.
+2026-01-17 15:55:36,225 - WARNING - TA indicators not calculated for WDAY. Skipping.
+2026-01-17 15:55:36,562 - WARNING - TA indicators not calculated for WYNN. Skipping.
+2026-01-17 15:55:36,965 - WARNING - TA indicators not calculated for XEL. Skipping.
+2026-01-17 15:55:37,328 - WARNING - TA indicators not calculated for XYL. Skipping.
+2026-01-17 15:55:37,591 - WARNING - TA indicators not calculated for YUM. Skipping.
+2026-01-17 15:55:37,937 - WARNING - TA indicators not calculated for ZBRA. Skipping.
+2026-01-17 15:55:38,247 - WARNING - TA indicators not calculated for ZBH. Skipping.
+2026-01-17 15:55:38,833 - WARNING - TA indicators not calculated for ZTS. Skipping.
+2026-01-17 15:55:38,833 - INFO - ======================================================================
+2026-01-17 15:55:38,834 - INFO - SCREENING STATISTICS
+2026-01-17 15:55:38,834 - INFO - ======================================================================
+2026-01-17 15:55:38,834 - INFO - Total tickers analyzed: 503
+2026-01-17 15:55:38,834 - INFO - Successful analyses: 0
+2026-01-17 15:55:38,835 - INFO - Errors encountered: 503
+2026-01-17 15:55:38,835 - INFO - Signals generated: 0
+2026-01-17 15:55:38,835 - INFO - Signal rate: 0.00%
+2026-01-17 15:55:38,836 - INFO - ======================================================================
+2026-01-17 15:55:38,836 - INFO - No stocks found meeting the enhanced criteria today
+2026-01-17 15:55:38,837 - INFO - ======================================================================
+2026-01-17 15:55:38,837 - INFO - 
+Screening complete. Check log file for details.
+2026-01-17 15:59:32,455 - INFO - Successfully pulled 503 S&P 500 tickers from Wikipedia
+2026-01-17 15:59:32,460 - INFO - ======================================================================
+2026-01-17 15:59:32,461 - INFO - ENHANCED OPTIONS PREMIUM SCREENER
+2026-01-17 15:59:32,461 - INFO - ======================================================================
+2026-01-17 15:59:32,462 - INFO - Criteria: RSI < 35, Price > SMA 200, Active Volume
+2026-01-17 15:59:32,462 - INFO - Enhanced Filters: Bollinger Bands, ATR, Volume Surge, Support Levels
+2026-01-17 15:59:32,463 - INFO - ======================================================================
+2026-01-17 15:59:33,289 - WARNING - TA indicators not calculated for MMM. Skipping.
+2026-01-17 15:59:33,813 - WARNING - TA indicators not calculated for AOS. Skipping.
+2026-01-17 15:59:34,067 - WARNING - TA indicators not calculated for ABT. Skipping.
+2026-01-17 15:59:34,345 - WARNING - TA indicators not calculated for ABBV. Skipping.
+2026-01-17 15:59:34,571 - WARNING - TA indicators not calculated for ACN. Skipping.
+2026-01-17 15:59:34,842 - WARNING - TA indicators not calculated for ADBE. Skipping.
+2026-01-17 15:59:35,109 - WARNING - TA indicators not calculated for AMD. Skipping.
+2026-01-17 15:59:35,343 - WARNING - TA indicators not calculated for AES. Skipping.
+2026-01-17 15:59:35,641 - WARNING - TA indicators not calculated for AFL. Skipping.
+2026-01-17 15:59:35,900 - WARNING - TA indicators not calculated for A. Skipping.
+2026-01-17 15:59:36,266 - WARNING - TA indicators not calculated for APD. Skipping.
+2026-01-17 15:59:36,558 - WARNING - TA indicators not calculated for ABNB. Skipping.
+2026-01-17 15:59:36,853 - WARNING - TA indicators not calculated for AKAM. Skipping.
+2026-01-17 15:59:37,281 - WARNING - TA indicators not calculated for ALB. Skipping.
+2026-01-17 15:59:37,616 - WARNING - TA indicators not calculated for ARE. Skipping.
+2026-01-17 15:59:37,868 - WARNING - TA indicators not calculated for ALGN. Skipping.
+2026-01-17 15:59:38,184 - WARNING - TA indicators not calculated for ALLE. Skipping.
+2026-01-17 15:59:38,605 - WARNING - TA indicators not calculated for LNT. Skipping.
+2026-01-17 15:59:38,849 - WARNING - TA indicators not calculated for ALL. Skipping.
+2026-01-17 15:59:39,358 - WARNING - TA indicators not calculated for GOOGL. Skipping.
+2026-01-17 15:59:39,801 - WARNING - TA indicators not calculated for GOOG. Skipping.
+2026-01-17 15:59:40,274 - WARNING - TA indicators not calculated for MO. Skipping.
+2026-01-17 15:59:40,557 - WARNING - TA indicators not calculated for AMZN. Skipping.
+2026-01-17 15:59:41,080 - WARNING - TA indicators not calculated for AMCR. Skipping.
+2026-01-17 15:59:41,394 - WARNING - TA indicators not calculated for AEE. Skipping.
+2026-01-17 15:59:41,794 - WARNING - TA indicators not calculated for AEP. Skipping.
+2026-01-17 15:59:42,109 - WARNING - TA indicators not calculated for AXP. Skipping.
+2026-01-17 15:59:42,520 - WARNING - TA indicators not calculated for AIG. Skipping.
+2026-01-17 15:59:42,823 - WARNING - TA indicators not calculated for AMT. Skipping.
+2026-01-17 15:59:43,106 - WARNING - TA indicators not calculated for AWK. Skipping.
+2026-01-17 15:59:43,434 - WARNING - TA indicators not calculated for AMP. Skipping.
+2026-01-17 15:59:43,837 - WARNING - TA indicators not calculated for AME. Skipping.
+2026-01-17 15:59:44,240 - WARNING - TA indicators not calculated for AMGN. Skipping.
+2026-01-17 15:59:44,780 - WARNING - TA indicators not calculated for APH. Skipping.
+2026-01-17 15:59:45,101 - WARNING - TA indicators not calculated for ADI. Skipping.
+2026-01-17 15:59:45,473 - WARNING - TA indicators not calculated for AON. Skipping.
+2026-01-17 15:59:45,908 - WARNING - TA indicators not calculated for APA. Skipping.
+2026-01-17 15:59:46,163 - WARNING - TA indicators not calculated for APO. Skipping.
+2026-01-17 15:59:46,703 - WARNING - TA indicators not calculated for AAPL. Skipping.
+2026-01-17 15:59:47,157 - WARNING - TA indicators not calculated for AMAT. Skipping.
+2026-01-17 15:59:47,488 - WARNING - TA indicators not calculated for APP. Skipping.
+2026-01-17 15:59:47,876 - WARNING - TA indicators not calculated for APTV. Skipping.
+2026-01-17 15:59:48,172 - WARNING - TA indicators not calculated for ACGL. Skipping.
+2026-01-17 15:59:48,435 - WARNING - TA indicators not calculated for ADM. Skipping.
+2026-01-17 15:59:48,739 - WARNING - TA indicators not calculated for ARES. Skipping.
+2026-01-17 15:59:49,126 - WARNING - TA indicators not calculated for ANET. Skipping.
+2026-01-17 15:59:49,480 - WARNING - TA indicators not calculated for AJG. Skipping.
+2026-01-17 15:59:49,772 - WARNING - TA indicators not calculated for AIZ. Skipping.
+2026-01-17 15:59:50,179 - WARNING - TA indicators not calculated for T. Skipping.
+2026-01-17 15:59:50,578 - WARNING - TA indicators not calculated for ATO. Skipping.
+2026-01-17 15:59:50,897 - WARNING - TA indicators not calculated for ADSK. Skipping.
+2026-01-17 15:59:51,213 - WARNING - TA indicators not calculated for ADP. Skipping.
+2026-01-17 15:59:51,580 - WARNING - TA indicators not calculated for AZO. Skipping.
+2026-01-17 15:59:51,907 - WARNING - TA indicators not calculated for AVB. Skipping.
+2026-01-17 15:59:52,381 - WARNING - TA indicators not calculated for AVY. Skipping.
+2026-01-17 15:59:52,852 - WARNING - TA indicators not calculated for AXON. Skipping.
+2026-01-17 15:59:53,226 - WARNING - TA indicators not calculated for BKR. Skipping.
+2026-01-17 15:59:53,579 - WARNING - TA indicators not calculated for BALL. Skipping.
+2026-01-17 15:59:54,010 - WARNING - TA indicators not calculated for BAC. Skipping.
+2026-01-17 15:59:54,317 - WARNING - TA indicators not calculated for BAX. Skipping.
+2026-01-17 15:59:54,694 - WARNING - TA indicators not calculated for BDX. Skipping.
+2026-01-17 15:59:55,063 - WARNING - TA indicators not calculated for BRK-B. Skipping.
+2026-01-17 15:59:55,408 - WARNING - TA indicators not calculated for BBY. Skipping.
+2026-01-17 15:59:55,748 - WARNING - TA indicators not calculated for TECH. Skipping.
+2026-01-17 15:59:56,074 - WARNING - TA indicators not calculated for BIIB. Skipping.
+2026-01-17 15:59:56,444 - WARNING - TA indicators not calculated for BLK. Skipping.
+2026-01-17 15:59:57,004 - WARNING - TA indicators not calculated for BX. Skipping.
+2026-01-17 15:59:57,284 - WARNING - TA indicators not calculated for XYZ. Skipping.
+2026-01-17 15:59:57,663 - WARNING - TA indicators not calculated for BK. Skipping.
+2026-01-17 15:59:58,156 - WARNING - TA indicators not calculated for BA. Skipping.
+2026-01-17 15:59:58,576 - WARNING - TA indicators not calculated for BKNG. Skipping.
+2026-01-17 15:59:58,889 - WARNING - TA indicators not calculated for BSX. Skipping.
+2026-01-17 15:59:59,194 - WARNING - TA indicators not calculated for BMY. Skipping.
+2026-01-17 15:59:59,504 - WARNING - TA indicators not calculated for AVGO. Skipping.
+2026-01-17 15:59:59,915 - WARNING - TA indicators not calculated for BR. Skipping.
+2026-01-17 16:00:00,330 - WARNING - TA indicators not calculated for BRO. Skipping.
+2026-01-17 16:00:00,720 - WARNING - TA indicators not calculated for BF-B. Skipping.
+2026-01-17 16:00:00,917 - WARNING - TA indicators not calculated for BLDR. Skipping.
+2026-01-17 16:00:01,449 - WARNING - TA indicators not calculated for BG. Skipping.
+2026-01-17 16:00:01,853 - WARNING - TA indicators not calculated for BXP. Skipping.
+2026-01-17 16:00:02,188 - WARNING - TA indicators not calculated for CHRW. Skipping.
+2026-01-17 16:00:02,544 - WARNING - TA indicators not calculated for CDNS. Skipping.
+2026-01-17 16:00:02,993 - WARNING - TA indicators not calculated for CPT. Skipping.
+2026-01-17 16:00:03,294 - WARNING - TA indicators not calculated for CPB. Skipping.
+2026-01-17 16:00:03,590 - WARNING - TA indicators not calculated for COF. Skipping.
+2026-01-17 16:00:03,838 - WARNING - TA indicators not calculated for CAH. Skipping.
+2026-01-17 16:00:04,104 - WARNING - TA indicators not calculated for CCL. Skipping.
+2026-01-17 16:00:04,409 - WARNING - TA indicators not calculated for CARR. Skipping.
+2026-01-17 16:00:04,631 - WARNING - TA indicators not calculated for CVNA. Skipping.
+2026-01-17 16:00:05,032 - WARNING - TA indicators not calculated for CAT. Skipping.
+2026-01-17 16:00:05,348 - WARNING - TA indicators not calculated for CBOE. Skipping.
+2026-01-17 16:00:05,642 - WARNING - TA indicators not calculated for CBRE. Skipping.
+2026-01-17 16:00:05,961 - WARNING - TA indicators not calculated for CDW. Skipping.
+2026-01-17 16:00:06,356 - WARNING - TA indicators not calculated for COR. Skipping.
+2026-01-17 16:00:06,651 - WARNING - TA indicators not calculated for CNC. Skipping.
+2026-01-17 16:00:07,032 - WARNING - TA indicators not calculated for CNP. Skipping.
+2026-01-17 16:00:07,405 - WARNING - TA indicators not calculated for CF. Skipping.
+2026-01-17 16:00:07,696 - WARNING - TA indicators not calculated for CRL. Skipping.
+2026-01-17 16:00:08,011 - WARNING - TA indicators not calculated for SCHW. Skipping.
+2026-01-17 16:00:08,412 - WARNING - TA indicators not calculated for CHTR. Skipping.
+2026-01-17 16:00:08,827 - WARNING - TA indicators not calculated for CVX. Skipping.
+2026-01-17 16:00:09,112 - WARNING - TA indicators not calculated for CMG. Skipping.
+2026-01-17 16:00:09,444 - WARNING - TA indicators not calculated for CB. Skipping.
+2026-01-17 16:00:09,749 - WARNING - TA indicators not calculated for CHD. Skipping.
+2026-01-17 16:00:10,149 - WARNING - TA indicators not calculated for CI. Skipping.
+2026-01-17 16:00:10,502 - WARNING - TA indicators not calculated for CINF. Skipping.
+2026-01-17 16:00:10,860 - WARNING - TA indicators not calculated for CTAS. Skipping.
+2026-01-17 16:00:11,204 - WARNING - TA indicators not calculated for CSCO. Skipping.
+2026-01-17 16:00:11,683 - WARNING - TA indicators not calculated for C. Skipping.
+2026-01-17 16:00:11,992 - WARNING - TA indicators not calculated for CFG. Skipping.
+2026-01-17 16:00:12,511 - WARNING - TA indicators not calculated for CLX. Skipping.
+2026-01-17 16:00:12,919 - WARNING - TA indicators not calculated for CME. Skipping.
+2026-01-17 16:00:13,343 - WARNING - TA indicators not calculated for CMS. Skipping.
+2026-01-17 16:00:13,859 - WARNING - TA indicators not calculated for KO. Skipping.
+2026-01-17 16:00:14,154 - WARNING - TA indicators not calculated for CTSH. Skipping.
+2026-01-17 16:00:14,510 - WARNING - TA indicators not calculated for COIN. Skipping.
+2026-01-17 16:00:14,863 - WARNING - TA indicators not calculated for CL. Skipping.
+2026-01-17 16:00:15,249 - WARNING - TA indicators not calculated for CMCSA. Skipping.
+2026-01-17 16:00:15,785 - WARNING - TA indicators not calculated for FIX. Skipping.
+2026-01-17 16:00:16,418 - WARNING - TA indicators not calculated for CAG. Skipping.
+2026-01-17 16:00:16,923 - WARNING - TA indicators not calculated for COP. Skipping.
+2026-01-17 16:00:17,427 - WARNING - TA indicators not calculated for ED. Skipping.
+2026-01-17 16:00:17,732 - WARNING - TA indicators not calculated for STZ. Skipping.
+2026-01-17 16:00:18,061 - WARNING - TA indicators not calculated for CEG. Skipping.
+2026-01-17 16:00:18,540 - WARNING - TA indicators not calculated for COO. Skipping.
+2026-01-17 16:00:18,947 - WARNING - TA indicators not calculated for CPRT. Skipping.
+2026-01-17 16:00:19,444 - WARNING - TA indicators not calculated for GLW. Skipping.
+2026-01-17 16:00:19,790 - WARNING - TA indicators not calculated for CPAY. Skipping.
+2026-01-17 16:00:20,180 - WARNING - TA indicators not calculated for CTVA. Skipping.
+2026-01-17 16:00:20,693 - WARNING - TA indicators not calculated for CSGP. Skipping.
+2026-01-17 16:00:21,108 - WARNING - TA indicators not calculated for COST. Skipping.
+2026-01-17 16:00:21,518 - WARNING - TA indicators not calculated for CTRA. Skipping.
+2026-01-17 16:00:21,851 - WARNING - TA indicators not calculated for CRH. Skipping.
+2026-01-17 16:00:22,210 - WARNING - TA indicators not calculated for CRWD. Skipping.
+2026-01-17 16:00:22,483 - WARNING - TA indicators not calculated for CCI. Skipping.
+2026-01-17 16:00:22,856 - WARNING - TA indicators not calculated for CSX. Skipping.
+2026-01-17 16:00:23,178 - WARNING - TA indicators not calculated for CMI. Skipping.
+2026-01-17 16:00:23,524 - WARNING - TA indicators not calculated for CVS. Skipping.
+2026-01-17 16:00:23,967 - WARNING - TA indicators not calculated for DHR. Skipping.
+2026-01-17 16:00:24,220 - WARNING - TA indicators not calculated for DRI. Skipping.
+2026-01-17 16:00:24,479 - WARNING - TA indicators not calculated for DDOG. Skipping.
+2026-01-17 16:00:24,798 - WARNING - TA indicators not calculated for DVA. Skipping.
+2026-01-17 16:00:25,101 - WARNING - TA indicators not calculated for DAY. Skipping.
+2026-01-17 16:00:25,455 - WARNING - TA indicators not calculated for DECK. Skipping.
+2026-01-17 16:00:25,836 - WARNING - TA indicators not calculated for DE. Skipping.
+2026-01-17 16:00:26,102 - WARNING - TA indicators not calculated for DELL. Skipping.
+2026-01-17 16:00:26,544 - WARNING - TA indicators not calculated for DAL. Skipping.
+2026-01-17 16:00:27,062 - WARNING - TA indicators not calculated for DVN. Skipping.
+2026-01-17 16:00:27,317 - WARNING - TA indicators not calculated for DXCM. Skipping.
+2026-01-17 16:00:27,674 - WARNING - TA indicators not calculated for FANG. Skipping.
+2026-01-17 16:00:27,975 - WARNING - TA indicators not calculated for DLR. Skipping.
+2026-01-17 16:00:28,370 - WARNING - TA indicators not calculated for DG. Skipping.
+2026-01-17 16:00:28,688 - WARNING - TA indicators not calculated for DLTR. Skipping.
+2026-01-17 16:00:29,404 - WARNING - TA indicators not calculated for D. Skipping.
+2026-01-17 16:00:29,725 - WARNING - TA indicators not calculated for DPZ. Skipping.
+2026-01-17 16:00:29,980 - WARNING - TA indicators not calculated for DASH. Skipping.
+2026-01-17 16:00:30,322 - WARNING - TA indicators not calculated for DOV. Skipping.
+2026-01-17 16:00:30,628 - WARNING - TA indicators not calculated for DOW. Skipping.
+2026-01-17 16:00:31,050 - WARNING - TA indicators not calculated for DHI. Skipping.
+2026-01-17 16:00:31,436 - WARNING - TA indicators not calculated for DTE. Skipping.
+2026-01-17 16:00:31,979 - WARNING - TA indicators not calculated for DUK. Skipping.
+2026-01-17 16:00:32,484 - WARNING - TA indicators not calculated for DD. Skipping.
+2026-01-17 16:00:32,783 - WARNING - TA indicators not calculated for ETN. Skipping.
+2026-01-17 16:00:33,142 - WARNING - TA indicators not calculated for EBAY. Skipping.
+2026-01-17 16:00:33,606 - WARNING - TA indicators not calculated for ECL. Skipping.
+2026-01-17 16:00:34,113 - WARNING - TA indicators not calculated for EIX. Skipping.
+2026-01-17 16:00:34,533 - WARNING - TA indicators not calculated for EW. Skipping.
+2026-01-17 16:00:34,795 - WARNING - TA indicators not calculated for EA. Skipping.
+2026-01-17 16:00:35,133 - WARNING - TA indicators not calculated for ELV. Skipping.
+2026-01-17 16:00:35,453 - WARNING - TA indicators not calculated for EME. Skipping.
+2026-01-17 16:00:35,783 - WARNING - TA indicators not calculated for EMR. Skipping.
+2026-01-17 16:00:36,357 - WARNING - TA indicators not calculated for ETR. Skipping.
+2026-01-17 16:00:36,872 - WARNING - TA indicators not calculated for EOG. Skipping.
+2026-01-17 16:00:37,190 - WARNING - TA indicators not calculated for EPAM. Skipping.
+2026-01-17 16:00:37,586 - WARNING - TA indicators not calculated for EQT. Skipping.
+2026-01-17 16:00:38,007 - WARNING - TA indicators not calculated for EFX. Skipping.
+2026-01-17 16:00:38,312 - WARNING - TA indicators not calculated for EQIX. Skipping.
+2026-01-17 16:00:38,821 - WARNING - TA indicators not calculated for EQR. Skipping.
+2026-01-17 16:00:39,151 - WARNING - TA indicators not calculated for ERIE. Skipping.
+2026-01-17 16:00:39,442 - WARNING - TA indicators not calculated for ESS. Skipping.
+2026-01-17 16:00:39,845 - WARNING - TA indicators not calculated for EL. Skipping.
+2026-01-17 16:00:40,163 - WARNING - TA indicators not calculated for EG. Skipping.
+2026-01-17 16:00:40,580 - WARNING - TA indicators not calculated for EVRG. Skipping.
+2026-01-17 16:00:40,969 - WARNING - TA indicators not calculated for ES. Skipping.
+2026-01-17 16:00:41,591 - WARNING - TA indicators not calculated for EXC. Skipping.
+2026-01-17 16:00:41,886 - WARNING - TA indicators not calculated for EXE. Skipping.
+2026-01-17 16:00:42,412 - WARNING - TA indicators not calculated for EXPE. Skipping.
+2026-01-17 16:00:42,822 - WARNING - TA indicators not calculated for EXPD. Skipping.
+2026-01-17 16:00:43,137 - WARNING - TA indicators not calculated for EXR. Skipping.
+2026-01-17 16:00:43,645 - WARNING - TA indicators not calculated for XOM. Skipping.
+2026-01-17 16:00:43,942 - WARNING - TA indicators not calculated for FFIV. Skipping.
+2026-01-17 16:00:44,250 - WARNING - TA indicators not calculated for FDS. Skipping.
+2026-01-17 16:00:44,564 - WARNING - TA indicators not calculated for FICO. Skipping.
+2026-01-17 16:00:44,901 - WARNING - TA indicators not calculated for FAST. Skipping.
+2026-01-17 16:00:45,265 - WARNING - TA indicators not calculated for FRT. Skipping.
+2026-01-17 16:00:45,592 - WARNING - TA indicators not calculated for FDX. Skipping.
+2026-01-17 16:00:45,899 - WARNING - TA indicators not calculated for FIS. Skipping.
+2026-01-17 16:00:46,205 - WARNING - TA indicators not calculated for FITB. Skipping.
+2026-01-17 16:00:46,500 - WARNING - TA indicators not calculated for FSLR. Skipping.
+2026-01-17 16:00:46,738 - WARNING - TA indicators not calculated for FE. Skipping.
+2026-01-17 16:00:47,216 - WARNING - TA indicators not calculated for FISV. Skipping.
+2026-01-17 16:00:47,527 - WARNING - TA indicators not calculated for F. Skipping.
+2026-01-17 16:00:47,839 - WARNING - TA indicators not calculated for FTNT. Skipping.
+2026-01-17 16:00:48,390 - WARNING - TA indicators not calculated for FTV. Skipping.
+2026-01-17 16:00:48,768 - WARNING - TA indicators not calculated for FOXA. Skipping.
+2026-01-17 16:00:48,992 - WARNING - TA indicators not calculated for FOX. Skipping.
+2026-01-17 16:00:49,467 - WARNING - TA indicators not calculated for BEN. Skipping.
+2026-01-17 16:00:49,772 - WARNING - TA indicators not calculated for FCX. Skipping.
+2026-01-17 16:00:50,027 - WARNING - TA indicators not calculated for GRMN. Skipping.
+2026-01-17 16:00:50,354 - WARNING - TA indicators not calculated for IT. Skipping.
+2026-01-17 16:00:50,693 - WARNING - TA indicators not calculated for GE. Skipping.
+2026-01-17 16:00:51,121 - WARNING - TA indicators not calculated for GEHC. Skipping.
+2026-01-17 16:00:51,409 - WARNING - TA indicators not calculated for GEV. Skipping.
+2026-01-17 16:00:51,727 - WARNING - TA indicators not calculated for GEN. Skipping.
+2026-01-17 16:00:52,098 - WARNING - TA indicators not calculated for GNRC. Skipping.
+2026-01-17 16:00:52,562 - WARNING - TA indicators not calculated for GD. Skipping.
+2026-01-17 16:00:53,205 - WARNING - TA indicators not calculated for GIS. Skipping.
+2026-01-17 16:00:53,464 - WARNING - TA indicators not calculated for GM. Skipping.
+2026-01-17 16:00:53,775 - WARNING - TA indicators not calculated for GPC. Skipping.
+2026-01-17 16:00:53,998 - WARNING - TA indicators not calculated for GILD. Skipping.
+2026-01-17 16:00:54,429 - WARNING - TA indicators not calculated for GPN. Skipping.
+2026-01-17 16:00:54,815 - WARNING - TA indicators not calculated for GL. Skipping.
+2026-01-17 16:00:54,986 - WARNING - TA indicators not calculated for GDDY. Skipping.
+2026-01-17 16:00:55,526 - WARNING - TA indicators not calculated for GS. Skipping.
+2026-01-17 16:00:56,041 - WARNING - TA indicators not calculated for HAL. Skipping.
+2026-01-17 16:00:56,378 - WARNING - TA indicators not calculated for HIG. Skipping.
+2026-01-17 16:00:56,762 - WARNING - TA indicators not calculated for HAS. Skipping.
+2026-01-17 16:00:57,053 - WARNING - TA indicators not calculated for HCA. Skipping.
+2026-01-17 16:00:57,335 - WARNING - TA indicators not calculated for DOC. Skipping.
+2026-01-17 16:00:57,678 - WARNING - TA indicators not calculated for HSIC. Skipping.
+2026-01-17 16:00:58,166 - WARNING - TA indicators not calculated for HSY. Skipping.
+2026-01-17 16:00:58,591 - WARNING - TA indicators not calculated for HPE. Skipping.
+2026-01-17 16:00:58,986 - WARNING - TA indicators not calculated for HLT. Skipping.
+2026-01-17 16:00:59,417 - WARNING - TA indicators not calculated for HOLX. Skipping.
+2026-01-17 16:01:00,336 - WARNING - TA indicators not calculated for HD. Skipping.
+2026-01-17 16:01:01,088 - WARNING - TA indicators not calculated for HON. Skipping.
+2026-01-17 16:01:01,411 - WARNING - TA indicators not calculated for HRL. Skipping.
+2026-01-17 16:01:02,044 - WARNING - TA indicators not calculated for HST. Skipping.
+2026-01-17 16:01:02,493 - WARNING - TA indicators not calculated for HWM. Skipping.
+2026-01-17 16:01:03,009 - WARNING - TA indicators not calculated for HPQ. Skipping.
+2026-01-17 16:01:03,524 - WARNING - TA indicators not calculated for HUBB. Skipping.
+2026-01-17 16:01:03,945 - WARNING - TA indicators not calculated for HUM. Skipping.
+2026-01-17 16:01:04,464 - WARNING - TA indicators not calculated for HBAN. Skipping.
+2026-01-17 16:01:04,736 - WARNING - TA indicators not calculated for HII. Skipping.
+2026-01-17 16:01:05,172 - WARNING - TA indicators not calculated for IBM. Skipping.
+2026-01-17 16:01:05,569 - WARNING - TA indicators not calculated for IEX. Skipping.
+2026-01-17 16:01:05,837 - WARNING - TA indicators not calculated for IDXX. Skipping.
+2026-01-17 16:01:06,389 - WARNING - TA indicators not calculated for ITW. Skipping.
+2026-01-17 16:01:06,719 - WARNING - TA indicators not calculated for INCY. Skipping.
+2026-01-17 16:01:06,963 - WARNING - TA indicators not calculated for IR. Skipping.
+2026-01-17 16:01:07,201 - WARNING - TA indicators not calculated for PODD. Skipping.
+2026-01-17 16:01:07,544 - WARNING - TA indicators not calculated for INTC. Skipping.
+2026-01-17 16:01:07,912 - WARNING - TA indicators not calculated for IBKR. Skipping.
+2026-01-17 16:01:08,338 - WARNING - TA indicators not calculated for ICE. Skipping.
+2026-01-17 16:01:08,756 - WARNING - TA indicators not calculated for IFF. Skipping.
+2026-01-17 16:01:09,243 - WARNING - TA indicators not calculated for IP. Skipping.
+2026-01-17 16:01:09,623 - WARNING - TA indicators not calculated for INTU. Skipping.
+2026-01-17 16:01:10,013 - WARNING - TA indicators not calculated for ISRG. Skipping.
+2026-01-17 16:01:10,375 - WARNING - TA indicators not calculated for IVZ. Skipping.
+2026-01-17 16:01:10,867 - WARNING - TA indicators not calculated for INVH. Skipping.
+2026-01-17 16:01:11,182 - WARNING - TA indicators not calculated for IQV. Skipping.
+2026-01-17 16:01:11,511 - WARNING - TA indicators not calculated for IRM. Skipping.
+2026-01-17 16:01:11,912 - WARNING - TA indicators not calculated for JBHT. Skipping.
+2026-01-17 16:01:12,310 - WARNING - TA indicators not calculated for JBL. Skipping.
+2026-01-17 16:01:12,719 - WARNING - TA indicators not calculated for JKHY. Skipping.
+2026-01-17 16:01:13,118 - WARNING - TA indicators not calculated for J. Skipping.
+2026-01-17 16:01:13,469 - WARNING - TA indicators not calculated for JNJ. Skipping.
+2026-01-17 16:01:13,945 - WARNING - TA indicators not calculated for JCI. Skipping.
+2026-01-17 16:01:14,314 - WARNING - TA indicators not calculated for JPM. Skipping.
+2026-01-17 16:01:14,527 - WARNING - TA indicators not calculated for KVUE. Skipping.
+2026-01-17 16:01:15,089 - WARNING - TA indicators not calculated for KDP. Skipping.
+2026-01-17 16:01:15,597 - WARNING - TA indicators not calculated for KEY. Skipping.
+2026-01-17 16:01:15,993 - WARNING - TA indicators not calculated for KEYS. Skipping.
+2026-01-17 16:01:16,395 - WARNING - TA indicators not calculated for KMB. Skipping.
+2026-01-17 16:01:16,828 - WARNING - TA indicators not calculated for KIM. Skipping.
+2026-01-17 16:01:17,226 - WARNING - TA indicators not calculated for KMI. Skipping.
+2026-01-17 16:01:17,525 - WARNING - TA indicators not calculated for KKR. Skipping.
+2026-01-17 16:01:17,991 - WARNING - TA indicators not calculated for KLAC. Skipping.
+2026-01-17 16:01:18,245 - WARNING - TA indicators not calculated for KHC. Skipping.
+2026-01-17 16:01:18,573 - WARNING - TA indicators not calculated for KR. Skipping.
+2026-01-17 16:01:19,038 - WARNING - TA indicators not calculated for LHX. Skipping.
+2026-01-17 16:01:19,703 - WARNING - TA indicators not calculated for LH. Skipping.
+2026-01-17 16:01:19,966 - WARNING - TA indicators not calculated for LRCX. Skipping.
+2026-01-17 16:01:20,293 - WARNING - TA indicators not calculated for LW. Skipping.
+2026-01-17 16:01:20,704 - WARNING - TA indicators not calculated for LVS. Skipping.
+2026-01-17 16:01:21,112 - WARNING - TA indicators not calculated for LDOS. Skipping.
+2026-01-17 16:01:21,535 - WARNING - TA indicators not calculated for LEN. Skipping.
+2026-01-17 16:01:21,931 - WARNING - TA indicators not calculated for LII. Skipping.
+2026-01-17 16:01:22,353 - WARNING - TA indicators not calculated for LLY. Skipping.
+2026-01-17 16:01:22,703 - WARNING - TA indicators not calculated for LIN. Skipping.
+2026-01-17 16:01:22,913 - WARNING - TA indicators not calculated for LYV. Skipping.
+2026-01-17 16:01:23,389 - WARNING - TA indicators not calculated for LMT. Skipping.
+2026-01-17 16:01:23,779 - WARNING - TA indicators not calculated for L. Skipping.
+2026-01-17 16:01:24,296 - WARNING - TA indicators not calculated for LOW. Skipping.
+2026-01-17 16:01:24,603 - WARNING - TA indicators not calculated for LULU. Skipping.
+2026-01-17 16:01:24,905 - WARNING - TA indicators not calculated for LYB. Skipping.
+2026-01-17 16:01:25,413 - WARNING - TA indicators not calculated for MTB. Skipping.
+2026-01-17 16:01:25,731 - WARNING - TA indicators not calculated for MPC. Skipping.
+2026-01-17 16:01:26,131 - WARNING - TA indicators not calculated for MAR. Skipping.
+2026-01-17 16:01:26,510 - WARNING - Insufficient data for MRSH. Skipping.
+2026-01-17 16:01:26,851 - WARNING - TA indicators not calculated for MLM. Skipping.
+2026-01-17 16:01:27,261 - WARNING - TA indicators not calculated for MAS. Skipping.
+2026-01-17 16:01:27,559 - WARNING - TA indicators not calculated for MA. Skipping.
+2026-01-17 16:01:27,985 - WARNING - TA indicators not calculated for MTCH. Skipping.
+2026-01-17 16:01:28,278 - WARNING - TA indicators not calculated for MKC. Skipping.
+2026-01-17 16:01:28,698 - WARNING - TA indicators not calculated for MCD. Skipping.
+2026-01-17 16:01:29,029 - WARNING - TA indicators not calculated for MCK. Skipping.
+2026-01-17 16:01:29,311 - WARNING - TA indicators not calculated for MDT. Skipping.
+2026-01-17 16:01:29,643 - WARNING - TA indicators not calculated for MRK. Skipping.
+2026-01-17 16:01:30,028 - WARNING - TA indicators not calculated for META. Skipping.
+2026-01-17 16:01:30,440 - WARNING - TA indicators not calculated for MET. Skipping.
+2026-01-17 16:01:31,408 - WARNING - TA indicators not calculated for MTD. Skipping.
+2026-01-17 16:01:31,760 - WARNING - TA indicators not calculated for MGM. Skipping.
+2026-01-17 16:01:32,074 - WARNING - TA indicators not calculated for MCHP. Skipping.
+2026-01-17 16:01:32,372 - WARNING - TA indicators not calculated for MU. Skipping.
+2026-01-17 16:01:32,700 - WARNING - TA indicators not calculated for MSFT. Skipping.
+2026-01-17 16:01:32,973 - WARNING - TA indicators not calculated for MAA. Skipping.
+2026-01-17 16:01:33,407 - WARNING - TA indicators not calculated for MRNA. Skipping.
+2026-01-17 16:01:33,708 - WARNING - TA indicators not calculated for MOH. Skipping.
+2026-01-17 16:01:34,029 - WARNING - TA indicators not calculated for TAP. Skipping.
+2026-01-17 16:01:34,437 - WARNING - TA indicators not calculated for MDLZ. Skipping.
+2026-01-17 16:01:34,733 - WARNING - TA indicators not calculated for MPWR. Skipping.
+2026-01-17 16:01:34,996 - WARNING - TA indicators not calculated for MNST. Skipping.
+2026-01-17 16:01:35,358 - WARNING - TA indicators not calculated for MCO. Skipping.
+2026-01-17 16:01:35,782 - WARNING - TA indicators not calculated for MS. Skipping.
+2026-01-17 16:01:36,151 - WARNING - TA indicators not calculated for MOS. Skipping.
+2026-01-17 16:01:36,649 - WARNING - TA indicators not calculated for MSI. Skipping.
+2026-01-17 16:01:36,904 - WARNING - TA indicators not calculated for MSCI. Skipping.
+2026-01-17 16:01:37,195 - WARNING - TA indicators not calculated for NDAQ. Skipping.
+2026-01-17 16:01:37,500 - WARNING - TA indicators not calculated for NTAP. Skipping.
+2026-01-17 16:01:37,833 - WARNING - TA indicators not calculated for NFLX. Skipping.
+2026-01-17 16:01:38,212 - WARNING - TA indicators not calculated for NEM. Skipping.
+2026-01-17 16:01:38,528 - WARNING - TA indicators not calculated for NWSA. Skipping.
+2026-01-17 16:01:38,845 - WARNING - TA indicators not calculated for NWS. Skipping.
+2026-01-17 16:01:39,255 - WARNING - TA indicators not calculated for NEE. Skipping.
+2026-01-17 16:01:39,554 - WARNING - TA indicators not calculated for NKE. Skipping.
+2026-01-17 16:01:39,904 - WARNING - TA indicators not calculated for NI. Skipping.
+2026-01-17 16:01:40,468 - WARNING - TA indicators not calculated for NDSN. Skipping.
+2026-01-17 16:01:40,895 - WARNING - TA indicators not calculated for NSC. Skipping.
+2026-01-17 16:01:41,298 - WARNING - TA indicators not calculated for NTRS. Skipping.
+2026-01-17 16:01:41,606 - WARNING - TA indicators not calculated for NOC. Skipping.
+2026-01-17 16:01:41,902 - WARNING - TA indicators not calculated for NCLH. Skipping.
+2026-01-17 16:01:42,211 - WARNING - TA indicators not calculated for NRG. Skipping.
+2026-01-17 16:01:42,553 - WARNING - TA indicators not calculated for NUE. Skipping.
+2026-01-17 16:01:42,828 - WARNING - TA indicators not calculated for NVDA. Skipping.
+2026-01-17 16:01:43,297 - WARNING - TA indicators not calculated for NVR. Skipping.
+2026-01-17 16:01:43,553 - WARNING - TA indicators not calculated for NXPI. Skipping.
+2026-01-17 16:01:43,799 - WARNING - TA indicators not calculated for ORLY. Skipping.
+2026-01-17 16:01:44,216 - WARNING - TA indicators not calculated for OXY. Skipping.
+2026-01-17 16:01:44,554 - WARNING - TA indicators not calculated for ODFL. Skipping.
+2026-01-17 16:01:45,089 - WARNING - TA indicators not calculated for OMC. Skipping.
+2026-01-17 16:01:45,470 - WARNING - TA indicators not calculated for ON. Skipping.
+2026-01-17 16:01:45,805 - WARNING - TA indicators not calculated for OKE. Skipping.
+2026-01-17 16:01:46,045 - WARNING - TA indicators not calculated for ORCL. Skipping.
+2026-01-17 16:01:46,439 - WARNING - TA indicators not calculated for OTIS. Skipping.
+2026-01-17 16:01:46,793 - WARNING - TA indicators not calculated for PCAR. Skipping.
+2026-01-17 16:01:47,220 - WARNING - TA indicators not calculated for PKG. Skipping.
+2026-01-17 16:01:47,750 - WARNING - TA indicators not calculated for PLTR. Skipping.
+2026-01-17 16:01:47,998 - WARNING - TA indicators not calculated for PANW. Skipping.
+2026-01-17 16:01:48,366 - WARNING - TA indicators not calculated for PSKY. Skipping.
+2026-01-17 16:01:48,738 - WARNING - TA indicators not calculated for PH. Skipping.
+2026-01-17 16:01:49,046 - WARNING - TA indicators not calculated for PAYX. Skipping.
+2026-01-17 16:01:49,513 - WARNING - TA indicators not calculated for PAYC. Skipping.
+2026-01-17 16:01:49,792 - WARNING - TA indicators not calculated for PYPL. Skipping.
+2026-01-17 16:01:50,284 - WARNING - TA indicators not calculated for PNR. Skipping.
+2026-01-17 16:01:50,787 - WARNING - TA indicators not calculated for PEP. Skipping.
+2026-01-17 16:01:51,119 - WARNING - TA indicators not calculated for PFE. Skipping.
+2026-01-17 16:01:51,531 - WARNING - TA indicators not calculated for PCG. Skipping.
+2026-01-17 16:01:52,135 - WARNING - TA indicators not calculated for PM. Skipping.
+2026-01-17 16:01:52,544 - WARNING - TA indicators not calculated for PSX. Skipping.
+2026-01-17 16:01:53,181 - WARNING - TA indicators not calculated for PNW. Skipping.
+2026-01-17 16:01:53,686 - WARNING - TA indicators not calculated for PNC. Skipping.
+2026-01-17 16:01:54,092 - WARNING - TA indicators not calculated for POOL. Skipping.
+2026-01-17 16:01:54,504 - WARNING - TA indicators not calculated for PPG. Skipping.
+2026-01-17 16:01:54,800 - WARNING - TA indicators not calculated for PPL. Skipping.
+2026-01-17 16:01:55,113 - WARNING - TA indicators not calculated for PFG. Skipping.
+2026-01-17 16:01:55,523 - WARNING - TA indicators not calculated for PG. Skipping.
+2026-01-17 16:01:56,040 - WARNING - TA indicators not calculated for PGR. Skipping.
+2026-01-17 16:01:56,398 - WARNING - TA indicators not calculated for PLD. Skipping.
+2026-01-17 16:01:56,664 - WARNING - TA indicators not calculated for PRU. Skipping.
+2026-01-17 16:01:57,176 - WARNING - TA indicators not calculated for PEG. Skipping.
+2026-01-17 16:01:57,566 - WARNING - TA indicators not calculated for PTC. Skipping.
+2026-01-17 16:01:57,988 - WARNING - TA indicators not calculated for PSA. Skipping.
+2026-01-17 16:01:58,305 - WARNING - TA indicators not calculated for PHM. Skipping.
+2026-01-17 16:01:58,596 - WARNING - TA indicators not calculated for PWR. Skipping.
+2026-01-17 16:01:58,898 - WARNING - TA indicators not calculated for QCOM. Skipping.
+2026-01-17 16:01:59,516 - WARNING - TA indicators not calculated for DGX. Skipping.
+2026-01-17 16:01:59,754 - WARNING - Insufficient data for Q. Skipping.
+2026-01-17 16:02:00,115 - WARNING - TA indicators not calculated for RL. Skipping.
+2026-01-17 16:02:00,398 - WARNING - TA indicators not calculated for RJF. Skipping.
+2026-01-17 16:02:00,767 - WARNING - TA indicators not calculated for RTX. Skipping.
+2026-01-17 16:02:01,027 - WARNING - TA indicators not calculated for O. Skipping.
+2026-01-17 16:02:01,565 - WARNING - TA indicators not calculated for REG. Skipping.
+2026-01-17 16:02:01,886 - WARNING - TA indicators not calculated for REGN. Skipping.
+2026-01-17 16:02:02,399 - WARNING - TA indicators not calculated for RF. Skipping.
+2026-01-17 16:02:02,795 - WARNING - TA indicators not calculated for RSG. Skipping.
+2026-01-17 16:02:03,207 - WARNING - TA indicators not calculated for RMD. Skipping.
+2026-01-17 16:02:03,508 - WARNING - TA indicators not calculated for RVTY. Skipping.
+2026-01-17 16:02:03,805 - WARNING - TA indicators not calculated for HOOD. Skipping.
+2026-01-17 16:02:04,137 - WARNING - TA indicators not calculated for ROK. Skipping.
+2026-01-17 16:02:04,530 - WARNING - TA indicators not calculated for ROL. Skipping.
+2026-01-17 16:02:04,826 - WARNING - TA indicators not calculated for ROP. Skipping.
+2026-01-17 16:02:05,110 - WARNING - TA indicators not calculated for ROST. Skipping.
+2026-01-17 16:02:05,395 - WARNING - TA indicators not calculated for RCL. Skipping.
+2026-01-17 16:02:05,716 - WARNING - TA indicators not calculated for SPGI. Skipping.
+2026-01-17 16:02:05,966 - WARNING - TA indicators not calculated for CRM. Skipping.
+2026-01-17 16:02:06,389 - WARNING - TA indicators not calculated for SNDK. Skipping.
+2026-01-17 16:02:06,691 - WARNING - TA indicators not calculated for SBAC. Skipping.
+2026-01-17 16:02:07,290 - WARNING - TA indicators not calculated for SLB. Skipping.
+2026-01-17 16:02:07,581 - WARNING - TA indicators not calculated for STX. Skipping.
+2026-01-17 16:02:07,884 - WARNING - TA indicators not calculated for SRE. Skipping.
+2026-01-17 16:02:08,214 - WARNING - TA indicators not calculated for NOW. Skipping.
+2026-01-17 16:02:08,544 - WARNING - TA indicators not calculated for SHW. Skipping.
+2026-01-17 16:02:08,845 - WARNING - TA indicators not calculated for SPG. Skipping.
+2026-01-17 16:02:09,195 - WARNING - TA indicators not calculated for SWKS. Skipping.
+2026-01-17 16:02:09,664 - WARNING - TA indicators not calculated for SJM. Skipping.
+2026-01-17 16:02:09,996 - WARNING - TA indicators not calculated for SW. Skipping.
+2026-01-17 16:02:10,297 - WARNING - TA indicators not calculated for SNA. Skipping.
+2026-01-17 16:02:10,592 - WARNING - TA indicators not calculated for SOLV. Skipping.
+2026-01-17 16:02:11,319 - WARNING - TA indicators not calculated for SO. Skipping.
+2026-01-17 16:02:12,093 - WARNING - TA indicators not calculated for LUV. Skipping.
+2026-01-17 16:02:12,355 - WARNING - TA indicators not calculated for SWK. Skipping.
+2026-01-17 16:02:12,638 - WARNING - TA indicators not calculated for SBUX. Skipping.
+2026-01-17 16:02:12,920 - WARNING - TA indicators not calculated for STT. Skipping.
+2026-01-17 16:02:13,222 - WARNING - TA indicators not calculated for STLD. Skipping.
+2026-01-17 16:02:13,522 - WARNING - TA indicators not calculated for STE. Skipping.
+2026-01-17 16:02:13,824 - WARNING - TA indicators not calculated for SYK. Skipping.
+2026-01-17 16:02:14,102 - WARNING - TA indicators not calculated for SMCI. Skipping.
+2026-01-17 16:02:14,348 - WARNING - TA indicators not calculated for SYF. Skipping.
+2026-01-17 16:02:14,562 - WARNING - TA indicators not calculated for SNPS. Skipping.
+2026-01-17 16:02:14,870 - WARNING - TA indicators not calculated for SYY. Skipping.
+2026-01-17 16:02:15,110 - WARNING - TA indicators not calculated for TMUS. Skipping.
+2026-01-17 16:02:15,463 - WARNING - TA indicators not calculated for TROW. Skipping.
+2026-01-17 16:02:15,655 - WARNING - TA indicators not calculated for TTWO. Skipping.
+2026-01-17 16:02:15,880 - WARNING - TA indicators not calculated for TPR. Skipping.
+2026-01-17 16:02:16,095 - WARNING - TA indicators not calculated for TRGP. Skipping.
+2026-01-17 16:02:16,396 - WARNING - TA indicators not calculated for TGT. Skipping.
+2026-01-17 16:02:16,710 - WARNING - TA indicators not calculated for TEL. Skipping.
+2026-01-17 16:02:17,073 - WARNING - TA indicators not calculated for TDY. Skipping.
+2026-01-17 16:02:17,310 - WARNING - TA indicators not calculated for TER. Skipping.
+2026-01-17 16:02:17,530 - WARNING - TA indicators not calculated for TSLA. Skipping.
+2026-01-17 16:02:17,850 - WARNING - TA indicators not calculated for TXN. Skipping.
+2026-01-17 16:02:18,092 - WARNING - TA indicators not calculated for TPL. Skipping.
+2026-01-17 16:02:18,524 - WARNING - TA indicators not calculated for TXT. Skipping.
+2026-01-17 16:02:18,826 - WARNING - TA indicators not calculated for TMO. Skipping.
+2026-01-17 16:02:19,134 - WARNING - TA indicators not calculated for TJX. Skipping.
+2026-01-17 16:02:19,402 - WARNING - TA indicators not calculated for TKO. Skipping.
+2026-01-17 16:02:19,631 - WARNING - TA indicators not calculated for TTD. Skipping.
+2026-01-17 16:02:19,935 - WARNING - TA indicators not calculated for TSCO. Skipping.
+2026-01-17 16:02:20,361 - WARNING - TA indicators not calculated for TT. Skipping.
+2026-01-17 16:02:20,652 - WARNING - TA indicators not calculated for TDG. Skipping.
+2026-01-17 16:02:21,009 - WARNING - TA indicators not calculated for TRV. Skipping.
+2026-01-17 16:02:21,241 - WARNING - TA indicators not calculated for TRMB. Skipping.
+2026-01-17 16:02:21,592 - WARNING - TA indicators not calculated for TFC. Skipping.
+2026-01-17 16:02:21,793 - WARNING - TA indicators not calculated for TYL. Skipping.
+2026-01-17 16:02:22,075 - WARNING - TA indicators not calculated for TSN. Skipping.
+2026-01-17 16:02:22,391 - WARNING - TA indicators not calculated for USB. Skipping.
+2026-01-17 16:02:22,628 - WARNING - TA indicators not calculated for UBER. Skipping.
+2026-01-17 16:02:22,926 - WARNING - TA indicators not calculated for UDR. Skipping.
+2026-01-17 16:02:23,159 - WARNING - TA indicators not calculated for ULTA. Skipping.
+2026-01-17 16:02:23,502 - WARNING - TA indicators not calculated for UNP. Skipping.
+2026-01-17 16:02:23,689 - WARNING - TA indicators not calculated for UAL. Skipping.
+2026-01-17 16:02:23,918 - WARNING - TA indicators not calculated for UPS. Skipping.
+2026-01-17 16:02:24,131 - WARNING - TA indicators not calculated for URI. Skipping.
+2026-01-17 16:02:24,428 - WARNING - TA indicators not calculated for UNH. Skipping.
+2026-01-17 16:02:24,709 - WARNING - TA indicators not calculated for UHS. Skipping.
+2026-01-17 16:02:25,027 - WARNING - TA indicators not calculated for VLO. Skipping.
+2026-01-17 16:02:25,278 - WARNING - TA indicators not calculated for VTR. Skipping.
+2026-01-17 16:02:25,537 - WARNING - TA indicators not calculated for VLTO. Skipping.
+2026-01-17 16:02:25,792 - WARNING - TA indicators not calculated for VRSN. Skipping.
+2026-01-17 16:02:26,090 - WARNING - TA indicators not calculated for VRSK. Skipping.
+2026-01-17 16:02:26,402 - WARNING - TA indicators not calculated for VZ. Skipping.
+2026-01-17 16:02:26,611 - WARNING - TA indicators not calculated for VRTX. Skipping.
+2026-01-17 16:02:26,961 - WARNING - TA indicators not calculated for VTRS. Skipping.
+2026-01-17 16:02:27,415 - WARNING - TA indicators not calculated for VICI. Skipping.
+2026-01-17 16:02:27,660 - WARNING - TA indicators not calculated for V. Skipping.
+2026-01-17 16:02:27,881 - WARNING - TA indicators not calculated for VST. Skipping.
+2026-01-17 16:02:28,165 - WARNING - TA indicators not calculated for VMC. Skipping.
+2026-01-17 16:02:28,575 - WARNING - TA indicators not calculated for WRB. Skipping.
+2026-01-17 16:02:28,870 - WARNING - TA indicators not calculated for GWW. Skipping.
+2026-01-17 16:02:29,160 - WARNING - TA indicators not calculated for WAB. Skipping.
+2026-01-17 16:02:29,496 - WARNING - TA indicators not calculated for WMT. Skipping.
+2026-01-17 16:02:29,928 - WARNING - TA indicators not calculated for DIS. Skipping.
+2026-01-17 16:02:30,423 - WARNING - TA indicators not calculated for WBD. Skipping.
+2026-01-17 16:02:30,682 - WARNING - TA indicators not calculated for WM. Skipping.
+2026-01-17 16:02:30,960 - WARNING - TA indicators not calculated for WAT. Skipping.
+2026-01-17 16:02:31,205 - WARNING - TA indicators not calculated for WEC. Skipping.
+2026-01-17 16:02:31,473 - WARNING - TA indicators not calculated for WFC. Skipping.
+2026-01-17 16:02:31,783 - WARNING - TA indicators not calculated for WELL. Skipping.
+2026-01-17 16:02:32,055 - WARNING - TA indicators not calculated for WST. Skipping.
+2026-01-17 16:02:32,340 - WARNING - TA indicators not calculated for WDC. Skipping.
+2026-01-17 16:02:32,610 - WARNING - TA indicators not calculated for WY. Skipping.
+2026-01-17 16:02:32,920 - WARNING - TA indicators not calculated for WSM. Skipping.
+2026-01-17 16:02:33,278 - WARNING - TA indicators not calculated for WMB. Skipping.
+2026-01-17 16:02:33,520 - WARNING - TA indicators not calculated for WTW. Skipping.
+2026-01-17 16:02:33,722 - WARNING - TA indicators not calculated for WDAY. Skipping.
+2026-01-17 16:02:34,051 - WARNING - TA indicators not calculated for WYNN. Skipping.
+2026-01-17 16:02:34,389 - WARNING - TA indicators not calculated for XEL. Skipping.
+2026-01-17 16:02:34,604 - WARNING - TA indicators not calculated for XYL. Skipping.
+2026-01-17 16:02:34,861 - WARNING - TA indicators not calculated for YUM. Skipping.
+2026-01-17 16:02:35,111 - WARNING - TA indicators not calculated for ZBRA. Skipping.
+2026-01-17 16:02:35,379 - WARNING - TA indicators not calculated for ZBH. Skipping.
+2026-01-17 16:02:35,665 - WARNING - TA indicators not calculated for ZTS. Skipping.
+2026-01-17 16:02:35,700 - INFO - ======================================================================
+2026-01-17 16:02:35,701 - INFO - SCREENING STATISTICS
+2026-01-17 16:02:35,702 - INFO - ======================================================================
+2026-01-17 16:02:35,702 - INFO - Total tickers analyzed: 503
+2026-01-17 16:02:35,703 - INFO - Successful analyses: 0
+2026-01-17 16:02:35,703 - INFO - Errors encountered: 503
+2026-01-17 16:02:35,704 - INFO - Signals generated: 0
+2026-01-17 16:02:35,705 - INFO - Signal rate: 0.00%
+2026-01-17 16:02:35,716 - INFO - ======================================================================
+2026-01-17 16:02:35,721 - INFO - No stocks found meeting the enhanced criteria today
+2026-01-17 16:02:35,728 - INFO - ======================================================================
+2026-01-17 16:02:35,730 - INFO - 
+Screening complete. Check log file for details.
