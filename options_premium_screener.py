@@ -25,42 +25,41 @@ logger = logging.getLogger(__name__)
 
 # ============ CURATED TICKER LISTS ============
 # Tier 1: Core winning stocks — screened first, highest conviction
+# Note: SPX uses ^GSPC as yfinance symbol
 TIER1_CORE = [
     'COST',   # Costco — steady, strong premiums
     'NVDA',   # NVIDIA — high IV, great premium
     'IWM',    # Russell 2000 ETF — liquid, range-bound friendly
     'GOOGL',  # Alphabet Class A
-    'SPY',    # S&P 500 ETF — liquid, core index
-    'QQQ',    # Nasdaq 100 ETF
+    '^GSPC',  # S&P 500 Index (SPX) — reference index
+]
+
+# Tier 2: Watchlist — screened after Tier 1, monitor for re-entry signals
+# CLS and STX: kept pending further performance review
+TIER2_WATCHLIST = [
     'MSFT',   # Microsoft
     'AAPL',   # Apple
     'AMZN',   # Amazon
     'META',   # Meta
     'AVGO',   # Broadcom
-]
-
-# Tier 2: Watchlist — screened after Tier 1, monitor for re-entry signals
-TIER2_WATCHLIST = [
     'CRWD',   # CrowdStrike
     'PLTR',   # Palantir
-    'NFLX',   # Netflix
     'AMD',    # AMD
-    'ORCL',   # Oracle
     'MU',     # Micron
-    'AMAT',   # Applied Materials
-    'ANET',   # Arista Networks
-    'ARM',    # ARM Holdings
     'TSLA',   # Tesla
-    'VOO',    # Vanguard S&P 500 ETF
     'QQQM',   # Invesco Nasdaq 100 ETF (smaller shares)
+    'CLS',    # Celestica — watchlist pending review
+    'STX',    # Seagate — watchlist pending review
 ]
 
-# Removed (high volatility / low premium quality / unpredictable behavior):
-# IONQ, RGTI, MARA, OKLO, MP, QLD, HIMS, CLS, STX
+# Removed tickers:
+# SPY, QQQ, VOO   — too large/liquid, spread premiums too thin
+# NFLX, ORCL, AMAT, ANET, ARM — low conviction, removed from watchlist
+# IONQ, RGTI, MARA, OKLO, MP, QLD, HIMS — high volatility / low premium quality
 
 # ============ SCREENING PARAMETERS ============
 RSI_PERIOD = 14
-RSI_THRESHOLD = 35       # Stricter oversold threshold (was 40)
+RSI_THRESHOLD = 35       # Stricter oversold threshold
 BB_PERIOD = 20
 ATR_PERIOD = 14
 
@@ -185,12 +184,12 @@ def screen_tickers(tickers, tier_label):
             support_price, pct_above_support = get_support_level(stock_data)
 
             # ---- Screening Filters ----
-            is_oversold          = current_rsi < RSI_THRESHOLD
-            is_uptrend_long      = latest_close > latest_sma_200
-            is_liquid            = latest_volume > latest_avg_vol_50
-            is_near_lower_bb     = latest_bb_pos < 0.4
-            is_adequate_vol      = atr_pct > 1.0
-            is_volume_surge      = volume_surge_ratio > 1.2
+            is_oversold      = current_rsi < RSI_THRESHOLD
+            is_uptrend_long  = latest_close > latest_sma_200
+            is_liquid        = latest_volume > latest_avg_vol_50
+            is_near_lower_bb = latest_bb_pos < 0.4
+            is_adequate_vol  = atr_pct > 1.0
+            is_volume_surge  = volume_surge_ratio > 1.2
 
             if (is_oversold and is_uptrend_long and is_liquid and
                     is_near_lower_bb and is_adequate_vol and is_volume_surge):
@@ -199,7 +198,10 @@ def screen_tickers(tickers, tier_label):
                     current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct
                 )
 
-                results[ticker] = {
+                # Use clean display name for SPX
+                display_ticker = 'SPX' if ticker == '^GSPC' else ticker
+
+                results[display_ticker] = {
                     'Tier':                   tier_label,
                     'Signal_Strength':        signal_strength,
                     'RSI':                    round(current_rsi, 2),
@@ -216,7 +218,7 @@ def screen_tickers(tickers, tier_label):
                 }
 
                 logger.info(
-                    f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} | "
+                    f"✓ [{tier_label}] {display_ticker}: RSI {current_rsi:.1f} | "
                     f"BB {latest_bb_pos:.2f} | Signal: {signal_strength}/100 | **SIGNAL FOUND**"
                 )
 
