@@ -82,55 +82,74 @@ TIER2_ATR_MAX = 5.0
 
 # ============ POSITION MANAGEMENT CONSTANTS ============
 # --- Universal (all tiers) ---
-EARLY_CLOSE_PROFIT_PCT  = 0.80   # Close position when premium decays >= 80%
+EARLY_CLOSE_PROFIT_PCT  = 0.80   # Close when premium decayed >= 80%
 SPREAD_WIDTH            = 10     # Fixed $10 put spread width
-BASE_DTE_ACTION         = 4      # DTE <= 4: review close/rollover for all tiers
+BASE_DTE_ACTION         = 4      # DTE <= 4: routine close/rollover review
 
 # --- Earnings entry blackout (all tiers) ---
-# Skip opening NEW positions if earnings falls within this window from today
-EARNINGS_ENTRY_BUFFER_BEFORE = 5  # days before earnings: do not enter
+EARNINGS_ENTRY_BUFFER_BEFORE = 5  # days before earnings: block entry
 EARNINGS_ENTRY_BUFFER_AFTER  = 1  # days after earnings: wait for stabilization
 
 # --- Tier 2 only: two-stage emergency management ---
-# Stage 1 — Rollover trigger:
-#   DTE <= T2_ROLLOVER_DTE AND current_price < short_put_strike (short put ITM)
-#   Action: roll position to next monthly expiry for a credit or small debit
-T2_ROLLOVER_DTE          = 7
+# Stage 1 - Rollover:
+#   DTE <= T2_ROLLOVER_DTE AND current_price < short_put_strike
+#   Priority 1: roll to lower strike for net credit
+#   Priority 2: roll same strike, debit <= entry_credit * MAX_ROLLOVER_DEBIT_PCT
+#   If neither viable: escalate to EMERGENCY_CLOSE
+T2_ROLLOVER_DTE       = 7
+MAX_ROLLOVER_DEBIT_PCT = 0.50  # Max debit = 50% of original entry credit
+                                # e.g. entry credit $1.00 -> max debit $0.50 ($50/contract)
+                                # Rollover priority:
+                                #   1st: net credit roll (lower strike) <- ideal
+                                #   2nd: same-strike debit roll <= $0.50 <- acceptable
+                                #   fallback: EMERGENCY_CLOSE
 
-# Stage 2 — Emergency close trigger:
+# Stage 2 - Emergency close:
 #   DTE <= T2_EMERGENCY_CLOSE_DTE AND current_price <= long_put_strike (deep ITM)
-#   Action: BTC immediately to cap loss; spread is at/near max loss zone
-T2_EMERGENCY_CLOSE_DTE   = 7
+T2_EMERGENCY_CLOSE_DTE = 7
 
 # Note on Tier 1:
-#   No emergency triggers applied. 1+ year of trading history shows zero
-#   early assignments or reserved capital loss on Tier 1 tickers.
-#   Only BASE_DTE_ACTION (DTE <= 4) applies for routine close/rollover review.
+#   No emergency triggers. 1+ year trading history: zero early assignments
+#   or reserved capital loss on Tier 1. Only BASE_DTE_ACTION applies.
 
 
 # ============ POSITION EVALUATOR (Tier 2 runtime check) ============
-def evaluate_tier2_position(ticker, current_price, short_put_strike, expiry_date):
+def evaluate_tier2_position(ticker, current_price, short_put_strike, expiry_date,
+                            entry_credit=None):
     """
     Evaluate an open Tier 2 put spread position for emergency action.
     Call this daily for each open Tier 2 position.
 
     Parameters
     ----------
-    ticker           : str   e.g. 'TSLA'
-    current_price    : float current market price of the underlying
-    short_put_strike : float higher strike (credit leg) e.g. 200.0
-    expiry_date      : date  expiry date of the spread
+    ticker           : str
+    current_price    : float  current market price of underlying
+    short_put_strike : float  higher strike (credit leg, e.g. 200.0)
+    expiry_date      : date
+    entry_credit     : float  optional — original premium received per share
+                              used to calculate max rollover debit allowance
 
     Returns
     -------
-    dict with keys: action, stage, reason
-      action: 'HOLD' | 'ROLLOVER' | 'EMERGENCY_CLOSE' | 'ROUTINE_REVIEW'
+    dict: action in ['HOLD', 'ROLLOVER', 'EMERGENCY_CLOSE', 'ROUTINE_REVIEW']
     """
     long_put_strike = short_put_strike - SPREAD_WIDTH
     today = datetime.today().date()
     dte   = (expiry_date - today).days
 
-    # Stage 2: deep ITM (current price <= long put strike)
+    max_debit = round(entry_credit * MAX_ROLLOVER_DEBIT_PCT, 2) if entry_credit else None
+    rollover_note = (
+        f'1st: net credit roll (lower strike). '
+        f'2nd: same-strike debit roll '
+        f'(max debit ${max_debit}/share = ${max_debit*100:.0f}/contract). '
+        f'Fallback: EMERGENCY_CLOSE.'
+    ) if max_debit else (
+        f'1st: net credit roll (lower strike). '
+        f'2nd: same-strike debit <= {int(MAX_ROLLOVER_DEBIT_PCT*100)}% of entry credit. '
+        f'Fallback: EMERGENCY_CLOSE.'
+    )
+
+    # Stage 2: deep ITM
     if dte <= T2_EMERGENCY_CLOSE_DTE and current_price <= long_put_strike:
         return {
             'ticker':            ticker,
@@ -140,13 +159,14 @@ def evaluate_tier2_position(ticker, current_price, short_put_strike, expiry_date
             'current_price':     current_price,
             'short_put_strike':  short_put_strike,
             'long_put_strike':   long_put_strike,
+            'max_rollover_debit': max_debit,
             'reason': (
                 f'DEEP ITM: price ${current_price} <= long put ${long_put_strike} '
                 f'with DTE {dte}. Near max loss — close immediately.'
             ),
         }
 
-    # Stage 1: short put ITM (current price < short put strike)
+    # Stage 1: short put ITM -> rollover
     if dte <= T2_ROLLOVER_DTE and current_price < short_put_strike:
         return {
             'ticker':            ticker,
@@ -156,13 +176,15 @@ def evaluate_tier2_position(ticker, current_price, short_put_strike, expiry_date
             'current_price':     current_price,
             'short_put_strike':  short_put_strike,
             'long_put_strike':   long_put_strike,
+            'max_rollover_debit': max_debit,
+            'rollover_priority': rollover_note,
             'reason': (
                 f'SHORT PUT ITM: price ${current_price} < short put ${short_put_strike} '
-                f'with DTE {dte}. Roll to next monthly expiry.'
+                f'with DTE {dte}. Attempt rollover per priority order.'
             ),
         }
 
-    # Routine review: all tiers, DTE <= BASE_DTE_ACTION
+    # Routine review
     if dte <= BASE_DTE_ACTION:
         return {
             'ticker':            ticker,
@@ -172,9 +194,8 @@ def evaluate_tier2_position(ticker, current_price, short_put_strike, expiry_date
             'current_price':     current_price,
             'short_put_strike':  short_put_strike,
             'long_put_strike':   long_put_strike,
-            'reason': (
-                f'DTE {dte} <= {BASE_DTE_ACTION}: routine close/rollover review.'
-            ),
+            'max_rollover_debit': max_debit,
+            'reason': f'DTE {dte} <= {BASE_DTE_ACTION}: routine close/rollover review.',
         }
 
     return {
@@ -188,7 +209,6 @@ def evaluate_tier2_position(ticker, current_price, short_put_strike, expiry_date
 
 # ============ VIX FETCH ============
 def get_vix():
-    """Fetch current VIX level. Returns float or None on failure."""
     try:
         vix_data = yf.download('^VIX', period='5d', interval='1d', progress=False, group_by=False)
         if isinstance(vix_data.columns, pd.MultiIndex):
@@ -212,9 +232,6 @@ def get_vix():
 
 # ============ EARNINGS DATE FETCH ============
 def get_earnings_date(ticker):
-    """
-    Returns the next earnings date for a ticker as a date object, or None.
-    """
     try:
         t = yf.Ticker(ticker)
         cal = t.calendar
@@ -234,11 +251,6 @@ def get_earnings_date(ticker):
 
 
 def is_earnings_blackout(earnings_date):
-    """
-    Returns True if today falls within the earnings entry blackout window.
-    Blackout: EARNINGS_ENTRY_BUFFER_BEFORE days before earnings through
-              EARNINGS_ENTRY_BUFFER_AFTER days after earnings.
-    """
     if earnings_date is None:
         return False
     today = datetime.today().date()
@@ -249,7 +261,6 @@ def is_earnings_blackout(earnings_date):
 
 # ============ EXPIRY SELECTION ============
 def get_monthly_expiries(start_date, end_date):
-    """Returns all 3rd-Friday monthly expiries between start_date and end_date."""
     monthlies = []
     year, month = start_date.year, start_date.month
     while True:
@@ -264,20 +275,14 @@ def get_monthly_expiries(start_date, end_date):
         month += 1
         if month > 12:
             month = 1
-            year  += 1
+            year += 1
     return monthlies
 
 
 def get_target_expiry(ticker, earnings_date=None):
-    """
-    Find the best expiry in DTE_MIN~DTE_MAX window.
-    Preference: monthly (3rd Friday) > weekly.
-    Skips expiries within 5 days of earnings.
-    """
     today        = datetime.today().date()
     window_start = today + timedelta(days=DTE_MIN)
     window_end   = today + timedelta(days=DTE_MAX)
-
     try:
         t = yf.Ticker(ticker)
         raw_expiries = t.options
@@ -288,10 +293,8 @@ def get_target_expiry(ticker, earnings_date=None):
         ])
     except Exception:
         available = []
-
     if not available:
         return None
-
     monthlies = get_monthly_expiries(window_start, window_end)
 
     def is_earnings_conflict(exp):
@@ -302,19 +305,17 @@ def get_target_expiry(ticker, earnings_date=None):
     for exp in available:
         if exp in monthlies and not is_earnings_conflict(exp):
             return exp, (exp - today).days, True, (earnings_date is not None)
-
     for exp in available:
         if not is_earnings_conflict(exp):
             return exp, (exp - today).days, False, (earnings_date is not None)
-
     return None
 
 
 # ============ HELPER FUNCTIONS ============
 def get_support_level(stock_data, lookback=20):
-    recent_low            = stock_data['Low'].tail(lookback).min()
-    current_price         = stock_data['Close'].iloc[-1]
-    distance_to_support   = ((current_price - recent_low) / current_price) * 100
+    recent_low          = stock_data['Low'].tail(lookback).min()
+    current_price       = stock_data['Close'].iloc[-1]
+    distance_to_support = ((current_price - recent_low) / current_price) * 100
     return recent_low, distance_to_support
 
 
@@ -324,17 +325,14 @@ def calculate_signal_strength(rsi, bb_pos, vol_surge, atr_pct):
     elif rsi < 30:    score += 25
     elif rsi < 35:    score += 20
     else:             score += 10
-
     if bb_pos < 0.15:   score += 30
     elif bb_pos < 0.25: score += 25
     elif bb_pos < 0.35: score += 20
     else:               score += 10
-
     if vol_surge > 2.0:   score += 25
     elif vol_surge > 1.5: score += 20
     elif vol_surge > 1.2: score += 15
     else:                 score += 10
-
     if atr_pct > 3.0:   score += 15
     elif atr_pct > 2.0: score += 12
     elif atr_pct > 1.5: score += 10
@@ -344,43 +342,29 @@ def calculate_signal_strength(rsi, bb_pos, vol_surge, atr_pct):
 
 # ============ SPX SCREENING ============
 def screen_spx(vix):
-    """
-    SPX-specific screening.
-    Entry: gap-down >= -1% at open vs prior close AND RSI < 30 AND above SMA200.
-    European-style: no early assignment. CBOE SPX options only.
-    Earnings blackout also applied (macro events / Fed dates as proxy).
-    """
     logger.info("\n>>> Screening SPX (^GSPC) — European-style, Put Spread Specialist <<<")
     results = {}
-
     try:
         stock_data = yf.download(SPX_TICKER, period='1y', interval='1d', progress=False, group_by=False)
         if isinstance(stock_data.columns, pd.MultiIndex):
             stock_data.columns = stock_data.columns.droplevel(0)
         stock_data.columns = [c.capitalize() for c in stock_data.columns]
-
         if stock_data.empty or len(stock_data) < 200:
             logger.warning("[SPX] Insufficient data.")
             return results
 
-        stock_data['SMA_200']     = stock_data['Close'].rolling(200).mean()
-        stock_data['AVG_VOL_50']  = stock_data['Volume'].rolling(50).mean()
+        stock_data['SMA_200']    = stock_data['Close'].rolling(200).mean()
+        stock_data['AVG_VOL_50'] = stock_data['Volume'].rolling(50).mean()
         stock_data.ta.rsi(length=RSI_PERIOD, append=True)
         rsi_col = f'RSI_{RSI_PERIOD}'
-
         stock_data['BB_middle']   = stock_data['Close'].rolling(BB_PERIOD).mean()
         stock_data['BB_std']      = stock_data['Close'].rolling(BB_PERIOD).std()
         stock_data['BB_upper']    = stock_data['BB_middle'] + stock_data['BB_std'] * 2
         stock_data['BB_lower']    = stock_data['BB_middle'] - stock_data['BB_std'] * 2
-        stock_data['BB_position'] = (
-            (stock_data['Close'] - stock_data['BB_lower']) /
-            (stock_data['BB_upper'] - stock_data['BB_lower'])
-        )
-
+        stock_data['BB_position'] = (stock_data['Close'] - stock_data['BB_lower']) / (stock_data['BB_upper'] - stock_data['BB_lower'])
         stock_data.ta.atr(length=ATR_PERIOD, append=True)
         atr_col = f'ATR_{ATR_PERIOD}'
         stock_data.ta.macd(append=True)
-
         if not all(c in stock_data.columns for c in [rsi_col, atr_col, 'MACDh_12_26_9']):
             logger.warning("[SPX] TA indicators missing.")
             return results
@@ -397,7 +381,6 @@ def screen_spx(vix):
         latest_bb_upper   = float(stock_data['BB_upper'].iloc[-1])
         latest_atr        = float(stock_data[atr_col].iloc[-1])
         macd_histogram    = float(stock_data['MACDh_12_26_9'].iloc[-1])
-
         atr_pct            = (latest_atr / latest_close) * 100
         volume_surge_ratio = latest_volume / latest_avg_vol_50
         support_price, pct_above_support = get_support_level(stock_data)
@@ -406,75 +389,46 @@ def screen_spx(vix):
         is_gap_down  = gap_down_pct <= SPX_GAP_DOWN_PCT
         is_rsi_low   = current_rsi < SPX_RSI_THRESHOLD
         is_uptrend   = latest_close > latest_sma_200
-
-        logger.info(
-            f"[SPX] Gap: {gap_down_pct:.2f}% | RSI: {current_rsi:.1f} | "
-            f"SMA200: {is_uptrend} | VIX: {vix}"
-        )
+        logger.info(f"[SPX] Gap: {gap_down_pct:.2f}% | RSI: {current_rsi:.1f} | SMA200: {is_uptrend} | VIX: {vix}")
 
         if is_gap_down and is_rsi_low and is_uptrend:
-            signal_strength = calculate_signal_strength(
-                current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct
-            )
+            signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
             expiry_info = get_target_expiry(SPX_TICKER)
             expiry_date = str(expiry_info[0]) if expiry_info else 'N/A'
             expiry_dte  = expiry_info[1] if expiry_info else None
             is_monthly  = expiry_info[2] if expiry_info else None
-
             results['SPX'] = {
-                'Tier':                  'TIER1_CORE',
-                'Signal_Strength':       signal_strength,
-                'RSI':                   round(current_rsi, 2),
-                'Price':                 round(latest_close, 2),
-                'Prior_Close':           round(prior_close, 2),
-                'Open':                  round(latest_open, 2),
-                'Gap_Down_%':            round(gap_down_pct, 2),
-                'SMA_200':               round(latest_sma_200, 2),
-                'BB_Position':           round(latest_bb_pos, 2),
-                'BB_Lower':              round(latest_bb_lower, 2),
-                'BB_Upper':              round(latest_bb_upper, 2),
-                'ATR_%':                 round(atr_pct, 2),
-                'Vol_Surge':             round(volume_surge_ratio, 2),
-                'Support':               round(support_price, 2),
+                'Tier': 'TIER1_CORE', 'Signal_Strength': signal_strength,
+                'RSI': round(current_rsi, 2), 'Price': round(latest_close, 2),
+                'Prior_Close': round(prior_close, 2), 'Open': round(latest_open, 2),
+                'Gap_Down_%': round(gap_down_pct, 2), 'SMA_200': round(latest_sma_200, 2),
+                'BB_Position': round(latest_bb_pos, 2), 'BB_Lower': round(latest_bb_lower, 2),
+                'BB_Upper': round(latest_bb_upper, 2), 'ATR_%': round(atr_pct, 2),
+                'Vol_Surge': round(volume_surge_ratio, 2), 'Support': round(support_price, 2),
                 'Distance_to_Support_%': round(pct_above_support, 1),
-                'MACD_Histogram':        round(macd_histogram, 3),
-                'VIX':                   vix,
-                'Delta_Target':          f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}',
-                'Expiry_Date':           expiry_date,
-                'Expiry_DTE':            expiry_dte,
-                'Is_Monthly':            is_monthly,
-                'Earnings_Avoided':      'N/A (index)',
-                'Earnings_Blackout':     False,
-                'Note':                  'European-style. No early assignment. CBOE SPX options only.',
+                'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
+                'Delta_Target': f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}',
+                'Expiry_Date': expiry_date, 'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
+                'Earnings_Avoided': 'N/A (index)', 'Earnings_Blackout': False,
+                'Position_Mgmt': f'Routine review at DTE<={BASE_DTE_ACTION} only',
+                'Note': 'European-style. No early assignment. CBOE SPX options only.',
             }
-            logger.info(
-                f"✓ [SPX] Gap {gap_down_pct:.2f}% | RSI {current_rsi:.1f} | "
-                f"Signal: {signal_strength}/100 | Expiry: {expiry_date} "
-                f"(DTE {expiry_dte}, monthly={is_monthly})"
-            )
+            logger.info(f"✓ [SPX] Gap {gap_down_pct:.2f}% | RSI {current_rsi:.1f} | Signal: {signal_strength}/100 | Expiry: {expiry_date} (DTE {expiry_dte}, monthly={is_monthly})")
         else:
             logger.info("[SPX] Conditions not met. No signal.")
-
     except Exception as e:
         logger.error(f"[SPX] Error: {e}")
-
     return results
 
 
 # ============ GENERAL TIER SCREENING ============
 def screen_tickers(tickers, tier_label, vix):
-    """
-    Screen a list of tickers with tier-specific delta targets and filters.
-    Tier 2: additional ATR% volatility guard + two-stage emergency management params.
-    All tiers: earnings entry blackout applied.
-    """
     is_tier2     = (tier_label == 'TIER2_WATCH')
     delta_target = (
         f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}' if is_tier2
         else f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
     )
-
-    results     = {}
+    results = {}
     error_count = 0
     successful_count = 0
 
@@ -484,40 +438,29 @@ def screen_tickers(tickers, tier_label, vix):
             if isinstance(stock_data.columns, pd.MultiIndex):
                 stock_data.columns = stock_data.columns.droplevel(0)
             stock_data.columns = [c.capitalize() for c in stock_data.columns]
-
             if 'Close' not in stock_data.columns or stock_data.empty or len(stock_data) < 200:
                 logger.warning(f"[{tier_label}] Insufficient data for {ticker}.")
                 error_count += 1
                 continue
 
-            # ---- Earnings blackout check (all tiers) ----
             earnings_date = get_earnings_date(ticker)
             if is_earnings_blackout(earnings_date):
-                logger.info(
-                    f"[{tier_label}] {ticker}: EARNINGS BLACKOUT — "
-                    f"earnings {earnings_date}, within ±{EARNINGS_ENTRY_BUFFER_BEFORE}/{EARNINGS_ENTRY_BUFFER_AFTER}d window. Skipping."
-                )
+                logger.info(f"[{tier_label}] {ticker}: EARNINGS BLACKOUT — earnings {earnings_date}, within ±{EARNINGS_ENTRY_BUFFER_BEFORE}/{EARNINGS_ENTRY_BUFFER_AFTER}d. Skipping.")
                 successful_count += 1
                 continue
 
-            stock_data['SMA_200']     = stock_data['Close'].rolling(200).mean()
-            stock_data['AVG_VOL_50']  = stock_data['Volume'].rolling(50).mean()
+            stock_data['SMA_200']    = stock_data['Close'].rolling(200).mean()
+            stock_data['AVG_VOL_50'] = stock_data['Volume'].rolling(50).mean()
             stock_data.ta.rsi(length=RSI_PERIOD, append=True)
             rsi_col = f'RSI_{RSI_PERIOD}'
-
             stock_data['BB_middle']   = stock_data['Close'].rolling(BB_PERIOD).mean()
             stock_data['BB_std']      = stock_data['Close'].rolling(BB_PERIOD).std()
             stock_data['BB_upper']    = stock_data['BB_middle'] + stock_data['BB_std'] * 2
             stock_data['BB_lower']    = stock_data['BB_middle'] - stock_data['BB_std'] * 2
-            stock_data['BB_position'] = (
-                (stock_data['Close'] - stock_data['BB_lower']) /
-                (stock_data['BB_upper'] - stock_data['BB_lower'])
-            )
-
+            stock_data['BB_position'] = (stock_data['Close'] - stock_data['BB_lower']) / (stock_data['BB_upper'] - stock_data['BB_lower'])
             stock_data.ta.atr(length=ATR_PERIOD, append=True)
             atr_col = f'ATR_{ATR_PERIOD}'
             stock_data.ta.macd(append=True)
-
             if not all(c in stock_data.columns for c in [rsi_col, atr_col, 'MACDh_12_26_9']):
                 logger.warning(f"[{tier_label}] TA indicators missing for {ticker}.")
                 error_count += 1
@@ -534,7 +477,6 @@ def screen_tickers(tickers, tier_label, vix):
             latest_bb_upper   = float(stock_data['BB_upper'].iloc[-1])
             latest_atr        = float(stock_data[atr_col].iloc[-1])
             macd_histogram    = float(stock_data['MACDh_12_26_9'].iloc[-1])
-
             atr_pct            = (latest_atr / latest_close) * 100
             volume_surge_ratio = latest_volume / latest_avg_vol_50
             support_price, pct_above_support = get_support_level(stock_data)
@@ -547,75 +489,50 @@ def screen_tickers(tickers, tier_label, vix):
             is_adequate_vol  = atr_pct > 1.0
             is_volume_surge  = volume_surge_ratio > 1.2
 
-            # Tier 2 volatility guard
             if is_tier2 and atr_pct > TIER2_ATR_MAX:
-                logger.info(
-                    f"[{tier_label}] {ticker}: ATR% {atr_pct:.2f}% > {TIER2_ATR_MAX}% — too volatile, skipping."
-                )
+                logger.info(f"[{tier_label}] {ticker}: ATR% {atr_pct:.2f}% > {TIER2_ATR_MAX}% — too volatile, skipping.")
                 successful_count += 1
                 continue
 
             if (is_oversold and is_uptrend_long and is_liquid and
                     is_near_lower_bb and is_adequate_vol and is_volume_surge):
-
-                signal_strength = calculate_signal_strength(
-                    current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct
-                )
-
-                expiry_info  = get_target_expiry(ticker, earnings_date)
+                signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
+                expiry_info     = get_target_expiry(ticker, earnings_date)
                 expiry_date_str = str(expiry_info[0]) if expiry_info else 'N/A (earnings conflict)'
-                expiry_dte   = expiry_info[1] if expiry_info else None
-                is_monthly   = expiry_info[2] if expiry_info else None
-                earn_avoided = str(earnings_date) if expiry_info and expiry_info[3] else 'N/A'
-
-                # Tier 2 position management note in output
+                expiry_dte      = expiry_info[1] if expiry_info else None
+                is_monthly      = expiry_info[2] if expiry_info else None
+                earn_avoided    = str(earnings_date) if expiry_info and expiry_info[3] else 'N/A'
                 t2_mgmt_note = (
-                    f'Stage1 rollover: DTE<={T2_ROLLOVER_DTE} + price<short_put | '
-                    f'Stage2 close: DTE<={T2_EMERGENCY_CLOSE_DTE} + price<=long_put'
+                    f'Stage1(DTE<={T2_ROLLOVER_DTE}+price<short_put): '
+                    f'1st net credit roll, 2nd debit<={int(MAX_ROLLOVER_DEBIT_PCT*100)}% of credit, fallback close | '
+                    f'Stage2(DTE<={T2_EMERGENCY_CLOSE_DTE}+price<=long_put): emergency close'
                 ) if is_tier2 else f'Routine review at DTE<={BASE_DTE_ACTION} only'
 
                 results[ticker] = {
-                    'Tier':                  tier_label,
-                    'Signal_Strength':       signal_strength,
-                    'RSI':                   round(current_rsi, 2),
-                    'Price':                 round(latest_close, 2),
-                    'Red_Day':               is_red_day,
-                    'SMA_200':               round(latest_sma_200, 2),
-                    'BB_Position':           round(latest_bb_pos, 2),
-                    'BB_Lower':              round(latest_bb_lower, 2),
-                    'BB_Upper':              round(latest_bb_upper, 2),
-                    'ATR_%':                 round(atr_pct, 2),
-                    'Vol_Surge':             round(volume_surge_ratio, 2),
-                    'Support':               round(support_price, 2),
+                    'Tier': tier_label, 'Signal_Strength': signal_strength,
+                    'RSI': round(current_rsi, 2), 'Price': round(latest_close, 2),
+                    'Red_Day': is_red_day, 'SMA_200': round(latest_sma_200, 2),
+                    'BB_Position': round(latest_bb_pos, 2), 'BB_Lower': round(latest_bb_lower, 2),
+                    'BB_Upper': round(latest_bb_upper, 2), 'ATR_%': round(atr_pct, 2),
+                    'Vol_Surge': round(volume_surge_ratio, 2), 'Support': round(support_price, 2),
                     'Distance_to_Support_%': round(pct_above_support, 1),
-                    'MACD_Histogram':        round(macd_histogram, 3),
-                    'VIX':                   vix,
-                    'Delta_Target':          delta_target,
-                    'Expiry_Date':           expiry_date_str,
-                    'Expiry_DTE':            expiry_dte,
-                    'Is_Monthly':            is_monthly,
-                    'Earnings_Avoided':      earn_avoided,
-                    'Earnings_Blackout':     False,
-                    'Position_Mgmt':         t2_mgmt_note,
+                    'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
+                    'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
+                    'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
+                    'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
+                    'Position_Mgmt': t2_mgmt_note,
                 }
-
                 logger.info(
                     f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} | BB {latest_bb_pos:.2f} | "
                     f"ATR% {atr_pct:.2f} | Signal: {signal_strength}/100 | "
-                    f"Expiry: {expiry_date_str} (DTE {expiry_dte}, monthly={is_monthly}) | "
-                    f"Delta: {delta_target} | Red: {is_red_day}"
+                    f"Expiry: {expiry_date_str} (DTE {expiry_dte}) | Delta: {delta_target}"
                 )
-
             successful_count += 1
-
         except Exception as e:
             logger.error(f"[{tier_label}] Error processing {ticker}: {e}")
             error_count += 1
 
-    logger.info(
-        f"[{tier_label}] Done — {successful_count} analyzed, "
-        f"{len(results)} signals, {error_count} errors"
-    )
+    logger.info(f"[{tier_label}] Done — {successful_count} analyzed, {len(results)} signals, {error_count} errors")
     return results
 
 
@@ -624,58 +541,51 @@ def run_screener():
     logger.info("=" * 70)
     logger.info("OPTIONS PREMIUM SCREENER — WINNING STOCKS PRIORITY MODE")
     logger.info("=" * 70)
-    logger.info(f"RSI Threshold (general)       : {RSI_THRESHOLD}")
-    logger.info(f"RSI Threshold (SPX)           : {SPX_RSI_THRESHOLD} + gap-down >= {SPX_GAP_DOWN_PCT}%")
-    logger.info(f"Delta — Tier 1               : {TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}")
-    logger.info(f"Delta — Tier 2               : {TIER2_DELTA_MIN}–{TIER2_DELTA_MAX} (ATR% guard <= {TIER2_ATR_MAX}%)")
-    logger.info(f"DTE window                    : {DTE_MIN}–{DTE_MAX} days (monthly preferred)")
-    logger.info(f"Early close profit target     : {int(EARLY_CLOSE_PROFIT_PCT*100)}%")
-    logger.info(f"Base DTE action (all tiers)   : DTE <= {BASE_DTE_ACTION}")
-    logger.info(f"Earnings blackout             : -{EARNINGS_ENTRY_BUFFER_BEFORE}d / +{EARNINGS_ENTRY_BUFFER_AFTER}d")
-    logger.info(f"Tier 2 Stage 1 rollover       : DTE <= {T2_ROLLOVER_DTE} + price < short_put_strike")
-    logger.info(f"Tier 2 Stage 2 emergency close: DTE <= {T2_EMERGENCY_CLOSE_DTE} + price <= long_put_strike")
-    logger.info(f"Tier 1                        : SPX + {', '.join(TIER1_CORE)}")
-    logger.info(f"Tier 2                        : {', '.join(TIER2_WATCHLIST)}")
+    logger.info(f"RSI Threshold (general)        : {RSI_THRESHOLD}")
+    logger.info(f"RSI Threshold (SPX)            : {SPX_RSI_THRESHOLD} + gap-down >= {SPX_GAP_DOWN_PCT}%")
+    logger.info(f"Delta — Tier 1                 : {TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}")
+    logger.info(f"Delta — Tier 2                 : {TIER2_DELTA_MIN}–{TIER2_DELTA_MAX} (ATR% guard <= {TIER2_ATR_MAX}%)")
+    logger.info(f"DTE window                     : {DTE_MIN}–{DTE_MAX} days (monthly preferred)")
+    logger.info(f"Early close profit target      : {int(EARLY_CLOSE_PROFIT_PCT*100)}%")
+    logger.info(f"Base DTE action (all tiers)    : DTE <= {BASE_DTE_ACTION}")
+    logger.info(f"Earnings blackout              : -{EARNINGS_ENTRY_BUFFER_BEFORE}d / +{EARNINGS_ENTRY_BUFFER_AFTER}d")
+    logger.info(f"Tier 2 Stage 1 rollover        : DTE<={T2_ROLLOVER_DTE} + price<short_put")
+    logger.info(f"  -> 1st: net credit roll (lower strike)")
+    logger.info(f"  -> 2nd: same-strike debit <= {int(MAX_ROLLOVER_DEBIT_PCT*100)}% of entry credit")
+    logger.info(f"  -> fallback: EMERGENCY_CLOSE")
+    logger.info(f"Tier 2 Stage 2 emergency close : DTE<={T2_EMERGENCY_CLOSE_DTE} + price<=long_put")
+    logger.info(f"Tier 1                         : SPX + {', '.join(TIER1_CORE)}")
+    logger.info(f"Tier 2                         : {', '.join(TIER2_WATCHLIST)}")
     logger.info("=" * 70)
 
     vix = get_vix()
     all_results = {}
-
     spx_result    = screen_spx(vix)
     all_results.update(spx_result)
-
     logger.info("\n>>> Screening TIER 1 — Core Winning Stocks <<<")
     tier1_results = screen_tickers(TIER1_CORE, tier_label="TIER1_CORE", vix=vix)
     all_results.update(tier1_results)
-
     logger.info("\n>>> Screening TIER 2 — Watchlist <<<")
     tier2_results = screen_tickers(TIER2_WATCHLIST, tier_label="TIER2_WATCH", vix=vix)
     all_results.update(tier2_results)
 
-    logger.info("=" * 70)
-    logger.info("SCREENING COMPLETE")
     logger.info("=" * 70)
     logger.info(f"Total signals : {len(all_results)}  (SPX: {len(spx_result)}, T1: {len(tier1_results)}, T2: {len(tier2_results)})")
 
     if all_results:
         results_df = pd.DataFrame.from_dict(all_results, orient='index')
         results_df.index.name = 'Ticker'
-
         tier_order = {'TIER1_CORE': 0, 'TIER2_WATCH': 1}
         results_df['_tier_rank'] = results_df['Tier'].map(tier_order)
         results_df['_spx_first'] = (results_df.index == 'SPX').astype(int) * -1
         results_df = results_df.sort_values(
-            ['_tier_rank', '_spx_first', 'Signal_Strength'],
-            ascending=[True, True, False]
+            ['_tier_rank', '_spx_first', 'Signal_Strength'], ascending=[True, True, False]
         ).drop(columns=['_tier_rank', '_spx_first'])
-
         results_df['Scan_Date'] = datetime.now().strftime('%Y-%m-%d')
         results_df['Scan_Time'] = datetime.now().strftime('%H:%M:%S')
-
         output_file = f'signals_{datetime.now().strftime("%Y%m%d")}.csv'
         results_df.to_csv(output_file)
         logger.info(f"Results saved → {output_file}")
-
         display_cols = ['Tier', 'Signal_Strength', 'RSI', 'Price', 'ATR_%',
                         'VIX', 'Delta_Target', 'Expiry_Date', 'Expiry_DTE',
                         'Is_Monthly', 'Earnings_Avoided', 'Position_Mgmt']
@@ -686,7 +596,6 @@ def run_screener():
         print(results_df[[c for c in display_cols if c in results_df.columns]])
     else:
         logger.info("No stocks found meeting the criteria today.")
-
     logger.info("\nScreening complete. Check log file for full details.")
     return all_results
 
