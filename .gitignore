@@ -1,14 +1,34 @@
-# Compiled Python Files
-__pycache__/
-*.pyc
+# ============ SECRETS — NEVER COMMIT ============
+.env
 
-# Virtual Environment
+# ============ TRADING DATA (local only) ============
+positions.csv
+signals_*.csv
+screener_*.log
+
+# ============ PYTHON ============
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ============ VIRTUAL ENV ============
 venv/
 .venv/
-    
-# Data Output (Crucial for this project)
-options_premium_signals.csv
-    
-# OS generated files
+env/
+.env.local
+
+# ============ OS ============
 .DS_Store
 Thumbs.db
+
+# ============ IDE ============
+.vscode/
+.idea/
+*.swp
+*.swo
