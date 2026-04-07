@@ -1,6 +1,6 @@
 # Options Trading Insights Report
 **Period:** January 1, 2025 – March 31, 2026  
-**Accounts:** Individual (X94905515), Rollover IRA (239820530), Roth IRA (226779564)
+**Accounts:** Individual, Rollover IRA, Roth IRA
 
 ---
 
@@ -106,9 +106,9 @@
 
 | Account | Net P&L | Recommendation |
 |---|---|---|
-| Individual (X94905515) | $16,178 | Continue current approach; enforce stricter loss limits |
-| Rollover IRA (239820530) | $8,461 | Shift toward index-heavy puts — lower volatility, steady income |
-| Roth IRA (226779564) | $3,899 | Same as Rollover IRA — protect long-term tax-free compounding |
+| Individual | $16,178 | Continue current approach; enforce stricter loss limits |
+| Rollover IRA | $8,461 | Shift toward index-heavy puts — lower volatility, steady income |
+| Roth IRA | $3,899 | Same as Rollover IRA — protect long-term tax-free compounding |
 
 ---
 
