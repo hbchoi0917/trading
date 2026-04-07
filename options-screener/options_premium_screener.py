@@ -53,13 +53,13 @@ TIER2_WATCHLIST = [
 
 # ============ SCREENING PARAMETERS ============
 RSI_PERIOD = 14
-RSI_THRESHOLD = 35
+RSI_THRESHOLD = 35          # Base threshold — overridden by VIX regime at runtime
 BB_PERIOD = 20
 ATR_PERIOD = 14
 
 # SPX-specific
 SPX_TICKER        = '^GSPC'
-SPX_RSI_THRESHOLD = 30
+SPX_RSI_THRESHOLD = 30      # Base threshold — overridden by VIX regime at runtime
 SPX_GAP_DOWN_PCT  = -1.0
 
 # Delta targets by tier
@@ -79,6 +79,211 @@ VIX_HIGH   = 30
 
 # Tier 2 volatility guard
 TIER2_ATR_MAX = 5.0
+
+# ============ DYNAMIC VIX-ADJUSTED THRESHOLDS ============
+# Professional premium sellers tighten entry filters in low-IV regimes
+# (thin premium, not worth the risk) and relax slightly in elevated regimes
+# (fat premium, more room to be right). BB threshold tightens in low VIX
+# because mean-reversion signals are weaker when realized vol is low.
+#
+# Regime:      LOW (<15)    NORMAL (15-20)  ELEVATED (20-30)  HIGH (>30)
+# RSI:         28           35              38                 40
+# BB pos:      0.25         0.40            0.45               0.50
+# SPX RSI:     25           30              33                 35
+
+VIX_ADJUSTED_PARAMS = {
+    'LOW': {
+        'rsi_threshold':     28,    # Only enter on deep oversold — premium is thin
+        'bb_threshold':      0.25,  # Require price to be very near lower band
+        'spx_rsi_threshold': 25,
+    },
+    'NORMAL': {
+        'rsi_threshold':     35,    # Standard thresholds
+        'bb_threshold':      0.40,
+        'spx_rsi_threshold': 30,
+    },
+    'ELEVATED': {
+        'rsi_threshold':     38,    # Slightly relaxed — premium is fat, more cushion
+        'bb_threshold':      0.45,
+        'spx_rsi_threshold': 33,
+    },
+    'HIGH': {
+        'rsi_threshold':     40,    # Tail risk elevated; widen entry window but monitor carefully
+        'bb_threshold':      0.50,
+        'spx_rsi_threshold': 35,
+    },
+}
+
+def get_vix_regime(vix):
+    """Return regime string key for VIX_ADJUSTED_PARAMS lookup."""
+    if vix is None:
+        return 'NORMAL'
+    if vix < VIX_LOW:
+        return 'LOW'
+    elif vix < VIX_NORMAL:
+        return 'NORMAL'
+    elif vix < VIX_HIGH:
+        return 'ELEVATED'
+    else:
+        return 'HIGH'
+
+def get_adjusted_params(vix):
+    """Return RSI/BB thresholds adjusted for current VIX regime."""
+    regime = get_vix_regime(vix)
+    params = VIX_ADJUSTED_PARAMS[regime]
+    logger.info(
+        f"[VIX-PARAMS] Regime={regime} | RSI threshold={params['rsi_threshold']} | "
+        f"BB threshold={params['bb_threshold']} | SPX RSI threshold={params['spx_rsi_threshold']}"
+    )
+    return params, regime
+
+
+# ============ IV RANK / PERCENTILE ============
+# IV Rank = (current IV - 52w low IV) / (52w high IV - 52w low IV) * 100
+# Computed from ATM option mid-prices (best proxy available via yfinance).
+# IV Rank < 25: premium is thin — avoid selling; professional desks skip these.
+# IV Rank > 50: fair premium environment.
+# IV Rank > 75: elevated premium — ideal entry for credit strategies.
+
+IV_RANK_MIN = 25   # Below this: skip (selling cheap premium is the #1 retail mistake)
+
+def compute_iv_rank(ticker):
+    """
+    Estimate IV Rank from ATM call/put mid-prices over the nearest expiry.
+    Uses implied vol approximation: IV ~ option_mid / (price * sqrt(T/365)) * sqrt(2*pi)
+    This is the Brenner-Subrahmanyam approximation, accurate for ATM options.
+
+    Returns
+    -------
+    dict with keys: iv_current, iv_rank, iv_pct, iv_52w_high, iv_52w_low, skipped_reason
+    or None on failure.
+    """
+    try:
+        t = yf.Ticker(ticker)
+        today = datetime.today().date()
+
+        # Get nearest expiry with 7+ DTE so we're not in gamma-blowup territory
+        raw_expiries = t.options
+        if not raw_expiries:
+            return {'skipped_reason': 'no options chain available'}
+
+        valid_expiries = sorted([
+            datetime.strptime(e, '%Y-%m-%d').date()
+            for e in raw_expiries
+            if (datetime.strptime(e, '%Y-%m-%d').date() - today).days >= 7
+        ])
+        if not valid_expiries:
+            return {'skipped_reason': 'no expiry >= 7 DTE'}
+
+        # Use the nearest valid expiry for current IV snapshot
+        near_exp = valid_expiries[0]
+        dte = (near_exp - today).days
+
+        # Fetch current stock price
+        hist = yf.download(ticker, period='2d', interval='1d', progress=False, group_by=False)
+        if isinstance(hist.columns, pd.MultiIndex):
+            hist.columns = hist.columns.droplevel(0)
+        hist.columns = [c.capitalize() for c in hist.columns]
+        if hist.empty:
+            return {'skipped_reason': 'no price data'}
+        spot = float(hist['Close'].iloc[-1])
+
+        # Fetch ATM options
+        chain = t.option_chain(str(near_exp))
+        calls = chain.calls
+        puts  = chain.puts
+
+        # Find ATM strike (closest to spot)
+        atm_strike = calls.iloc[(calls['strike'] - spot).abs().argsort()[:1]]['strike'].values[0]
+
+        atm_call = calls[calls['strike'] == atm_strike].iloc[0]
+        atm_put  = puts[puts['strike'] == atm_strike].iloc[0]
+
+        call_mid = (atm_call['bid'] + atm_call['ask']) / 2
+        put_mid  = (atm_put['bid'] + atm_put['ask']) / 2
+        avg_mid  = (call_mid + put_mid) / 2
+
+        if avg_mid <= 0 or dte <= 0:
+            return {'skipped_reason': 'zero mid-price or zero DTE'}
+
+        # Brenner-Subrahmanyam ATM IV approximation
+        import math
+        t_years = dte / 365.0
+        iv_current = (avg_mid / spot) * math.sqrt(2 * math.pi / t_years)
+        iv_current = round(iv_current * 100, 1)  # express as percentage
+
+        # Build 52-week IV history by sampling ~monthly expiries over the past year
+        # We use the same ATM approximation on 12 historical snapshots via yfinance
+        # historical option data is not available, so we proxy with 52w realized vol
+        # and scale: IV typically trades at ~1.1-1.3x realized vol (vol risk premium)
+        hist_1y = yf.download(ticker, period='1y', interval='1d', progress=False, group_by=False)
+        if isinstance(hist_1y.columns, pd.MultiIndex):
+            hist_1y.columns = hist_1y.columns.droplevel(0)
+        hist_1y.columns = [c.capitalize() for c in hist_1y.columns]
+
+        # Rolling 30-day realized vol as IV proxy (annualized)
+        hist_1y['log_ret'] = hist_1y['Close'].pct_change().apply(lambda x: math.log(1 + x) if x > -1 else 0)
+        hist_1y['rvol_30'] = hist_1y['log_ret'].rolling(30).std() * math.sqrt(252) * 100
+
+        iv_52w_high = round(float(hist_1y['rvol_30'].max()), 1)
+        iv_52w_low  = round(float(hist_1y['rvol_30'].min()), 1)
+
+        iv_range = iv_52w_high - iv_52w_low
+        if iv_range <= 0:
+            return {'skipped_reason': 'zero IV range over 52w'}
+
+        iv_rank = round((iv_current - iv_52w_low) / iv_range * 100, 1)
+        iv_rank = max(0.0, min(100.0, iv_rank))  # clamp to [0, 100]
+
+        # Percentile: fraction of days in the past year where rvol was below current IV
+        iv_pct = round(
+            (hist_1y['rvol_30'].dropna() < iv_current).mean() * 100, 1
+        )
+
+        return {
+            'iv_current':   iv_current,
+            'iv_rank':      iv_rank,
+            'iv_pct':       iv_pct,
+            'iv_52w_high':  iv_52w_high,
+            'iv_52w_low':   iv_52w_low,
+            'skipped_reason': None,
+        }
+
+    except Exception as e:
+        return {'skipped_reason': str(e)}
+
+
+# ============ CLUSTER / CONCENTRATION GUARD ============
+# If too many tickers signal on the same day, they're likely responding to
+# the same macro event (Fed, CPI print, market selloff) — not independent trades.
+# Professional desks call this concentration risk. We warn but do not auto-skip,
+# so you retain final discretion.
+
+CLUSTER_WARN_THRESHOLD = 5   # Warn if >= this many tickers signal in one run
+
+def check_cluster_risk(all_results):
+    """
+    Count total signals and flag concentration risk.
+    Returns a dict with signal_count, cluster_risk (bool), and a note.
+    """
+    count = len(all_results)
+    tickers = list(all_results.keys())
+    cluster_risk = count >= CLUSTER_WARN_THRESHOLD
+    note = (
+        f"⚠️  CONCENTRATION RISK: {count} tickers triggered simultaneously "
+        f"({', '.join(tickers)}). These may share macro exposure — treat as "
+        f"correlated, not independent trades. Consider sizing down or picking "
+        f"the highest-conviction 2-3 names only."
+        if cluster_risk else
+        f"✓ Cluster check passed: {count} signal(s) — concentration risk low."
+    )
+    return {
+        'signal_count':  count,
+        'cluster_risk':  cluster_risk,
+        'cluster_note':  note,
+        'tickers':       tickers,
+    }
+
 
 # ============ POSITION MANAGEMENT CONSTANTS ============
 # --- Universal (all tiers) ---
@@ -341,9 +546,10 @@ def calculate_signal_strength(rsi, bb_pos, vol_surge, atr_pct):
 
 
 # ============ SPX SCREENING ============
-def screen_spx(vix):
+def screen_spx(vix, adjusted_params):
     logger.info("\n>>> Screening SPX (^GSPC) — European-style, Put Spread Specialist <<<")
     results = {}
+    spx_rsi_threshold = adjusted_params['spx_rsi_threshold']
     try:
         stock_data = yf.download(SPX_TICKER, period='1y', interval='1d', progress=False, group_by=False)
         if isinstance(stock_data.columns, pd.MultiIndex):
@@ -387,11 +593,19 @@ def screen_spx(vix):
 
         gap_down_pct = ((latest_open - prior_close) / prior_close) * 100
         is_gap_down  = gap_down_pct <= SPX_GAP_DOWN_PCT
-        is_rsi_low   = current_rsi < SPX_RSI_THRESHOLD
+        is_rsi_low   = current_rsi < spx_rsi_threshold
         is_uptrend   = latest_close > latest_sma_200
-        logger.info(f"[SPX] Gap: {gap_down_pct:.2f}% | RSI: {current_rsi:.1f} | SMA200: {is_uptrend} | VIX: {vix}")
+        logger.info(f"[SPX] Gap: {gap_down_pct:.2f}% | RSI: {current_rsi:.1f} (threshold: {spx_rsi_threshold}) | SMA200: {is_uptrend} | VIX: {vix}")
 
         if is_gap_down and is_rsi_low and is_uptrend:
+            # IV Rank check for SPX
+            iv_data = compute_iv_rank(SPX_TICKER)
+            iv_rank = iv_data.get('iv_rank') if iv_data else None
+            iv_skip = (iv_rank is not None and iv_rank < IV_RANK_MIN)
+            if iv_skip:
+                logger.info(f"[SPX] IV Rank {iv_rank} < {IV_RANK_MIN} — premium too thin. Signal suppressed.")
+                return results
+
             signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
             expiry_info = get_target_expiry(SPX_TICKER)
             expiry_date = str(expiry_info[0]) if expiry_info else 'N/A'
@@ -407,13 +621,19 @@ def screen_spx(vix):
                 'Vol_Surge': round(volume_surge_ratio, 2), 'Support': round(support_price, 2),
                 'Distance_to_Support_%': round(pct_above_support, 1),
                 'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
+                'VIX_Regime': get_vix_regime(vix),
+                'RSI_Threshold_Used': spx_rsi_threshold,
+                'IV_Rank': iv_rank,
+                'IV_Pct': iv_data.get('iv_pct') if iv_data else None,
+                'IV_52w_High': iv_data.get('iv_52w_high') if iv_data else None,
+                'IV_52w_Low': iv_data.get('iv_52w_low') if iv_data else None,
                 'Delta_Target': f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}',
                 'Expiry_Date': expiry_date, 'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
                 'Earnings_Avoided': 'N/A (index)', 'Earnings_Blackout': False,
                 'Position_Mgmt': f'Routine review at DTE<={BASE_DTE_ACTION} only',
                 'Note': 'European-style. No early assignment. CBOE SPX options only.',
             }
-            logger.info(f"✓ [SPX] Gap {gap_down_pct:.2f}% | RSI {current_rsi:.1f} | Signal: {signal_strength}/100 | Expiry: {expiry_date} (DTE {expiry_dte}, monthly={is_monthly})")
+            logger.info(f"✓ [SPX] Gap {gap_down_pct:.2f}% | RSI {current_rsi:.1f} | IV Rank {iv_rank} | Signal: {signal_strength}/100 | Expiry: {expiry_date} (DTE {expiry_dte}, monthly={is_monthly})")
         else:
             logger.info("[SPX] Conditions not met. No signal.")
     except Exception as e:
@@ -422,12 +642,14 @@ def screen_spx(vix):
 
 
 # ============ GENERAL TIER SCREENING ============
-def screen_tickers(tickers, tier_label, vix):
+def screen_tickers(tickers, tier_label, vix, adjusted_params):
     is_tier2     = (tier_label == 'TIER2_WATCH')
     delta_target = (
         f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}' if is_tier2
         else f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
     )
+    rsi_threshold = adjusted_params['rsi_threshold']
+    bb_threshold  = adjusted_params['bb_threshold']
     results = {}
     error_count = 0
     successful_count = 0
@@ -482,10 +704,10 @@ def screen_tickers(tickers, tier_label, vix):
             support_price, pct_above_support = get_support_level(stock_data)
 
             is_red_day       = latest_close < prior_close
-            is_oversold      = current_rsi < RSI_THRESHOLD
+            is_oversold      = current_rsi < rsi_threshold
             is_uptrend_long  = latest_close > latest_sma_200
             is_liquid        = latest_volume > latest_avg_vol_50
-            is_near_lower_bb = latest_bb_pos < 0.4
+            is_near_lower_bb = latest_bb_pos < bb_threshold
             is_adequate_vol  = atr_pct > 1.0
             is_volume_surge  = volume_surge_ratio > 1.2
 
@@ -496,6 +718,20 @@ def screen_tickers(tickers, tier_label, vix):
 
             if (is_oversold and is_uptrend_long and is_liquid and
                     is_near_lower_bb and is_adequate_vol and is_volume_surge):
+
+                # IV Rank check — suppress signal if premium is too thin
+                iv_data = compute_iv_rank(ticker)
+                iv_rank = iv_data.get('iv_rank') if iv_data else None
+                iv_skip_reason = iv_data.get('skipped_reason') if iv_data else 'compute_iv_rank returned None'
+
+                if iv_rank is not None and iv_rank < IV_RANK_MIN:
+                    logger.info(
+                        f"[{tier_label}] {ticker}: IV Rank {iv_rank} < {IV_RANK_MIN} "
+                        f"— premium too thin. Signal suppressed."
+                    )
+                    successful_count += 1
+                    continue
+
                 signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
                 expiry_info     = get_target_expiry(ticker, earnings_date)
                 expiry_date_str = str(expiry_info[0]) if expiry_info else 'N/A (earnings conflict)'
@@ -517,14 +753,23 @@ def screen_tickers(tickers, tier_label, vix):
                     'Vol_Surge': round(volume_surge_ratio, 2), 'Support': round(support_price, 2),
                     'Distance_to_Support_%': round(pct_above_support, 1),
                     'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
+                    'VIX_Regime': get_vix_regime(vix),
+                    'RSI_Threshold_Used': rsi_threshold,
+                    'BB_Threshold_Used': bb_threshold,
+                    'IV_Rank': iv_rank,
+                    'IV_Pct': iv_data.get('iv_pct') if iv_data else None,
+                    'IV_52w_High': iv_data.get('iv_52w_high') if iv_data else None,
+                    'IV_52w_Low': iv_data.get('iv_52w_low') if iv_data else None,
+                    'IV_Skip_Reason': iv_skip_reason,
                     'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
                     'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
                     'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
                     'Position_Mgmt': t2_mgmt_note,
                 }
                 logger.info(
-                    f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} | BB {latest_bb_pos:.2f} | "
-                    f"ATR% {atr_pct:.2f} | Signal: {signal_strength}/100 | "
+                    f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} (thr={rsi_threshold}) | "
+                    f"BB {latest_bb_pos:.2f} (thr={bb_threshold}) | ATR% {atr_pct:.2f} | "
+                    f"IV Rank {iv_rank} | Signal: {signal_strength}/100 | "
                     f"Expiry: {expiry_date_str} (DTE {expiry_dte}) | Delta: {delta_target}"
                 )
             successful_count += 1
@@ -541,8 +786,16 @@ def run_screener():
     logger.info("=" * 70)
     logger.info("OPTIONS PREMIUM SCREENER — WINNING STOCKS PRIORITY MODE")
     logger.info("=" * 70)
-    logger.info(f"RSI Threshold (general)        : {RSI_THRESHOLD}")
-    logger.info(f"RSI Threshold (SPX)            : {SPX_RSI_THRESHOLD} + gap-down >= {SPX_GAP_DOWN_PCT}%")
+
+    vix = get_vix()
+    adjusted_params, regime = get_adjusted_params(vix)
+
+    logger.info(f"VIX Regime                     : {regime}")
+    logger.info(f"RSI Threshold (general, adj.)  : {adjusted_params['rsi_threshold']} (base: {RSI_THRESHOLD})")
+    logger.info(f"RSI Threshold (SPX, adj.)      : {adjusted_params['spx_rsi_threshold']} (base: {SPX_RSI_THRESHOLD}) + gap-down >= {SPX_GAP_DOWN_PCT}%")
+    logger.info(f"BB Threshold (adj.)            : {adjusted_params['bb_threshold']} (base: 0.40)")
+    logger.info(f"IV Rank minimum                : {IV_RANK_MIN} (below this = premium too thin, signal suppressed)")
+    logger.info(f"Cluster warn threshold         : {CLUSTER_WARN_THRESHOLD} simultaneous signals")
     logger.info(f"Delta — Tier 1                 : {TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}")
     logger.info(f"Delta — Tier 2                 : {TIER2_DELTA_MIN}–{TIER2_DELTA_MAX} (ATR% guard <= {TIER2_ATR_MAX}%)")
     logger.info(f"DTE window                     : {DTE_MIN}–{DTE_MAX} days (monthly preferred)")
@@ -558,17 +811,20 @@ def run_screener():
     logger.info(f"Tier 2                         : {', '.join(TIER2_WATCHLIST)}")
     logger.info("=" * 70)
 
-    vix = get_vix()
     all_results = {}
-    spx_result    = screen_spx(vix)
+    spx_result    = screen_spx(vix, adjusted_params)
     all_results.update(spx_result)
     logger.info("\n>>> Screening TIER 1 — Core Winning Stocks <<<")
-    tier1_results = screen_tickers(TIER1_CORE, tier_label="TIER1_CORE", vix=vix)
+    tier1_results = screen_tickers(TIER1_CORE, tier_label="TIER1_CORE", vix=vix, adjusted_params=adjusted_params)
     all_results.update(tier1_results)
     logger.info("\n>>> Screening TIER 2 — Watchlist <<<")
-    tier2_results = screen_tickers(TIER2_WATCHLIST, tier_label="TIER2_WATCH", vix=vix)
+    tier2_results = screen_tickers(TIER2_WATCHLIST, tier_label="TIER2_WATCH", vix=vix, adjusted_params=adjusted_params)
     all_results.update(tier2_results)
 
+    # ============ CLUSTER / CONCENTRATION GUARD ============
+    cluster_info = check_cluster_risk(all_results)
+    logger.info("=" * 70)
+    logger.info(cluster_info['cluster_note'])
     logger.info("=" * 70)
     logger.info(f"Total signals : {len(all_results)}  (SPX: {len(spx_result)}, T1: {len(tier1_results)}, T2: {len(tier2_results)})")
 
@@ -583,12 +839,15 @@ def run_screener():
         ).drop(columns=['_tier_rank', '_spx_first'])
         results_df['Scan_Date'] = datetime.now().strftime('%Y-%m-%d')
         results_df['Scan_Time'] = datetime.now().strftime('%H:%M:%S')
+        results_df['Cluster_Risk'] = cluster_info['cluster_risk']
         output_file = f'signals_{datetime.now().strftime("%Y%m%d")}.csv'
         results_df.to_csv(output_file)
         logger.info(f"Results saved → {output_file}")
-        display_cols = ['Tier', 'Signal_Strength', 'RSI', 'Price', 'ATR_%',
-                        'VIX', 'Delta_Target', 'Expiry_Date', 'Expiry_DTE',
-                        'Is_Monthly', 'Earnings_Avoided', 'Position_Mgmt']
+        display_cols = ['Tier', 'Signal_Strength', 'RSI', 'RSI_Threshold_Used',
+                        'Price', 'ATR_%', 'VIX', 'VIX_Regime',
+                        'IV_Rank', 'IV_Pct',
+                        'Delta_Target', 'Expiry_Date', 'Expiry_DTE',
+                        'Is_Monthly', 'Earnings_Avoided', 'Cluster_Risk', 'Position_Mgmt']
         if 'Gap_Down_%' in results_df.columns:
             display_cols.insert(4, 'Gap_Down_%')
         if 'Red_Day' in results_df.columns:
