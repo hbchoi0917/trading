@@ -5,6 +5,7 @@
 positions.csv
 signals_*.csv
 screener_*.log
+*.log
 
 # ============ PYTHON ============
 __pycache__/
