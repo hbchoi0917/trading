@@ -1,3 +1,4 @@
+import math
 import yfinance as yf
 import pandas as pd
 import logging
@@ -114,28 +115,48 @@ VIX_ADJUSTED_PARAMS = {
     },
 }
 
+# Safe fallback used when VIX is unavailable or regime key is missing
+_FALLBACK_PARAMS = VIX_ADJUSTED_PARAMS['NORMAL']
+
+
 def get_vix_regime(vix):
-    """Return regime string key for VIX_ADJUSTED_PARAMS lookup."""
-    if vix is None:
+    """
+    Return regime string key for VIX_ADJUSTED_PARAMS lookup.
+    Returns 'NORMAL' for None or any non-numeric VIX value so callers
+    always get a valid key even when VIX fetch fails.
+    """
+    try:
+        if vix is None or not isinstance(vix, (int, float)) or math.isnan(vix):
+            return 'NORMAL'
+        if vix < VIX_LOW:
+            return 'LOW'
+        elif vix < VIX_NORMAL:
+            return 'NORMAL'
+        elif vix < VIX_HIGH:
+            return 'ELEVATED'
+        else:
+            return 'HIGH'
+    except Exception:
         return 'NORMAL'
-    if vix < VIX_LOW:
-        return 'LOW'
-    elif vix < VIX_NORMAL:
-        return 'NORMAL'
-    elif vix < VIX_HIGH:
-        return 'ELEVATED'
-    else:
-        return 'HIGH'
+
 
 def get_adjusted_params(vix):
-    """Return RSI/BB thresholds adjusted for current VIX regime."""
-    regime = get_vix_regime(vix)
-    params = VIX_ADJUSTED_PARAMS[regime]
-    logger.info(
-        f"[VIX-PARAMS] Regime={regime} | RSI threshold={params['rsi_threshold']} | "
-        f"BB threshold={params['bb_threshold']} | SPX RSI threshold={params['spx_rsi_threshold']}"
-    )
-    return params, regime
+    """
+    Return (params_dict, regime_str) adjusted for current VIX regime.
+    Falls back to NORMAL params on any lookup failure — never raises.
+    """
+    try:
+        regime = get_vix_regime(vix)
+        # KeyError-safe: fall back to NORMAL if key somehow missing
+        params = VIX_ADJUSTED_PARAMS.get(regime, _FALLBACK_PARAMS)
+        logger.info(
+            f"[VIX-PARAMS] Regime={regime} | RSI threshold={params['rsi_threshold']} | "
+            f"BB threshold={params['bb_threshold']} | SPX RSI threshold={params['spx_rsi_threshold']}"
+        )
+        return params, regime
+    except Exception as e:
+        logger.warning(f"[VIX-PARAMS] Failed to resolve regime params ({e}). Using NORMAL fallback.")
+        return _FALLBACK_PARAMS, 'NORMAL'
 
 
 # ============ IV RANK / PERCENTILE ============
@@ -144,113 +165,207 @@ def get_adjusted_params(vix):
 # IV Rank < 25: premium is thin — avoid selling; professional desks skip these.
 # IV Rank > 50: fair premium environment.
 # IV Rank > 75: elevated premium — ideal entry for credit strategies.
+#
+# FAIL-SAFE POLICY: any data quality issue (NaN bid/ask, empty chain, zero range,
+# insufficient history) returns a skipped_reason string and iv_rank=None.
+# Callers treat iv_rank=None as "IV data unavailable — do NOT suppress signal".
+# This ensures a data outage never silently blocks valid signals.
 
 IV_RANK_MIN = 25   # Below this: skip (selling cheap premium is the #1 retail mistake)
 
+
+def _safe_mid(row):
+    """
+    Compute option mid-price from a chain row.
+    Returns None if bid or ask is NaN, zero, or negative — not a valid quote.
+    """
+    bid = row.get('bid') if isinstance(row, dict) else getattr(row, 'bid', None)
+    ask = row.get('ask') if isinstance(row, dict) else getattr(row, 'ask', None)
+    try:
+        bid = float(bid)
+        ask = float(ask)
+    except (TypeError, ValueError):
+        return None
+    if math.isnan(bid) or math.isnan(ask) or bid < 0 or ask <= 0 or ask < bid:
+        return None
+    return (bid + ask) / 2.0
+
+
 def compute_iv_rank(ticker):
     """
-    Estimate IV Rank from ATM call/put mid-prices over the nearest expiry.
-    Uses implied vol approximation: IV ~ option_mid / (price * sqrt(T/365)) * sqrt(2*pi)
-    This is the Brenner-Subrahmanyam approximation, accurate for ATM options.
+    Estimate IV Rank from ATM call/put mid-prices over the nearest valid expiry.
+
+    Uses the Brenner-Subrahmanyam ATM IV approximation:
+        IV ≈ (option_mid / spot) × sqrt(2π / T)
+    Accurate for ATM options; no Black-Scholes solver required.
+
+    52-week IV history is proxied via rolling 30-day realized vol (annualized),
+    since yfinance does not expose historical implied vol snapshots.
 
     Returns
     -------
-    dict with keys: iv_current, iv_rank, iv_pct, iv_52w_high, iv_52w_low, skipped_reason
-    or None on failure.
+    dict with keys:
+        iv_current     : float or None
+        iv_rank        : float in [0, 100] or None
+        iv_pct         : float in [0, 100] or None
+        iv_52w_high    : float or None
+        iv_52w_low     : float or None
+        skipped_reason : str or None  (None = success)
+
+    NEVER raises — all failures return a dict with skipped_reason set.
+    iv_rank=None means data was unavailable; callers must NOT suppress
+    the parent signal in this case (fail-open, not fail-closed).
     """
+    _empty = {
+        'iv_current': None, 'iv_rank': None, 'iv_pct': None,
+        'iv_52w_high': None, 'iv_52w_low': None, 'skipped_reason': None,
+    }
+
     try:
         t = yf.Ticker(ticker)
         today = datetime.today().date()
 
-        # Get nearest expiry with 7+ DTE so we're not in gamma-blowup territory
-        raw_expiries = t.options
-        if not raw_expiries:
-            return {'skipped_reason': 'no options chain available'}
+        # --- 1. Get nearest expiry with 7+ DTE ---
+        raw_expiries = t.options  # may be None or empty tuple/list
+        if not raw_expiries:  # covers None, [], ()
+            return {**_empty, 'skipped_reason': 'no options chain available'}
 
-        valid_expiries = sorted([
-            datetime.strptime(e, '%Y-%m-%d').date()
-            for e in raw_expiries
-            if (datetime.strptime(e, '%Y-%m-%d').date() - today).days >= 7
-        ])
+        valid_expiries = []
+        for e in raw_expiries:
+            try:
+                exp_date = datetime.strptime(e, '%Y-%m-%d').date()
+                if (exp_date - today).days >= 7:
+                    valid_expiries.append(exp_date)
+            except (ValueError, TypeError):
+                continue  # skip malformed expiry strings
+        valid_expiries.sort()
+
         if not valid_expiries:
-            return {'skipped_reason': 'no expiry >= 7 DTE'}
+            return {**_empty, 'skipped_reason': 'no expiry >= 7 DTE'}
 
-        # Use the nearest valid expiry for current IV snapshot
         near_exp = valid_expiries[0]
         dte = (near_exp - today).days
 
-        # Fetch current stock price
+        # --- 2. Fetch spot price ---
         hist = yf.download(ticker, period='2d', interval='1d', progress=False, group_by=False)
         if isinstance(hist.columns, pd.MultiIndex):
             hist.columns = hist.columns.droplevel(0)
         hist.columns = [c.capitalize() for c in hist.columns]
-        if hist.empty:
-            return {'skipped_reason': 'no price data'}
+        if hist.empty or 'Close' not in hist.columns or len(hist) < 1:
+            return {**_empty, 'skipped_reason': 'no price data'}
         spot = float(hist['Close'].iloc[-1])
+        if math.isnan(spot) or spot <= 0:
+            return {**_empty, 'skipped_reason': f'invalid spot price: {spot}'}
 
-        # Fetch ATM options
-        chain = t.option_chain(str(near_exp))
+        # --- 3. Fetch option chain and find ATM strike ---
+        try:
+            chain = t.option_chain(str(near_exp))
+        except Exception as ce:
+            return {**_empty, 'skipped_reason': f'option_chain fetch failed: {ce}'}
+
         calls = chain.calls
         puts  = chain.puts
 
-        # Find ATM strike (closest to spot)
-        atm_strike = calls.iloc[(calls['strike'] - spot).abs().argsort()[:1]]['strike'].values[0]
+        if calls is None or calls.empty:
+            return {**_empty, 'skipped_reason': 'empty calls chain'}
+        if puts is None or puts.empty:
+            return {**_empty, 'skipped_reason': 'empty puts chain'}
 
-        atm_call = calls[calls['strike'] == atm_strike].iloc[0]
-        atm_put  = puts[puts['strike'] == atm_strike].iloc[0]
+        # Find ATM strike from calls (closest to spot)
+        call_strikes = calls['strike'].dropna()
+        if call_strikes.empty:
+            return {**_empty, 'skipped_reason': 'no valid call strikes'}
+        atm_strike = call_strikes.iloc[(call_strikes - spot).abs().argsort().iloc[0]]
 
-        call_mid = (atm_call['bid'] + atm_call['ask']) / 2
-        put_mid  = (atm_put['bid'] + atm_put['ask']) / 2
-        avg_mid  = (call_mid + put_mid) / 2
+        # Fetch ATM call row
+        atm_call_rows = calls[calls['strike'] == atm_strike]
+        if atm_call_rows.empty:
+            return {**_empty, 'skipped_reason': f'ATM call row missing for strike {atm_strike}'}
+        atm_call = atm_call_rows.iloc[0]
+
+        # Fetch ATM put row — put chain may not have exact same strike; find closest
+        put_strikes = puts['strike'].dropna()
+        if put_strikes.empty:
+            return {**_empty, 'skipped_reason': 'no valid put strikes'}
+        atm_put_strike = put_strikes.iloc[(put_strikes - atm_strike).abs().argsort().iloc[0]]
+        atm_put_rows = puts[puts['strike'] == atm_put_strike]
+        if atm_put_rows.empty:
+            return {**_empty, 'skipped_reason': f'ATM put row missing for strike {atm_put_strike}'}
+        atm_put = atm_put_rows.iloc[0]
+
+        # --- 4. Compute mid-prices with NaN/zero guard ---
+        call_mid = _safe_mid(atm_call)
+        put_mid  = _safe_mid(atm_put)
+
+        if call_mid is None and put_mid is None:
+            return {**_empty, 'skipped_reason': 'both ATM call and put have invalid bid/ask'}
+
+        # Use whichever legs are valid; prefer average of both
+        valid_mids = [m for m in [call_mid, put_mid] if m is not None]
+        avg_mid = sum(valid_mids) / len(valid_mids)
 
         if avg_mid <= 0 or dte <= 0:
-            return {'skipped_reason': 'zero mid-price or zero DTE'}
+            return {**_empty, 'skipped_reason': f'non-positive mid ({avg_mid}) or DTE ({dte})'}
 
-        # Brenner-Subrahmanyam ATM IV approximation
-        import math
+        # --- 5. Brenner-Subrahmanyam ATM IV approximation ---
         t_years = dte / 365.0
-        iv_current = (avg_mid / spot) * math.sqrt(2 * math.pi / t_years)
-        iv_current = round(iv_current * 100, 1)  # express as percentage
+        iv_current = (avg_mid / spot) * math.sqrt(2.0 * math.pi / t_years)
+        iv_current = round(iv_current * 100.0, 1)  # express as %
+        if math.isnan(iv_current) or iv_current <= 0:
+            return {**_empty, 'skipped_reason': f'computed IV is invalid: {iv_current}'}
 
-        # Build 52-week IV history by sampling ~monthly expiries over the past year
-        # We use the same ATM approximation on 12 historical snapshots via yfinance
-        # historical option data is not available, so we proxy with 52w realized vol
-        # and scale: IV typically trades at ~1.1-1.3x realized vol (vol risk premium)
+        # --- 6. 52-week realized vol as IV history proxy ---
         hist_1y = yf.download(ticker, period='1y', interval='1d', progress=False, group_by=False)
         if isinstance(hist_1y.columns, pd.MultiIndex):
             hist_1y.columns = hist_1y.columns.droplevel(0)
         hist_1y.columns = [c.capitalize() for c in hist_1y.columns]
+        if hist_1y.empty or 'Close' not in hist_1y.columns or len(hist_1y) < 31:
+            return {**_empty, 'skipped_reason': 'insufficient 1y price history for rvol'}
 
-        # Rolling 30-day realized vol as IV proxy (annualized)
-        hist_1y['log_ret'] = hist_1y['Close'].pct_change().apply(lambda x: math.log(1 + x) if x > -1 else 0)
-        hist_1y['rvol_30'] = hist_1y['log_ret'].rolling(30).std() * math.sqrt(252) * 100
+        # log returns: clamp to avoid log(0) or log of negative on extreme moves / bad data
+        pct = hist_1y['Close'].pct_change()
+        log_ret = pct.apply(
+            lambda x: math.log(1.0 + x) if (not pd.isna(x) and x > -1.0) else 0.0
+        )
+        hist_1y['rvol_30'] = log_ret.rolling(30).std() * math.sqrt(252) * 100.0
 
-        iv_52w_high = round(float(hist_1y['rvol_30'].max()), 1)
-        iv_52w_low  = round(float(hist_1y['rvol_30'].min()), 1)
+        rvol_series = hist_1y['rvol_30'].dropna()
+        if rvol_series.empty:
+            return {**_empty, 'skipped_reason': 'rvol_30 series is all NaN after dropna'}
+
+        iv_52w_high_raw = rvol_series.max()
+        iv_52w_low_raw  = rvol_series.min()
+
+        # Guard NaN from max/min (happens if all values are NaN)
+        if pd.isna(iv_52w_high_raw) or pd.isna(iv_52w_low_raw):
+            return {**_empty, 'skipped_reason': 'rvol_30 min/max are NaN — insufficient data'}
+
+        iv_52w_high = round(float(iv_52w_high_raw), 1)
+        iv_52w_low  = round(float(iv_52w_low_raw), 1)
 
         iv_range = iv_52w_high - iv_52w_low
-        if iv_range <= 0:
-            return {'skipped_reason': 'zero IV range over 52w'}
+        if iv_range <= 0 or math.isnan(iv_range):
+            return {**_empty, 'skipped_reason': f'zero or NaN IV range ({iv_range}) over 52w'}
 
-        iv_rank = round((iv_current - iv_52w_low) / iv_range * 100, 1)
+        iv_rank = round((iv_current - iv_52w_low) / iv_range * 100.0, 1)
         iv_rank = max(0.0, min(100.0, iv_rank))  # clamp to [0, 100]
 
-        # Percentile: fraction of days in the past year where rvol was below current IV
-        iv_pct = round(
-            (hist_1y['rvol_30'].dropna() < iv_current).mean() * 100, 1
-        )
+        # Percentile: fraction of rvol days below current IV
+        iv_pct = round(float((rvol_series < iv_current).mean() * 100.0), 1)
 
         return {
-            'iv_current':   iv_current,
-            'iv_rank':      iv_rank,
-            'iv_pct':       iv_pct,
-            'iv_52w_high':  iv_52w_high,
-            'iv_52w_low':   iv_52w_low,
+            'iv_current':     iv_current,
+            'iv_rank':        iv_rank,
+            'iv_pct':         iv_pct,
+            'iv_52w_high':    iv_52w_high,
+            'iv_52w_low':     iv_52w_low,
             'skipped_reason': None,
         }
 
     except Exception as e:
-        return {'skipped_reason': str(e)}
+        # Broad catch: log and return safe empty dict so callers never crash
+        logger.warning(f"[IV-RANK] {ticker}: unexpected error — {e}")
+        return {**_empty, 'skipped_reason': f'unexpected error: {e}'}
 
 
 # ============ CLUSTER / CONCENTRATION GUARD ============
@@ -259,30 +374,55 @@ def compute_iv_rank(ticker):
 # Professional desks call this concentration risk. We warn but do not auto-skip,
 # so you retain final discretion.
 
-CLUSTER_WARN_THRESHOLD = 5   # Warn if >= this many tickers signal in one run
+CLUSTER_WARN_THRESHOLD = 5    # Warn if >= this many tickers signal in one run
+_CLUSTER_DISPLAY_MAX   = 10   # Cap ticker list in log/note to avoid wall-of-text
+
 
 def check_cluster_risk(all_results):
     """
     Count total signals and flag concentration risk.
-    Returns a dict with signal_count, cluster_risk (bool), and a note.
+    Returns a dict with signal_count, cluster_risk (bool), cluster_note, and tickers.
+    Never raises — safe for any input including empty or None.
     """
-    count = len(all_results)
-    tickers = list(all_results.keys())
-    cluster_risk = count >= CLUSTER_WARN_THRESHOLD
-    note = (
-        f"⚠️  CONCENTRATION RISK: {count} tickers triggered simultaneously "
-        f"({', '.join(tickers)}). These may share macro exposure — treat as "
-        f"correlated, not independent trades. Consider sizing down or picking "
-        f"the highest-conviction 2-3 names only."
-        if cluster_risk else
-        f"✓ Cluster check passed: {count} signal(s) — concentration risk low."
-    )
-    return {
-        'signal_count':  count,
-        'cluster_risk':  cluster_risk,
-        'cluster_note':  note,
-        'tickers':       tickers,
-    }
+    try:
+        if not all_results:
+            return {
+                'signal_count': 0,
+                'cluster_risk': False,
+                'cluster_note': '✓ Cluster check passed: 0 signals.',
+                'tickers': [],
+            }
+        count   = len(all_results)
+        tickers = list(all_results.keys())
+        cluster_risk = count >= CLUSTER_WARN_THRESHOLD
+
+        # Cap display list to avoid log wall-of-text
+        display_tickers = tickers[:_CLUSTER_DISPLAY_MAX]
+        suffix = f' ... +{count - _CLUSTER_DISPLAY_MAX} more' if count > _CLUSTER_DISPLAY_MAX else ''
+
+        note = (
+            f"⚠️  CONCENTRATION RISK: {count} tickers triggered simultaneously "
+            f"({', '.join(display_tickers)}{suffix}). "
+            f"These likely share macro exposure — treat as correlated, not independent trades. "
+            f"Consider sizing down or selecting the top 2-3 highest-conviction names only."
+            if cluster_risk else
+            f"✓ Cluster check passed: {count} signal(s) ({', '.join(display_tickers)}{suffix}) — "
+            f"concentration risk low."
+        )
+        return {
+            'signal_count': count,
+            'cluster_risk': cluster_risk,
+            'cluster_note': note,
+            'tickers':      tickers,
+        }
+    except Exception as e:
+        logger.warning(f"[CLUSTER] check_cluster_risk failed unexpectedly: {e}")
+        return {
+            'signal_count': len(all_results) if all_results else 0,
+            'cluster_risk': False,
+            'cluster_note': f'Cluster check error: {e}',
+            'tickers':      [],
+        }
 
 
 # ============ POSITION MANAGEMENT CONSTANTS ============
@@ -598,13 +738,19 @@ def screen_spx(vix, adjusted_params):
         logger.info(f"[SPX] Gap: {gap_down_pct:.2f}% | RSI: {current_rsi:.1f} (threshold: {spx_rsi_threshold}) | SMA200: {is_uptrend} | VIX: {vix}")
 
         if is_gap_down and is_rsi_low and is_uptrend:
-            # IV Rank check for SPX
+            # IV Rank check — fail-open: if iv_rank is None (data unavailable), do not suppress
             iv_data = compute_iv_rank(SPX_TICKER)
-            iv_rank = iv_data.get('iv_rank') if iv_data else None
-            iv_skip = (iv_rank is not None and iv_rank < IV_RANK_MIN)
-            if iv_skip:
-                logger.info(f"[SPX] IV Rank {iv_rank} < {IV_RANK_MIN} — premium too thin. Signal suppressed.")
+            iv_rank = iv_data.get('iv_rank')  # None = data unavailable
+            if iv_rank is not None and iv_rank < IV_RANK_MIN:
+                logger.info(
+                    f"[SPX] IV Rank {iv_rank} < {IV_RANK_MIN} — premium too thin. Signal suppressed."
+                )
                 return results
+            if iv_rank is None:
+                logger.warning(
+                    f"[SPX] IV Rank unavailable ({iv_data.get('skipped_reason')}) — "
+                    f"proceeding without IV filter (fail-open)."
+                )
 
             signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
             expiry_info = get_target_expiry(SPX_TICKER)
@@ -624,16 +770,21 @@ def screen_spx(vix, adjusted_params):
                 'VIX_Regime': get_vix_regime(vix),
                 'RSI_Threshold_Used': spx_rsi_threshold,
                 'IV_Rank': iv_rank,
-                'IV_Pct': iv_data.get('iv_pct') if iv_data else None,
-                'IV_52w_High': iv_data.get('iv_52w_high') if iv_data else None,
-                'IV_52w_Low': iv_data.get('iv_52w_low') if iv_data else None,
+                'IV_Pct': iv_data.get('iv_pct'),
+                'IV_52w_High': iv_data.get('iv_52w_high'),
+                'IV_52w_Low': iv_data.get('iv_52w_low'),
+                'IV_Skip_Reason': iv_data.get('skipped_reason'),
                 'Delta_Target': f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}',
                 'Expiry_Date': expiry_date, 'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
                 'Earnings_Avoided': 'N/A (index)', 'Earnings_Blackout': False,
                 'Position_Mgmt': f'Routine review at DTE<={BASE_DTE_ACTION} only',
                 'Note': 'European-style. No early assignment. CBOE SPX options only.',
             }
-            logger.info(f"✓ [SPX] Gap {gap_down_pct:.2f}% | RSI {current_rsi:.1f} | IV Rank {iv_rank} | Signal: {signal_strength}/100 | Expiry: {expiry_date} (DTE {expiry_dte}, monthly={is_monthly})")
+            logger.info(
+                f"✓ [SPX] Gap {gap_down_pct:.2f}% | RSI {current_rsi:.1f} | "
+                f"IV Rank {iv_rank} | Signal: {signal_strength}/100 | "
+                f"Expiry: {expiry_date} (DTE {expiry_dte}, monthly={is_monthly})"
+            )
         else:
             logger.info("[SPX] Conditions not met. No signal.")
     except Exception as e:
@@ -719,10 +870,9 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
             if (is_oversold and is_uptrend_long and is_liquid and
                     is_near_lower_bb and is_adequate_vol and is_volume_surge):
 
-                # IV Rank check — suppress signal if premium is too thin
+                # IV Rank check — fail-open: iv_rank=None means data unavailable, do not suppress
                 iv_data = compute_iv_rank(ticker)
-                iv_rank = iv_data.get('iv_rank') if iv_data else None
-                iv_skip_reason = iv_data.get('skipped_reason') if iv_data else 'compute_iv_rank returned None'
+                iv_rank = iv_data.get('iv_rank')  # None = data unavailable
 
                 if iv_rank is not None and iv_rank < IV_RANK_MIN:
                     logger.info(
@@ -731,6 +881,11 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                     )
                     successful_count += 1
                     continue
+                if iv_rank is None:
+                    logger.warning(
+                        f"[{tier_label}] {ticker}: IV Rank unavailable "
+                        f"({iv_data.get('skipped_reason')}) — proceeding without IV filter (fail-open)."
+                    )
 
                 signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
                 expiry_info     = get_target_expiry(ticker, earnings_date)
@@ -757,10 +912,10 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                     'RSI_Threshold_Used': rsi_threshold,
                     'BB_Threshold_Used': bb_threshold,
                     'IV_Rank': iv_rank,
-                    'IV_Pct': iv_data.get('iv_pct') if iv_data else None,
-                    'IV_52w_High': iv_data.get('iv_52w_high') if iv_data else None,
-                    'IV_52w_Low': iv_data.get('iv_52w_low') if iv_data else None,
-                    'IV_Skip_Reason': iv_skip_reason,
+                    'IV_Pct': iv_data.get('iv_pct'),
+                    'IV_52w_High': iv_data.get('iv_52w_high'),
+                    'IV_52w_Low': iv_data.get('iv_52w_low'),
+                    'IV_Skip_Reason': iv_data.get('skipped_reason'),
                     'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
                     'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
                     'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
@@ -795,6 +950,7 @@ def run_screener():
     logger.info(f"RSI Threshold (SPX, adj.)      : {adjusted_params['spx_rsi_threshold']} (base: {SPX_RSI_THRESHOLD}) + gap-down >= {SPX_GAP_DOWN_PCT}%")
     logger.info(f"BB Threshold (adj.)            : {adjusted_params['bb_threshold']} (base: 0.40)")
     logger.info(f"IV Rank minimum                : {IV_RANK_MIN} (below this = premium too thin, signal suppressed)")
+    logger.info(f"IV filter policy               : fail-open (IV unavailable = proceed without filter)")
     logger.info(f"Cluster warn threshold         : {CLUSTER_WARN_THRESHOLD} simultaneous signals")
     logger.info(f"Delta — Tier 1                 : {TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}")
     logger.info(f"Delta — Tier 2                 : {TIER2_DELTA_MIN}–{TIER2_DELTA_MAX} (ATR% guard <= {TIER2_ATR_MAX}%)")
