@@ -6,6 +6,7 @@ positions.csv
 signals_*.csv
 screener_*.log
 *.log
+options-analysis/data/*.csv
 
 # ============ PYTHON ============
 __pycache__/
