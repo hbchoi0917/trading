@@ -11,14 +11,17 @@ def load_and_clean(file_paths):
     dfs = []
     for fp in file_paths:
         try:
-            df = pd.read_csv(fp)
+            # Fidelity exports have 2 blank rows before the header row
+            df = pd.read_csv(fp, skiprows=2)
+            if 'Run Date' not in df.columns:
+                df = pd.read_csv(fp)
             dfs.append(df)
         except Exception as e:
             print(f"Error loading {fp}: {e}")
     raw = pd.concat(dfs, ignore_index=True)
     raw['Run Date'] = pd.to_datetime(raw['Run Date'], format='%m/%d/%Y', errors='coerce')
     df = raw.dropna(subset=['Run Date']).copy()
-    df = df[(df['Run Date'] >= '2025-01-01') & (df['Run Date'] <= '2026-03-31')]
+    df = df[(df['Run Date'] >= '2025-01-01') & (df['Run Date'] <= '2026-12-31')]
     return df.drop_duplicates()
 
 def parse_action_type(action):
@@ -92,6 +95,21 @@ def make_charts(df, out_dir='charts'):
     monthly['cum_pnl'] = monthly['pnl'].cumsum()
     monthly['label'] = monthly['month'].apply(_month_label)
 
+    total_pnl = df['Amount'].sum()
+    date_start = df['Run Date'].min().strftime('%b %Y')
+    date_end   = df['Run Date'].max().strftime('%b %Y')
+    cum_final  = monthly['cum_pnl'].iloc[-1]
+
+    opt_pnl_raw = df[df['option_type'].isin(['PUT', 'CALL'])].groupby('option_type')['Amount'].sum()
+    put_pnl  = opt_pnl_raw.get('PUT', 0)
+    call_pnl = opt_pnl_raw.get('CALL', 0)
+    gross    = abs(put_pnl) + abs(call_pnl)
+    put_pct  = int(abs(put_pnl) / gross * 100) if gross else 0
+
+    und_pnl_s = df.groupby('underlying')['Amount'].sum().sort_values()
+    top_winner = und_pnl_s.index[-1]
+    top_loser  = und_pnl_s.index[0]
+
     # Chart 1: Monthly P&L + Cumulative
     bar_colors = ['#e74c3c' if v < 0 else '#00d4a8' for v in monthly['pnl']]
     fig1 = make_subplots(rows=2, cols=1, shared_xaxes=True,
@@ -110,16 +128,15 @@ def make_charts(df, out_dir='charts'):
         line=dict(color='#f39c12', width=3), marker=dict(size=8),
         fill='tozeroy', fillcolor='rgba(243,156,18,0.15)', showlegend=False
     ), row=2, col=1)
-    fig1.update_layout(title={'text': 'Monthly P&L Surged in H2; Cumulative Reached $28.7k<br>'
-                                       "<span style='font-size:16px;font-weight:normal;'>All Accounts | Jan 2025 – Dec 2025</span>"})
+    fig1.update_layout(title={'text': f'Cumulative P&L Reached ${cum_final/1000:.1f}k<br>'
+                                       f"<span style='font-size:16px;font-weight:normal;'>All Accounts | {date_start} – {date_end}</span>"})
     fig1.update_yaxes(title_text='P&L ($)', tickformat='$,.0f', row=1, col=1)
     fig1.update_yaxes(title_text='Cumul. ($)', tickformat='$,.0f', row=2, col=1)
     fig1.update_xaxes(title_text='Month', row=2, col=1)
     fig1.write_image(f'{out_dir}/chart1_monthly_pnl.png')
 
     # Chart 2: Ticker P&L horizontal bar
-    und_pnl = df.groupby('underlying')['Amount'].sum().sort_values()
-    top_combo = pd.concat([und_pnl.head(4), und_pnl.tail(10)])
+    top_combo = pd.concat([und_pnl_s.head(4), und_pnl_s.tail(10)])
     fig2 = go.Figure(go.Bar(
         x=top_combo.values,
         y=[f'  {t}' for t in top_combo.index],
@@ -129,7 +146,7 @@ def make_charts(df, out_dir='charts'):
         textposition='auto', textfont=dict(size=11)
     ))
     fig2.update_layout(
-        title={'text': 'NVDA & HIMS Lead Gains; PLTR Biggest Drag<br>'
+        title={'text': f'{top_winner} Leads Gains; {top_loser} Biggest Drag<br>'
                        "<span style='font-size:16px;font-weight:normal;'>Net P&L by Ticker | Top 10 + 4 Losers</span>"},
         xaxis=dict(title_text='Net P&L ($)', tickformat='$,.0f'),
         height=700, margin=dict(l=100, r=80, t=120, b=60)
@@ -137,15 +154,16 @@ def make_charts(df, out_dir='charts'):
     fig2.write_image(f'{out_dir}/chart2_ticker_pnl.png')
 
     # Chart 3: PUT vs CALL donut
-    opt_pnl = df[df['option_type'].isin(['PUT', 'CALL'])].groupby('option_type')['Amount'].sum().reset_index()
+    opt_pnl = opt_pnl_raw.reset_index()
+    opt_pnl.columns = ['option_type', 'Amount']
     fig3 = go.Figure(go.Pie(
         labels=opt_pnl['option_type'], values=opt_pnl['Amount'].abs(),
         hole=0.4, marker_colors=['#00d4a8', '#e74c3c'],
         textinfo='label+percent', textfont_size=14, pull=[0.03, 0.03]
     ))
     fig3.update_layout(
-        title={'text': 'PUT Spreads Drive 92% of Gross P&L<br>'
-                       "<span style='font-size:16px;font-weight:normal;'>PUT: +$31,496 | CALL: -$2,815</span>"},
+        title={'text': f'PUT Spreads Drive {put_pct}% of Gross P&L<br>'
+                       f"<span style='font-size:16px;font-weight:normal;'>PUT: ${put_pnl:+,.0f} | CALL: ${call_pnl:+,.0f}</span>"},
         legend=dict(orientation='v', x=1.0)
     )
     fig3.write_image(f'{out_dir}/chart3_put_vs_call.png')
@@ -159,8 +177,8 @@ def make_charts(df, out_dir='charts'):
         text=tc['count'], textposition='outside', width=0.6
     ))
     fig4.update_layout(
-        title={'text': 'Trade Frequency Grew ~27x from Jan to Oct 2025<br>'
-                       "<span style='font-size:16px;font-weight:normal;'>SELL_OPEN Transactions per Month</span>"},
+        title={'text': f'New Positions (SELL_OPEN) per Month<br>'
+                       f"<span style='font-size:16px;font-weight:normal;'>{date_start} – {date_end} | All Accounts</span>"},
         xaxis=dict(title_text='Month'),
         yaxis=dict(title_text='# of Trades')
     )
@@ -178,8 +196,8 @@ def make_charts(df, out_dir='charts'):
         textposition='inside', textfont=dict(size=13, color='white'), width=0.45
     ))
     fig5.update_layout(
-        title={'text': 'Individual Account Earned 56% of Total P&L<br>'
-                       "<span style='font-size:16px;font-weight:normal;'>Net P&L by Account | Total $28,681</span>"},
+        title={'text': f'P&L by Account | Total ${total_pnl:,.0f}<br>'
+                       f"<span style='font-size:16px;font-weight:normal;'>{date_start} – {date_end}</span>"},
         xaxis=dict(title_text='Account'),
         yaxis=dict(title_text='Net P&L ($)', tickformat='$,.0f'),
         margin=dict(l=80, r=40, t=120, b=60)
@@ -225,7 +243,8 @@ def make_charts(df, out_dir='charts'):
 # ── Main ────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    files = glob.glob('data/Accounts_History*.csv')
+    files = glob.glob('data/*.csv')
+    files = [f for f in files if 'options_cleaned' not in f]
     if not files:
         print('No CSV files found in data/. Add Fidelity export files and retry.')
     else:

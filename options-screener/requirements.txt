@@ -5,3 +5,7 @@ lxml>=4.9.0
 html5lib>=1.1
 matplotlib>=3.7.0
 seaborn>=0.12.0
+
+# Broker integration
+tastytrade>=12.0.0
+python-dotenv>=1.0.0
