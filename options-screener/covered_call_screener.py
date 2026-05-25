@@ -48,8 +48,7 @@ logging.basicConfig(
 
 # ── Covered call positions (Fidelity) ────────────────────────────────────────
 
-CC_TICKERS = ['VOO', 'EWY', 'GOOGL', 'SCHD', 'DRAM']
-# Removed QQQM: Nasdaq ETF with thin premium; systematic call losses during macro rallies (tariff pause etc.)
+CC_TICKERS = ['VOO', 'QQQM', 'EWY', 'GOOGL', 'SCHD', 'DRAM']
 
 # ── Entry thresholds ──────────────────────────────────────────────────────────
 
@@ -60,7 +59,7 @@ CC_EARNINGS_DAYS  = 7      # skip if earnings within this many days
 CC_DTE_MIN        = 21
 CC_DTE_MAX        = 35
 CC_OTM_PCTS       = [0.03, 0.05, 0.07]   # suggested strike levels above spot
-CC_NO_ASSIGN_TICKERS  = {'VOO'}   # long-term core ETF; premium only, assignment undesirable
+CC_NO_ASSIGN_TICKERS  = {'VOO', 'QQQM'}   # long-term core ETFs; premium only, assignment undesirable
 CC_NO_ASSIGN_MIN_OTM  = 0.05      # minimum OTM for no-assign tickers (skip 3% strikes)
 
 
