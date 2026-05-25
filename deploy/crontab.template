@@ -1,0 +1,22 @@
+# Trading automation cron schedule
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPORTANT: Server timezone must be US/Eastern (America/New_York).
+#            setup.sh sets this automatically via timedatectl.
+#
+# Korea reference (KST = ET + 13h in EDT, +14h in EST):
+#   9:35 AM ET  →  10:35 PM KST (EDT) / 11:35 PM KST (EST)  ← you're sleeping
+#  12:30 PM ET  →   1:30 AM KST (next day)
+#   4:05 PM ET  →   5:05 AM KST (next day)
+#
+# Placeholders substituted by setup.sh:
+#   __REPO_DIR__  __APP_DIR__  __PYTHON__  __LOG_DIR__
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Market open: run screener + place new spread orders (9:35 AM ET Mon–Fri)
+35 9 * * 1-5 bash __REPO_DIR__/deploy/run_entry.sh >> __LOG_DIR__/cron.log 2>&1
+
+# ── Midday: check profit targets / DTE triggers (12:30 PM ET Mon–Fri)
+30 12 * * 1-5 bash __REPO_DIR__/deploy/run_monitor.sh >> __LOG_DIR__/cron.log 2>&1
+
+# ── Post-close: final position scan before overnight (4:05 PM ET Mon–Fri)
+5 16 * * 1-5 bash __REPO_DIR__/deploy/run_monitor.sh >> __LOG_DIR__/cron.log 2>&1
