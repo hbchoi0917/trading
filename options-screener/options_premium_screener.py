@@ -118,15 +118,17 @@ SPX_RSI_THRESHOLD = 30      # Base threshold — overridden by VIX regime at run
 SPX_GAP_DOWN_PCT  = -1.0
 
 # Delta targets by tier
-TIER1_DELTA_MIN = 0.10
-TIER1_DELTA_MAX = 0.18
-TIER2_DELTA_MIN = 0.08
-TIER2_DELTA_MAX = 0.13
+TIER1_DELTA_MIN = 0.15
+TIER1_DELTA_MAX = 0.22
+TIER2_DELTA_MIN = 0.12
+TIER2_DELTA_MAX = 0.20
+TIER3_DELTA_MIN = 0.08   # higher-volatility / lower-conviction names — stay further OTM
+TIER3_DELTA_MAX = 0.13
 
 # Per-ticker delta overrides (takes precedence over tier defaults)
 # COST: low-volatility blue chip — higher delta acceptable for better premium
 TICKER_DELTA_OVERRIDE = {
-    'COST': (0.10, 0.25),
+    'COST': (0.15, 0.28),
 }
 
 # DTE window for expiry selection
@@ -891,11 +893,14 @@ def screen_spx(vix, adjusted_params):
 
 # ============ GENERAL TIER SCREENING ============
 def screen_tickers(tickers, tier_label, vix, adjusted_params):
-    is_tier2 = (tier_label in ('TIER2_WATCH', 'TIER3_WATCH'))
-    default_delta = (
-        f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}' if is_tier2
-        else f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
-    )
+    is_tier2 = (tier_label == 'TIER2_WATCH')
+    is_tier3 = (tier_label == 'TIER3_WATCH')
+    if is_tier3:
+        default_delta = f'{TIER3_DELTA_MIN}–{TIER3_DELTA_MAX}'
+    elif is_tier2:
+        default_delta = f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}'
+    else:
+        default_delta = f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
     rsi_threshold = adjusted_params['rsi_threshold']
     bb_threshold  = adjusted_params['bb_threshold']
     results = {}
@@ -970,7 +975,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
             is_adequate_vol  = atr_pct > 1.0
             is_volume_surge  = volume_surge_ratio > 1.2
 
-            if is_tier2 and atr_pct > TIER2_ATR_MAX:
+            if (is_tier2 or is_tier3) and atr_pct > TIER2_ATR_MAX:
                 logger.info(
                     f"[{tier_label}] {ticker}: ATR% {atr_pct:.2f}% > {TIER2_ATR_MAX}% "
                     f"— too volatile, skipping."
@@ -978,7 +983,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 successful_count += 1
                 continue
 
-            if (is_oversold and is_uptrend_long and is_liquid and
+            if (is_red_day and is_oversold and is_uptrend_long and is_liquid and
                     is_near_lower_bb and is_adequate_vol and is_volume_surge):
 
                 iv_data  = compute_iv_rank(ticker)
@@ -998,7 +1003,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                     f'Stage1(DTE<={T2_ROLLOVER_DTE}+price<short_put): '
                     f'1st net credit roll, 2nd debit<={int(MAX_ROLLOVER_DEBIT_PCT*100)}% of credit, fallback close | '
                     f'Stage2(DTE<={T2_EMERGENCY_CLOSE_DTE}+price<=long_put): emergency close'
-                ) if is_tier2 else f'Routine review at DTE<={BASE_DTE_ACTION} only'
+                ) if (is_tier2 or is_tier3) else f'Routine review at DTE<={BASE_DTE_ACTION} only'
 
                 results[ticker] = {
                     'Tier': tier_label, 'Signal_Strength': signal_strength,
@@ -1067,6 +1072,7 @@ def run_screener():
     logger.info(f"Cluster warn threshold         : {CLUSTER_WARN_THRESHOLD} simultaneous signals")
     logger.info(f"Delta — Tier 1                 : {TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}")
     logger.info(f"Delta — Tier 2                 : {TIER2_DELTA_MIN}–{TIER2_DELTA_MAX} (ATR% guard <= {TIER2_ATR_MAX}%)")
+    logger.info(f"Delta — Tier 3                 : {TIER3_DELTA_MIN}–{TIER3_DELTA_MAX} (ATR% guard <= {TIER2_ATR_MAX}%)")
     logger.info(f"DTE window                     : {DTE_MIN}–{DTE_MAX} days (monthly preferred)")
     logger.info(f"Early close profit target      : {int(EARLY_CLOSE_PROFIT_PCT*100)}%")
     logger.info(f"Base DTE action (all tiers)    : DTE <= {BASE_DTE_ACTION}")
