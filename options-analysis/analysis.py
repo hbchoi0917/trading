@@ -238,7 +238,64 @@ def make_charts(df, out_dir='charts'):
     )
     fig7.write_image(f'{out_dir}/chart7_ticker_frequency.png')
 
-    print(f'✅  7 charts saved to ./{out_dir}/')
+    # Chart 8: Quarterly P&L trajectory
+    df['quarter'] = df['Run Date'].dt.to_period('Q').astype(str)
+    qtr = df.groupby('quarter')['Amount'].sum().reset_index()
+    qtr.columns = ['quarter', 'pnl']
+    qtr['cum_pnl'] = qtr['pnl'].cumsum()
+    fig8 = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                         row_heights=[0.6, 0.4], vertical_spacing=0.08,
+                         subplot_titles=('Quarterly P&L', 'Cumulative P&L'))
+    fig8.add_trace(go.Bar(
+        x=qtr['quarter'], y=qtr['pnl'],
+        marker_color=['#e74c3c' if v < 0 else '#00d4a8' for v in qtr['pnl']],
+        text=[f"${v/1000:.1f}k" for v in qtr['pnl']],
+        textposition='outside', width=0.5, showlegend=False
+    ), row=1, col=1)
+    fig8.add_trace(go.Scatter(
+        x=qtr['quarter'], y=qtr['cum_pnl'],
+        mode='lines+markers',
+        line=dict(color='#f39c12', width=3), marker=dict(size=8),
+        fill='tozeroy', fillcolor='rgba(243,156,18,0.15)', showlegend=False
+    ), row=2, col=1)
+    fig8.update_layout(title={'text': 'Quarterly P&L Trajectory<br>'
+                                      "<span style='font-size:16px;font-weight:normal;'>Consistent growth from Q1 2025 to present</span>"})
+    fig8.update_yaxes(title_text='P&L ($)', tickformat='$,.0f', row=1, col=1)
+    fig8.update_yaxes(title_text='Cumul. ($)', tickformat='$,.0f', row=2, col=1)
+    fig8.write_image(f'{out_dir}/chart8_quarterly_pnl.png')
+
+    # Chart 9: Ticker efficiency — P&L per trade vs trade count
+    sell_open = df[df['action_type'] == 'SELL_OPEN']
+    t_count = sell_open.groupby('underlying').size().reset_index(name='trade_count')
+    t_pnl   = df.groupby('underlying')['Amount'].sum().reset_index(name='total_pnl')
+    t_stats = t_count.merge(t_pnl, on='underlying')
+    t_stats = t_stats[t_stats['trade_count'] >= 3].copy()
+    t_stats['pnl_per_trade'] = t_stats['total_pnl'] / t_stats['trade_count']
+    fig9 = go.Figure(go.Scatter(
+        x=t_stats['trade_count'],
+        y=t_stats['pnl_per_trade'],
+        mode='markers+text',
+        text=t_stats['underlying'],
+        textposition='top center',
+        textfont=dict(size=11),
+        marker=dict(
+            size=[max(10, min(45, abs(v) / 80)) for v in t_stats['total_pnl']],
+            color=['#e74c3c' if v < 0 else '#00d4a8' for v in t_stats['total_pnl']],
+            opacity=0.85,
+            line=dict(width=1, color='white'),
+        )
+    ))
+    fig9.add_hline(y=0, line_dash='dash', line_color='gray', opacity=0.5)
+    fig9.update_layout(
+        title={'text': 'Ticker Efficiency: P&L per Trade vs Frequency<br>'
+                       "<span style='font-size:16px;font-weight:normal;'>Bubble size = |Total P&L| · green = profit · red = loss</span>"},
+        xaxis=dict(title_text='Number of Trades (SELL_OPEN)'),
+        yaxis=dict(title_text='P&L per Trade ($)', tickformat='$,.0f'),
+        height=620, margin=dict(l=80, r=60, t=120, b=60)
+    )
+    fig9.write_image(f'{out_dir}/chart9_ticker_efficiency.png')
+
+    print(f'✅  9 charts saved to ./{out_dir}/')
 
 # ── Main ────────────────────────────────────────────────────────────────────
 

@@ -37,6 +37,8 @@
 
 **Key observation:** H2 2025 (Jul–Dec) generated ~$28,255 — nearly the entire year's P&L. H1 2025 was essentially flat at +$426 (Q1 +$1,517 offset by Q2 −$1,091), with the April tariff-driven drawdown (−$6,854) erasing all early gains.
 
+![Monthly P&L & Cumulative Growth](charts/chart1_monthly_pnl.png)
+
 ### 2026 Q1
 
 | Month | Net P&L | Status |
@@ -69,6 +71,8 @@
 | 2026 Q1 | +$9,095 | $37,776 |
 | **2026 Q2 MTD** | **+$7,934** | **$45,710** |
 
+![Quarterly P&L Trajectory](charts/chart8_quarterly_pnl.png)
+
 ---
 
 ## 4. P&L by Underlying (2025 Winners)
@@ -94,6 +98,8 @@
 | META | −$1,453 | Price breakout exceeded call spread strikes |
 | RGTI | −$1,220 | Quantum computing volatility; spread width too narrow |
 | CLS | −$1,006 | Celestica breakout; narrow spreads didn't protect |
+
+![Net P&L by Ticker](charts/chart2_ticker_pnl.png)
 
 ---
 
@@ -151,6 +157,8 @@
 | CRWD | −$1,745 | Put spreads caught downside move; tight strikes punished |
 | QQQM | −$1,673 | Call spread caught sustained QQQM rally in April |
 
+![Ticker Efficiency: P&L per Trade vs Frequency](charts/chart9_ticker_efficiency.png)
+
 ---
 
 ## 8. Key Insights
@@ -199,6 +207,8 @@
 | Account B | $8,461 | +$5,282 | +$4,370 | $18,113 | Consistent leader; diversified approach working |
 | Account C | $3,899 | +$2,818 | +$3,107 | $9,824 | Solid Q2; COST and DRAM driving gains |
 | Account D | $143 | +$332 | +$159 | $634 | Small but consistent |
+
+![P&L by Account](charts/chart5_account_pnl.png)
 
 ---
 
