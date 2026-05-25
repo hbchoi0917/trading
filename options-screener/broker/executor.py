@@ -34,6 +34,7 @@ from tastytrade.session import Session
 
 from .client import TastyClient
 from .spread_builder import SpreadSpec, build_put_credit_spread, build_call_credit_spread
+from notifications import notify_entry, notify_close, notify_error
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -120,9 +121,21 @@ async def execute_entry(
             f"[{mode}] Order accepted — id={order_id} "
             f"bp_effect={response.buying_power_effect}"
         )
+        notify_entry(
+            ticker=symbol,
+            spread_type=spread_type,
+            expiry=str(spread.expiration),
+            short_strike=float(spread.short_strike),
+            long_strike=float(spread.long_strike),
+            credit=float(spread.mid_credit),
+            quantity=quantity,
+            account=account_number,
+            dry_run=dry_run,
+        )
         return EntryResult(symbol=symbol, success=True, order_id=order_id, spread=spread)
     except Exception as e:
         logger.error(f"{symbol}: order rejected — {e}")
+        notify_error(symbol, str(e), account=account_number)
         return EntryResult(symbol=symbol, success=False, reject_reason=str(e), spread=spread)
 
 
@@ -267,12 +280,24 @@ async def _place_close_order(
     try:
         response = await acct.place_order(client.session, order, dry_run=dry_run)
         order_id = response.order.id if response.order else None
+        pnl = float(
+            (Decimal(str(pos.average_open_price or 0)) - limit_price)
+            * abs(pos.quantity) * 100
+        )
+        notify_close(
+            ticker=pos.symbol.split()[0],
+            trigger=trigger,
+            pnl=pnl,
+            account=acct_num,
+            dry_run=dry_run,
+        )
         return CloseResult(
             symbol=pos.symbol, account=acct_num, trigger=trigger,
             success=True, order_id=order_id,
         )
     except Exception as e:
         logger.error(f"Close order failed: {pos.symbol} — {e}")
+        notify_error(pos.symbol, f"Close failed ({trigger}): {e}", account=acct_num)
         return CloseResult(
             symbol=pos.symbol, account=acct_num, trigger=trigger,
             success=False, error=str(e),
