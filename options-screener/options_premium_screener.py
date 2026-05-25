@@ -76,22 +76,31 @@ TIER1_CORE = [
     'NVDA',   # NVIDIA
     'IWM',    # Russell 2000 ETF
     'GOOGL',  # Alphabet Class A
+    'TSLA',   # Tesla — promoted from Tier 2
 ]
 
 TIER2_WATCHLIST = [
-    'MSFT',
     'AAPL',
     'AMZN',
     'META',
     'AVGO',
     'CRWD',
-    'PLTR',
     'AMD',
     'MU',
-    'TSLA',
     'QQQM',
-    'CLS',    # pending review
-    'STX',    # pending review
+    'CLS',
+    'STX',
+    'ASML',   # ASML Holding
+    'GS',     # Goldman Sachs
+    'JPM',    # JPMorgan Chase
+]
+
+TIER3_WATCHLIST = [
+    'PLTR',   # Palantir — demoted from Tier 2
+    'MSFT',   # Microsoft — demoted from Tier 2
+    'SNDK',   # SanDisk
+    'EWY',    # iShares MSCI South Korea ETF
+    'DRAM',   # Resilience Semiconductor ETF
 ]
 
 # Removed: SPY, QQQ, VOO (too large), NFLX, ORCL, AMAT, ANET, ARM (low conviction)
@@ -859,7 +868,7 @@ def screen_spx(vix, adjusted_params):
 
 # ============ GENERAL TIER SCREENING ============
 def screen_tickers(tickers, tier_label, vix, adjusted_params):
-    is_tier2 = (tier_label == 'TIER2_WATCH')
+    is_tier2 = (tier_label in ('TIER2_WATCH', 'TIER3_WATCH'))
     default_delta = (
         f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}' if is_tier2
         else f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
@@ -1036,6 +1045,7 @@ def run_screener():
     logger.info(f"Tier 2 Stage 2 emergency close : DTE<={T2_EMERGENCY_CLOSE_DTE} + price<=long_put")
     logger.info(f"Tier 1                         : SPX + {', '.join(TIER1_CORE)}")
     logger.info(f"Tier 2                         : {', '.join(TIER2_WATCHLIST)}")
+    logger.info(f"Tier 3                         : {', '.join(TIER3_WATCHLIST)}")
     logger.info("=" * 70)
 
     all_results = {}
@@ -1047,6 +1057,9 @@ def run_screener():
     logger.info("\n>>> Screening TIER 2 — Watchlist <<<")
     tier2_results = screen_tickers(TIER2_WATCHLIST, tier_label="TIER2_WATCH", vix=vix, adjusted_params=adjusted_params)
     all_results.update(tier2_results)
+    logger.info("\n>>> Screening TIER 3 — Extended Watchlist <<<")
+    tier3_results = screen_tickers(TIER3_WATCHLIST, tier_label="TIER3_WATCH", vix=vix, adjusted_params=adjusted_params)
+    all_results.update(tier3_results)
 
     # ============ CLUSTER / CONCENTRATION GUARD ============
     cluster_info = check_cluster_risk(all_results)
@@ -1055,13 +1068,13 @@ def run_screener():
     logger.info("=" * 70)
     logger.info(
         f"Total signals : {len(all_results)}  "
-        f"(SPX: {len(spx_result)}, T1: {len(tier1_results)}, T2: {len(tier2_results)})"
+        f"(SPX: {len(spx_result)}, T1: {len(tier1_results)}, T2: {len(tier2_results)}, T3: {len(tier3_results)})"
     )
 
     if all_results:
         results_df = pd.DataFrame.from_dict(all_results, orient='index')
         results_df.index.name = 'Ticker'
-        tier_order = {'TIER1_CORE': 0, 'TIER2_WATCH': 1}
+        tier_order = {'TIER1_CORE': 0, 'TIER2_WATCH': 1, 'TIER3_WATCH': 2}
         results_df['_tier_rank'] = results_df['Tier'].map(tier_order)
         results_df['_spx_first'] = (results_df.index == 'SPX').astype(int) * -1
         results_df = results_df.sort_values(
