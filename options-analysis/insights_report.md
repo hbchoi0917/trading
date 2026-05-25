@@ -8,10 +8,10 @@
 
 | Metric | 2025 Full Year | 2026 YTD | Lifetime |
 |---|---|---|---|
-| **Net P&L** | $28,681 | +$17,667 | **$46,348** |
-| **Monthly Win Rate** | 75% (9/12) | 60% (3/5) | 71% (12/17) |
-| **Total Fees Paid** | $1,632 | ~$1,512 | ~$3,144 |
-| **Net after Fees** | ~$27,049 | ~$16,155 | ~$43,204 |
+| **Net P&L** | $28,681 | +$17,029 | **$45,710** |
+| **Monthly Win Rate** | 75% (9/12) | 80% (4/5) | 76% (13/17) |
+| **Total Fees Paid** | $1,632 | ~$1,525 | ~$3,157 |
+| **Net after Fees** | ~$27,049 | ~$15,504 | ~$42,553 |
 | **Primary Strategy** | Put Credit Spreads | Put Credit Spreads | Put Credit Spreads |
 
 ---
@@ -51,10 +51,10 @@
 
 | Month | Net P&L | Status |
 |---|---|---|
-| Apr 2026 | −$1,341 | ❌ |
-| **May 2026 (MTD, through 5/21)** | **+$9,913** | ✅ Best Month (Q2) |
+| Apr 2026 | +$449 | ✅ |
+| **May 2026 (MTD, through 5/21)** | **+$7,485** | ✅ |
 
-**Key observation:** April was negative (−$1,341) as TSLA (−$4,651 for Q2) and GOOGL call spreads (−$3,638) acted as heavy drags while broad macro uncertainty weighed on positioning. May recovered sharply with +$9,913 MTD, led by COST and DRAM delivering outsized premiums. Q2 running total of +$8,572 puts 2026 YTD at +$17,667 — nearly double the full-year 2025 run rate.
+**Key observation:** April held slightly positive (+$449) despite large individual losses in TSLA and GOOGL — COST and DRAM premiums absorbed the damage. May continued strong with +$7,485 MTD, again anchored by COST (+$6,927 for Q2) and DRAM (+$6,218). Q2 running total of +$7,934 brings 2026 YTD to +$17,029 — outpacing all of 2025 H1 by a wide margin.
 
 ---
 
@@ -67,7 +67,7 @@
 | 2025 Q3 | +$3,574 | $4,000 |
 | 2025 Q4 | +$24,681 | $28,681 |
 | 2026 Q1 | +$9,095 | $37,776 |
-| **2026 Q2 MTD** | **+$8,572** | **$46,348** |
+| **2026 Q2 MTD** | **+$7,934** | **$45,710** |
 
 ---
 
@@ -120,7 +120,7 @@
 | Ticker | Net P&L | Root Cause |
 |---|---|---|
 | MSFT | **−$10,556** | Largest single-name loss in portfolio history; MSFT decline in Feb forced costly spread closeouts and failed roll attempts |
-| NFLX | **−$6,238** | Sharp NFLX move in late Jan 2026 hit near-ATM PUT strikes ($90–$97 range); repeated closeouts at loss |
+| NFLX | **−$6,238** | Sharp NFLX move in late Jan 2026 hit near-ATM PUT strikes; repeated closeouts at loss |
 | IONQ | −$1,245 | High-volatility small-cap; sharp Feb–Mar drop forced early close |
 | RGTI | −$1,108 | Quantum computing sector volatility continued from 2025 |
 
@@ -132,22 +132,22 @@
 
 | Ticker | Net P&L | Notes |
 |---|---|---|
-| COST | **+$8,156** | Dominant Q2 performer; consistent premium across all accounts |
-| DRAM | **+$6,218** | High-premium put spreads; new addition proving its value |
-| CLS | +$3,852 | Continued strength from Q1; multiple successful spread cycles |
+| COST | **+$6,927** | Dominant Q2 performer; premium across all accounts at scale |
+| DRAM | **+$6,218** | High-premium put spreads; proving consistent value |
+| CLS | +$3,852 | Continued strength; multiple successful spread cycles |
 | MU | +$1,462 | Semiconductor recovery trade working well |
 | META | +$1,119 | Put spreads profitable after Q1 volatility subsides |
-| NVDA | +$884 | Steady core contributor |
-| ASML | +$818 | New addition; premium-rich put spreads |
+| ASML | +$818 | Premium-rich put spreads; good risk/reward |
+| NVDA | +$720 | Steady core contributor |
 | SNDK | +$435 | Small but consistent |
 
 ### Losers
 
 | Ticker | Net P&L | Root Cause |
 |---|---|---|
-| TSLA | **−$4,651** | Sharp April decline forced costly closeouts; call spread from prior month caught wrong direction |
-| GOOGL | **−$3,638** | Call spreads caught GOOGL rally; deep ITM forced expensive BTC |
-| EWY | −$2,976 | Korea ETF call spreads: strong EWY rally pushed calls deep ITM |
+| TSLA | **−$3,857** | April decline + call spread from prior month; directional risk high |
+| GOOGL | **−$3,638** | Call spreads caught sharp GOOGL rally; expensive BTC |
+| EWY | −$2,976 | Korea ETF call spreads caught strong EWY rally |
 | CRWD | −$1,745 | Put spreads caught downside move; tight strikes punished |
 | QQQM | −$1,673 | Call spread caught sustained QQQM rally in April |
 
@@ -156,19 +156,18 @@
 ## 8. Key Insights
 
 ### ✅ What's Working
-1. **Put credit spreads on large-caps** (COST, DRAM, CLS, MU) driving Q2 — COST alone +$8,156 in 6 weeks
-2. **COST as core anchor** — +$4,788 in Q1, +$8,156 in Q2 MTD; total lifetime +$15,628; most reliable premium source
-3. **DRAM added to rotation** — +$6,218 in Q2 debut; high-premium semiconductor put spreads working
-4. **Multi-account diversification** — Account B and Account C gains offset Account A drag in Q2
-5. **Account B led all accounts** in Q2 (+$4,252) and in Q1 (+$5,282); maintaining diversified index-heavy approach
-6. **MSFT resolved** — Q1's largest loss position closed; no further MSFT drag in Q2
+1. **COST as core anchor** — +$4,788 in Q1, +$6,927 in Q2 MTD; total Q2 2026 contribution alone covers the month's entire profitability
+2. **DRAM added to rotation** — +$6,218 in Q2 debut; high-premium semiconductor put spreads working
+3. **April resilience** — despite TSLA/GOOGL/EWY losses totaling −$10,471, the account stayed positive (+$449) anchored by COST and DRAM; portfolio diversification working
+4. **Account B leading** — +$4,370 in Q2, best of all accounts; diversified index-heavy approach consistent
+5. **Multi-account diversification** — Account B and Account C gains (+$7,477) absorbed Account A's call spread losses
+6. **MSFT resolved** — Q1's largest loss position fully closed; no MSFT drag in Q2
 
 ### ❌ What Needs Improvement
-1. **TSLA call spread exposure** — −$4,651 in Q2; directional call spreads on TSLA remain high-risk; strictly limit to put spreads only or skip entirely
-2. **GOOGL call spreads** — −$3,638 in Q2; GOOGL rallied sharply after tariff fears eased; call spreads above the money too aggressive
-3. **EWY covered call management** — −$2,976 in Q2; sharp EWY rally forced costly BTC; tighten delta targets or skip during KRW strength
-4. **CRWD/QQQM sizing** — relatively small positions but meaningful losses; review entry conditions vs. current market regime
-5. **Account A concentration** — only +$298 in Q2 despite broad portfolio gains; GOOGL call and TSLA put losses concentrated here
+1. **Call spread discipline** — GOOGL (−$3,638) and TSLA calls drove most of April's drag; call spreads should be avoided unless stock is well below 52-week midpoint
+2. **EWY covered call management** — −$2,976 in Q2; strong KRW/EWY rally caught positions ITM; tighten delta targets or skip during sustained uptrend
+3. **CRWD/QQQM sizing** — meaningful losses on both; review entry conditions vs. current momentum regime
+4. **Account A concentration** — +$298 in Q2 despite portfolio gaining +$7,934; call spread losses concentrated here; needs to mirror Account B's put-spread-first approach
 
 ---
 
@@ -176,12 +175,11 @@
 
 ### Q3 2026 Positioning
 - [ ] **COST: maintain as largest allocation** — consistent premium, manageable risk; target 3–4 spreads/month per account
-- [ ] **DRAM: continue rotation** — proven high-premium source; monitor liquidity
-- [ ] **TSLA: put spreads only** — avoid call spreads entirely; TSLA directional risk too high
-- [ ] **GOOGL: put spreads only** — call spreads caught 2 consecutive rallies; revert to put-only until clear downtrend
-- [ ] **EWY: pause or reduce** — covered calls on EWY too exposed to KRW/macro; wait for better entry
-- [ ] **CRWD: tighten entry filter** — only enter on confirmed red day + RSI < 38
-- [ ] **Account A rebalancing** — diversify away from call spreads; mirror Account B's index-heavy put spread approach
+- [ ] **DRAM: continue rotation** — proven high-premium source; monitor bid/ask liquidity
+- [ ] **TSLA: put spreads only** — avoid call spreads entirely; directional risk too high
+- [ ] **GOOGL: put spreads only** — call spreads caught 2 consecutive rallies; revert to put-only
+- [ ] **EWY: pause call spreads** — wait for confirmed downtrend before re-entering
+- [ ] **Account A rebalancing** — eliminate call spreads; mirror Account B's index-heavy put spread approach
 
 ### Risk Management Rules
 1. **Max risk per spread**: $1,000 (spread width × contracts × 100)
@@ -197,10 +195,10 @@
 
 | Account | 2025 P&L | 2026 Q1 P&L | 2026 Q2 MTD | Lifetime | Notes |
 |---|---|---|---|---|---|
-| Account A | $16,178 | +$663 | +$298 | $17,139 | Call spread losses (GOOGL, TSLA) concentrated here in Q2; refocus on put spreads |
-| Account B | $8,461 | +$5,282 | +$4,252 | $17,995 | Consistent leader; diversified index-heavy approach working |
-| Account C | $3,899 | +$2,818 | +$3,824 | $10,540 | Strong Q2; COST and DRAM put spreads driving gains |
-| Account D | $143 | +$332 | +$198 | $673 | Small but consistent; continue cash-secured puts on stable names |
+| Account A | $16,178 | +$663 | +$298 | $17,139 | Call spread losses in Q2 concentrated here; refocus on put spreads |
+| Account B | $8,461 | +$5,282 | +$4,370 | $18,113 | Consistent leader; diversified approach working |
+| Account C | $3,899 | +$2,818 | +$3,107 | $9,824 | Solid Q2; COST and DRAM driving gains |
+| Account D | $143 | +$332 | +$159 | $634 | Small but consistent |
 
 ---
 
