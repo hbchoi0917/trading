@@ -29,13 +29,9 @@ Usage:
 """
 
 import os
-import smtplib
-import ssl
 import pandas as pd
 import yfinance as yf
 from datetime import datetime, date, timedelta
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 try:
     from dotenv import load_dotenv
@@ -43,6 +39,7 @@ try:
 except ImportError:
     pass  # python-dotenv optional; set env vars manually if not installed
 
+from notifications import notify
 from options_premium_screener import (
     evaluate_tier2_position,
     SPREAD_WIDTH,
@@ -56,11 +53,6 @@ from options_premium_screener import (
 
 # ============ CONFIG ============
 POSITIONS_FILE = 'positions.csv'
-
-# Gmail credentials loaded from .env (NEVER hardcode here)
-GMAIL_SENDER   = os.getenv('GMAIL_SENDER', '')
-GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD', '')  # App Password (16 chars)
-GMAIL_RECEIVER = os.getenv('GMAIL_RECEIVER', '')
 
 COLUMNS = [
     'position_id',
@@ -81,45 +73,6 @@ COLUMNS = [
     'roll_to_position_id',
     'notes',
 ]
-
-
-# ============ EMAIL NOTIFICATION ============
-def notify(subject: str, body: str):
-    """
-    Send Gmail alert via SMTP SSL (port 465).
-    Credentials loaded from .env — never committed to GitHub.
-    Falls back to print() if credentials not configured.
-    """
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S CT')
-    full_body  = f"[{timestamp}]\n\n{body}"
-
-    if not GMAIL_SENDER or not GMAIL_PASSWORD or not GMAIL_RECEIVER:
-        # Fallback: print to console/log if .env not set
-        print(f"\n{'='*60}")
-        print(f"[ALERT] {timestamp}")
-        print(f"Subject: {subject}")
-        print(full_body)
-        print('='*60)
-        return
-
-    try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From']    = GMAIL_SENDER
-        msg['To']      = GMAIL_RECEIVER
-        msg.attach(MIMEText(full_body, 'plain'))
-
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
-            server.login(GMAIL_SENDER, GMAIL_PASSWORD)
-            server.sendmail(GMAIL_SENDER, GMAIL_RECEIVER, msg.as_string())
-
-        print(f"[NOTIFY] Email sent: {subject}")
-
-    except Exception as e:
-        print(f"[NOTIFY] Email failed: {e}")
-        print(f"  Subject: {subject}")
-        print(f"  Body: {full_body}")
 
 
 # ============ HELPERS ============
@@ -400,21 +353,48 @@ def monitor_positions():
     print("[MONITOR] Done.")
 
 
+# ============ MONTHLY P&L ============
+def get_monthly_pnl(year: int = None, month: int = None) -> float:
+    """
+    Return realized P&L for a given month (default: current calendar month).
+
+    Filters closed/rolled positions by close_date and sums pnl_usd.
+    Used by auto_trade.py to enforce the monthly drawdown circuit breaker.
+    """
+    df = _load()
+    if df.empty:
+        return 0.0
+
+    today = date.today()
+    year  = year  or today.year
+    month = month or today.month
+
+    df['close_date'] = pd.to_datetime(df['close_date'], errors='coerce')
+    monthly = df[
+        (df['status'].isin(['CLOSED', 'ROLLED'])) &
+        (df['close_date'].dt.year  == year) &
+        (df['close_date'].dt.month == month)
+    ]
+    return float(pd.to_numeric(monthly['pnl_usd'], errors='coerce').sum())
+
+
 # ============ SUMMARY ============
 def print_summary():
     df = _load()
     if df.empty:
         print("No positions on record.")
         return
-    open_pos   = df[df['status'] == 'OPEN']
-    closed_pos = df[df['status'].isin(['CLOSED', 'ROLLED'])]
-    total_pnl  = pd.to_numeric(closed_pos['pnl_usd'], errors='coerce').sum()
+    open_pos    = df[df['status'] == 'OPEN']
+    closed_pos  = df[df['status'].isin(['CLOSED', 'ROLLED'])]
+    total_pnl   = pd.to_numeric(closed_pos['pnl_usd'], errors='coerce').sum()
+    monthly_pnl = get_monthly_pnl()
     print(f"\n{'='*60}")
     print(f"POSITION SUMMARY — {datetime.now().strftime('%Y-%m-%d')}")
     print(f"{'='*60}")
-    print(f"Open     : {len(open_pos)}")
-    print(f"Closed   : {len(closed_pos)}")
-    print(f"Total P&L: ${total_pnl:,.2f}")
+    print(f"Open          : {len(open_pos)}")
+    print(f"Closed        : {len(closed_pos)}")
+    print(f"MTD P&L       : ${monthly_pnl:,.2f}")
+    print(f"Total P&L     : ${total_pnl:,.2f}")
     print('='*60)
     if not open_pos.empty:
         print("\nOPEN POSITIONS:")

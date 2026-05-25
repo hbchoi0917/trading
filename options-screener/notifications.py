@@ -1,0 +1,223 @@
+"""
+notifications.py — Unified alert channel for trading automation.
+
+Supports two backends (configurable via .env):
+  1. Telegram Bot  — preferred; instant push to phone, no spam filters
+  2. Gmail SMTP    — fallback; requires App Password
+
+Setup (Telegram — recommended):
+  1. Message @BotFather on Telegram → /newbot → copy the token
+  2. Message your new bot, then visit:
+       https://api.telegram.org/bot<TOKEN>/getUpdates
+     to find your chat_id (look for "id" inside "chat")
+  3. Add to .env:
+       TG_BOT_TOKEN=123456789:AABBccDDeeff...
+       TG_CHAT_ID=987654321
+
+Setup (Gmail — fallback):
+  GMAIL_SENDER=you@gmail.com
+  GMAIL_PASSWORD=xxxx xxxx xxxx xxxx   # App Password (16 chars)
+  GMAIL_RECEIVER=you@gmail.com
+
+Usage:
+    from notifications import notify, notify_entry, notify_close, notify_error
+
+    notify("Test", "Pipeline started successfully")
+    notify_entry("NVDA", "put_credit", "2026-06-20", 180, 170, credit=1.45)
+    notify_close("NVDA", "profit_target", pnl=116.0)
+    notify_error("CRWD", "order rejected: insufficient buying power")
+"""
+
+import logging
+import os
+import smtplib
+import ssl
+import urllib.request
+import urllib.parse
+import urllib.error
+import json
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+# ── Config (loaded from env) ──────────────────────────────────────────────────
+
+TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN", "")
+TG_CHAT_ID   = os.getenv("TG_CHAT_ID", "")
+
+GMAIL_SENDER   = os.getenv("GMAIL_SENDER", "")
+GMAIL_PASSWORD = os.getenv("GMAIL_PASSWORD", "")
+GMAIL_RECEIVER = os.getenv("GMAIL_RECEIVER", "")
+
+
+# ── Core send functions ───────────────────────────────────────────────────────
+
+def _send_telegram(message: str) -> bool:
+    """Send a message via Telegram Bot API. Returns True on success."""
+    if not TG_BOT_TOKEN or not TG_CHAT_ID:
+        return False
+    try:
+        url     = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
+        payload = json.dumps({
+            "chat_id":    TG_CHAT_ID,
+            "text":       message,
+            "parse_mode": "HTML",
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.status == 200
+    except Exception as e:
+        logger.warning(f"Telegram send failed: {e}")
+        return False
+
+
+def _send_gmail(subject: str, body: str) -> bool:
+    """Send an email via Gmail SMTP SSL. Returns True on success."""
+    if not GMAIL_SENDER or not GMAIL_PASSWORD or not GMAIL_RECEIVER:
+        return False
+    try:
+        msg = f"Subject: {subject}\n\n{body}"
+        ctx = ssl.create_default_context()
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx) as server:
+            server.login(GMAIL_SENDER, GMAIL_PASSWORD)
+            server.sendmail(GMAIL_SENDER, GMAIL_RECEIVER, msg)
+        return True
+    except Exception as e:
+        logger.warning(f"Gmail send failed: {e}")
+        return False
+
+
+# ── Public API ────────────────────────────────────────────────────────────────
+
+def notify(subject: str, body: str) -> None:
+    """
+    Send an alert via Telegram (preferred) or Gmail (fallback).
+    Falls back to console log if neither is configured.
+    """
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M ET")
+    tg_message = f"<b>{subject}</b>\n{body}\n<i>{timestamp}</i>"
+
+    if _send_telegram(tg_message):
+        logger.info(f"[Telegram] Alert sent: {subject}")
+        return
+
+    if _send_gmail(subject, f"[{timestamp}]\n\n{body}"):
+        logger.info(f"[Gmail] Alert sent: {subject}")
+        return
+
+    # Neither configured — print to console/log so cron captures it
+    logger.warning(
+        f"[ALERT — no notification channel configured]\n"
+        f"  Subject : {subject}\n"
+        f"  Body    : {body}"
+    )
+
+
+def notify_entry(
+    ticker: str,
+    spread_type: str,
+    expiry: str,
+    short_strike: float,
+    long_strike: float,
+    credit: float,
+    quantity: int = 1,
+    account: str = "",
+    dry_run: bool = True,
+) -> None:
+    mode = "DRY-RUN" if dry_run else "LIVE"
+    direction = "PUT" if spread_type == "put_credit" else "CALL"
+    subject = f"[{mode}] ✅ NEW {direction} SPREAD — {ticker}"
+    body = (
+        f"Ticker   : {ticker}\n"
+        f"Spread   : {direction} Credit Spread\n"
+        f"Strikes  : ${short_strike:.0f} / ${long_strike:.0f}\n"
+        f"Expiry   : {expiry}\n"
+        f"Credit   : ${credit:.2f}/share  (${credit*100*quantity:.0f} total)\n"
+        f"Qty      : {quantity} contract(s)\n"
+        f"Account  : {account or 'all'}"
+    )
+    notify(subject, body)
+
+
+def notify_close(
+    ticker: str,
+    trigger: str,
+    pnl: float,
+    account: str = "",
+    dry_run: bool = True,
+) -> None:
+    mode   = "DRY-RUN" if dry_run else "LIVE"
+    emoji  = "💰" if pnl >= 0 else "🛑"
+    label  = trigger.replace("_", " ").upper()
+    subject = f"[{mode}] {emoji} CLOSED — {ticker} ({label})"
+    body = (
+        f"Ticker   : {ticker}\n"
+        f"Trigger  : {label}\n"
+        f"P&L      : ${pnl:+,.2f}\n"
+        f"Account  : {account or 'all'}"
+    )
+    notify(subject, body)
+
+
+def notify_circuit_breaker(monthly_pnl: float, limit: float) -> None:
+    subject = "🚨 CIRCUIT BREAKER — New entries paused"
+    body = (
+        f"Monthly P&L  : ${monthly_pnl:+,.2f}\n"
+        f"Drawdown limit: ${limit:,.2f}\n\n"
+        "New entry orders are suspended for the rest of this week.\n"
+        "Review open positions and resume manually if conditions improve."
+    )
+    notify(subject, body)
+
+
+def notify_error(ticker: str, error_msg: str, account: str = "") -> None:
+    subject = f"⚠️ ORDER ERROR — {ticker}"
+    body = (
+        f"Ticker  : {ticker}\n"
+        f"Account : {account or 'all'}\n"
+        f"Error   : {error_msg}"
+    )
+    notify(subject, body)
+
+
+def notify_monitor_summary(
+    placed: int,
+    skipped: int,
+    closed: int,
+    monthly_pnl: float,
+) -> None:
+    subject = f"📊 Daily Summary — {datetime.now().strftime('%Y-%m-%d')}"
+    body = (
+        f"New positions : {placed}\n"
+        f"Skipped       : {skipped}\n"
+        f"Auto-closed   : {closed}\n"
+        f"MTD P&L       : ${monthly_pnl:+,.2f}"
+    )
+    notify(subject, body)
+
+
+# ── Quick setup check ─────────────────────────────────────────────────────────
+
+def check_setup() -> None:
+    """Print which notification channels are configured."""
+    print("Notification channel status:")
+    if TG_BOT_TOKEN and TG_CHAT_ID:
+        print(f"  ✅ Telegram  (chat_id={TG_CHAT_ID[:6]}...)")
+    else:
+        print("  ❌ Telegram  — set TG_BOT_TOKEN and TG_CHAT_ID in .env")
+    if GMAIL_SENDER and GMAIL_PASSWORD:
+        print(f"  ✅ Gmail     ({GMAIL_SENDER})")
+    else:
+        print("  ❌ Gmail     — set GMAIL_SENDER / GMAIL_PASSWORD in .env")
+
+
+if __name__ == "__main__":
+    check_setup()
+    print()
+    notify("Test Alert", "If you see this on Telegram/Gmail, notifications are working!")
+    print("Test alert sent. Check your Telegram or email.")
