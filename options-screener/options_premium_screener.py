@@ -566,8 +566,8 @@ EARLY_CLOSE_PROFIT_PCT  = 0.80
 SPREAD_WIDTH            = 10
 BASE_DTE_ACTION         = 4
 
-EARNINGS_ENTRY_BUFFER_BEFORE = 1   # block day before earnings
-EARNINGS_ENTRY_BUFFER_AFTER  = 0   # block day of earnings only
+EARNINGS_ENTRY_BUFFER_BEFORE = 3   # block 3 days before earnings
+EARNINGS_ENTRY_BUFFER_AFTER  = 0   # block day of earnings only (not day after)
 
 T2_ROLLOVER_DTE        = 7
 MAX_ROLLOVER_DEBIT_PCT = 0.50
@@ -684,6 +684,29 @@ def is_earnings_blackout(earnings_date):
     return blackout_start <= today <= blackout_end
 
 
+# ============ QUAD WITCHING (네마녀의 날) ============
+# 3rd Friday of March, June, September, December.
+# All four option classes expire simultaneously — wide spreads, exaggerated moves,
+# distorted pricing on nearby expirations. Never use as target expiry; warn on entry day.
+
+QUAD_WITCHING_MONTHS = {3, 6, 9, 12}
+
+
+def _quad_witching_friday(year: int, month: int):
+    """Return the 3rd Friday of the given month."""
+    first = datetime(year, month, 1).date()
+    first_fri = first + timedelta(days=(4 - first.weekday()) % 7)
+    return first_fri + timedelta(weeks=2)
+
+
+def is_quad_witching_day(d=None) -> bool:
+    """True if d is a quad witching Friday (3rd Fri of Mar/Jun/Sep/Dec)."""
+    d = d or datetime.today().date()
+    if d.month not in QUAD_WITCHING_MONTHS or d.weekday() != 4:
+        return False
+    return d == _quad_witching_friday(d.year, d.month)
+
+
 # ============ EXPIRY SELECTION ============
 def get_monthly_expiries(start_date, end_date):
     monthlies = []
@@ -728,10 +751,10 @@ def get_target_expiry(ticker, earnings_date=None):
         return abs((exp - earnings_date).days) <= 5
 
     for exp in available:
-        if exp in monthlies and not is_earnings_conflict(exp):
+        if exp in monthlies and not is_earnings_conflict(exp) and not is_quad_witching_day(exp):
             return exp, (exp - today).days, True, (earnings_date is not None)
     for exp in available:
-        if not is_earnings_conflict(exp):
+        if not is_earnings_conflict(exp) and not is_quad_witching_day(exp):
             return exp, (exp - today).days, False, (earnings_date is not None)
     return None
 
@@ -1024,6 +1047,14 @@ def run_screener():
     vix = get_vix()
     adjusted_params, regime = get_adjusted_params(vix)
 
+    today_date = datetime.today().date()
+    qw_today = is_quad_witching_day(today_date)
+    if qw_today:
+        logger.warning("=" * 70)
+        logger.warning("⚠️  QUAD WITCHING DAY — new entry signals flagged QW_Warning=True.")
+        logger.warning("    Pricing near expiry unreliable. Do NOT submit orders today.")
+        logger.warning("=" * 70)
+
     logger.info(f"VIX Regime                     : {regime}")
     logger.info(f"RSI Threshold (general, adj.)  : {adjusted_params['rsi_threshold']} (base: {RSI_THRESHOLD})")
     logger.info(f"RSI Threshold (SPX, adj.)      : {adjusted_params['spx_rsi_threshold']} (base: {SPX_RSI_THRESHOLD}) + gap-down >= {SPX_GAP_DOWN_PCT}%")
@@ -1083,6 +1114,7 @@ def run_screener():
         results_df['Scan_Date']    = datetime.now().strftime('%Y-%m-%d')
         results_df['Scan_Time']    = datetime.now().strftime('%H:%M:%S')
         results_df['Cluster_Risk'] = cluster_info['cluster_risk']
+        results_df['QW_Warning']   = qw_today
         output_file = f'signals_{datetime.now().strftime("%Y%m%d")}.csv'
         results_df.to_csv(output_file)
         logger.info(f"Results saved → {output_file}")

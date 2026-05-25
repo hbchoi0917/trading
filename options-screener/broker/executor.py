@@ -50,6 +50,7 @@ MAX_RISK_PER_SPREAD      = Decimal("1000")
 PROFIT_TARGET_PCT        = Decimal("0.80")
 MAX_BTC_DEBIT            = Decimal("0.60")   # max debit/share for profit-target early close
 DTE_CLOSE_THRESHOLD      = 20
+EMERGENCY_RETRY_WAIT_SECS = 90              # seconds before escalating emergency BTC price
 ROLLOVER_DTE             = 7
 MONTHLY_DRAWDOWN_LIMIT   = Decimal("-2000")
 HIGH_BETA_TICKERS        = {"IONQ", "RGTI", "MARA"}
@@ -250,6 +251,25 @@ def _evaluate_close_trigger(pos: CurrentPosition) -> Optional[str]:
     return None
 
 
+def _round_nickel(v: Decimal) -> Decimal:
+    return (v / Decimal("0.05")).quantize(Decimal("1")) * Decimal("0.05")
+
+
+def _build_close_order(pos: CurrentPosition, limit_price: Decimal) -> NewOrder:
+    return NewOrder(
+        time_in_force=OrderTimeInForce.DAY,
+        order_type=OrderType.LIMIT,
+        legs=[Leg(
+            instrument_type=InstrumentType.EQUITY_OPTION,
+            symbol=pos.symbol,
+            quantity=abs(pos.quantity),
+            action=OrderAction.BUY_TO_CLOSE,
+        )],
+        price=limit_price,
+        price_effect=PriceEffect.DEBIT,
+    )
+
+
 async def _place_close_order(
     client:     TastyClient,
     acct_num:   str,
@@ -257,53 +277,53 @@ async def _place_close_order(
     trigger:    str,
     dry_run:    bool,
 ) -> CloseResult:
-    """Place a BTC/STC order to close the given short option position."""
-    # For a short option, closing = Buy to Close
-    close_leg = Leg(
-        instrument_type=InstrumentType.EQUITY_OPTION,
-        symbol=pos.symbol,
-        quantity=abs(pos.quantity),
-        action=OrderAction.BUY_TO_CLOSE,
-    )
-    # Always use mid-point for BTC debit orders
-    limit_price = Decimal(str(pos.close_price or 0))
+    """
+    Place a BTC limit order at mid-point.
 
-    order = NewOrder(
-        time_in_force=OrderTimeInForce.DAY,
-        order_type=OrderType.LIMIT,
-        legs=[close_leg],
-        price=limit_price,
-        price_effect=PriceEffect.DEBIT,
-    )
-    acct = client.get_account(acct_num)
-    mode = "DRY-RUN" if dry_run else "LIVE"
-    logger.info(f"[{mode}] CLOSE {trigger}: {pos.symbol} qty={abs(pos.quantity)} @ ${limit_price:.2f}")
+    Emergency retry: if the mid order is still unfilled after
+    EMERGENCY_RETRY_WAIT_SECS, cancels and resubmits at mid × 1.05.
+    """
+    mid_price = Decimal(str(pos.close_price or 0))
+    acct      = client.get_account(acct_num)
+    mode      = "DRY-RUN" if dry_run else "LIVE"
 
     try:
+        order    = _build_close_order(pos, mid_price)
+        logger.info(f"[{mode}] CLOSE {trigger}: {pos.symbol} qty={abs(pos.quantity)} @ ${mid_price:.2f} (mid)")
         response = await acct.place_order(client.session, order, dry_run=dry_run)
         order_id = response.order.id if response.order else None
+        final_price = mid_price
+
+        # Emergency: wait, then escalate to 1.05× mid if still unfilled
+        if trigger == "emergency" and not dry_run and order_id:
+            await asyncio.sleep(EMERGENCY_RETRY_WAIT_SECS)
+            try:
+                live        = await client.get_live_orders(acct_num)
+                pending_ids = {o.id for o in (live or [])}
+                if order_id in pending_ids:
+                    await client.cancel_order(acct_num, order_id)
+                    final_price  = _round_nickel(mid_price * Decimal("1.05"))
+                    retry_order  = _build_close_order(pos, final_price)
+                    logger.warning(
+                        f"[{mode}] CLOSE {trigger} RETRY: {pos.symbol} "
+                        f"@ ${final_price:.2f} (1.05× mid — mid unfilled after {EMERGENCY_RETRY_WAIT_SECS}s)"
+                    )
+                    resp2    = await acct.place_order(client.session, retry_order, dry_run=dry_run)
+                    order_id = resp2.order.id if resp2.order else None
+            except Exception as retry_exc:
+                logger.warning(f"Emergency retry check failed: {retry_exc} — original order may still be working")
+
         pnl = float(
-            (Decimal(str(pos.average_open_price or 0)) - limit_price)
+            (Decimal(str(pos.average_open_price or 0)) - final_price)
             * abs(pos.quantity) * 100
         )
-        notify_close(
-            ticker=pos.symbol.split()[0],
-            trigger=trigger,
-            pnl=pnl,
-            account=acct_num,
-            dry_run=dry_run,
-        )
-        return CloseResult(
-            symbol=pos.symbol, account=acct_num, trigger=trigger,
-            success=True, order_id=order_id,
-        )
+        notify_close(ticker=pos.symbol.split()[0], trigger=trigger, pnl=pnl, account=acct_num, dry_run=dry_run)
+        return CloseResult(symbol=pos.symbol, account=acct_num, trigger=trigger, success=True, order_id=order_id)
+
     except Exception as e:
         logger.error(f"Close order failed: {pos.symbol} — {e}")
         notify_error(pos.symbol, f"Close failed ({trigger}): {e}", account=acct_num)
-        return CloseResult(
-            symbol=pos.symbol, account=acct_num, trigger=trigger,
-            success=False, error=str(e),
-        )
+        return CloseResult(symbol=pos.symbol, account=acct_num, trigger=trigger, success=False, error=str(e))
 
 
 # ── Monthly drawdown circuit breaker ─────────────────────────────────────────
