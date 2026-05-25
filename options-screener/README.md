@@ -96,7 +96,7 @@ auto_trade.py monitor
 
 | Tier | Tickers | Delta Target | Notes |
 |------|---------|--------------|-------|
-| **TIER1_CORE** | SPX, COST, NVDA, IWM, GOOGL | 0.10–0.18 | SPX: gap-down + RSI trigger |
+| **TIER1_CORE** | SPX, COST, NVDA, IWM, GOOGL | 0.10–0.18 (COST: 0.10–0.25) | SPX: gap-down + RSI trigger |
 | **TIER2_WATCH** | MSFT, AAPL, AMZN, META, AVGO, CRWD, PLTR, AMD, MU, TSLA, QQQM, CLS, STX | 0.08–0.13 | ATR% cap ≤ 5.0% |
 
 ### Technical Indicators

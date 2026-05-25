@@ -114,6 +114,12 @@ TIER1_DELTA_MAX = 0.18
 TIER2_DELTA_MIN = 0.08
 TIER2_DELTA_MAX = 0.13
 
+# Per-ticker delta overrides (takes precedence over tier defaults)
+# COST: low-volatility blue chip — higher delta acceptable for better premium
+TICKER_DELTA_OVERRIDE = {
+    'COST': (0.10, 0.25),
+}
+
 # DTE window for expiry selection
 DTE_MIN = 28   # ~4 weeks
 DTE_MAX = 45
@@ -853,8 +859,8 @@ def screen_spx(vix, adjusted_params):
 
 # ============ GENERAL TIER SCREENING ============
 def screen_tickers(tickers, tier_label, vix, adjusted_params):
-    is_tier2     = (tier_label == 'TIER2_WATCH')
-    delta_target = (
+    is_tier2 = (tier_label == 'TIER2_WATCH')
+    default_delta = (
         f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}' if is_tier2
         else f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
     )
@@ -865,6 +871,13 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
     successful_count = 0
 
     for ticker in tickers:
+        # Apply per-ticker delta override if defined
+        if ticker in TICKER_DELTA_OVERRIDE:
+            d_min, d_max = TICKER_DELTA_OVERRIDE[ticker]
+            delta_target = f'{d_min}–{d_max}'
+        else:
+            delta_target = default_delta
+
         try:
             stock_data = yf.download(ticker, period='1y', interval='1d', progress=False, group_by=False)
             if isinstance(stock_data.columns, pd.MultiIndex):
