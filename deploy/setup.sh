@@ -32,7 +32,16 @@ echo ""
 # ── 1. System packages ───────────────────────────────────────────────────────
 echo "[1/7] Installing system packages..."
 sudo apt-get update -qq
-sudo apt-get install -y python3.11 python3.11-venv python3-pip git curl tzdata
+
+# Use python3.12 on Ubuntu 24.04, fall back to python3.11 on 22.04
+if apt-cache show python3.12 &>/dev/null; then
+    PYTHON_PKG="python3.12 python3.12-venv"
+    PYTHON_BIN_NAME="python3.12"
+else
+    PYTHON_PKG="python3.11 python3.11-venv"
+    PYTHON_BIN_NAME="python3.11"
+fi
+sudo apt-get install -y $PYTHON_PKG python3-pip git curl tzdata
 
 # ── 2. Timezone ──────────────────────────────────────────────────────────────
 echo "[2/7] Setting timezone to US/Eastern..."
@@ -41,7 +50,7 @@ echo "      Current time: $(date)"
 
 # ── 3. Virtual environment ───────────────────────────────────────────────────
 echo "[3/7] Creating Python virtual environment at $VENV_DIR..."
-python3.11 -m venv "$VENV_DIR"
+$PYTHON_BIN_NAME -m venv "$VENV_DIR"
 # shellcheck source=/dev/null
 source "$VENV_DIR/bin/activate"
 pip install --upgrade pip -q
