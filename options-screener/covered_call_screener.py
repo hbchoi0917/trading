@@ -48,7 +48,8 @@ logging.basicConfig(
 
 # ── Covered call positions (Fidelity) ────────────────────────────────────────
 
-CC_TICKERS = ['VOO', 'QQQM', 'EWY', 'GOOGL', 'SCHD', 'DRAM']
+CC_TICKERS = ['VOO', 'EWY', 'GOOGL', 'SCHD', 'DRAM']
+# Removed QQQM: Nasdaq ETF with thin premium; systematic call losses during macro rallies (tariff pause etc.)
 
 # ── Entry thresholds ──────────────────────────────────────────────────────────
 

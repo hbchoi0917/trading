@@ -72,11 +72,12 @@ logger = logging.getLogger(__name__)
 # ============ CURATED TICKER LISTS ============
 # SPX (^GSPC) handled separately via screen_spx()
 TIER1_CORE = [
-    'COST',   # Costco
-    'NVDA',   # NVIDIA
+    'COST',   # Costco — anchor; lifetime +$14,399, $136/trade
+    'NVDA',   # NVIDIA — consistent; lifetime +$7,240
     'IWM',    # Russell 2000 ETF
-    'GOOGL',  # Alphabet Class A
-    'TSLA',   # Tesla — promoted from Tier 2
+    'GOOGL',  # Alphabet — PUT spreads +$4,072 lifetime; call losses from CC module, not screener
+    'TSLA',   # Tesla — high macro sensitivity; delta capped via TICKER_DELTA_OVERRIDE
+    'CLS',    # Celestica — promoted from T2; +$4,815 lifetime, $117/trade, AI data center structural
 ]
 
 TIER2_WATCHLIST = [
@@ -87,24 +88,23 @@ TIER2_WATCHLIST = [
     'CRWD',
     'AMD',
     'MU',
-    'QQQM',
-    'CLS',
     'STX',
-    'ASML',   # ASML Holding
-    'GS',     # Goldman Sachs
-    'JPM',    # JPMorgan Chase
+    'ASML',
+    'GS',
+    'JPM',
+    'DRAM',   # Promoted from T3: +$6,218 debut quarter, $239/trade; semiconductor tariff-exempt
 ]
 
 TIER3_WATCHLIST = [
-    'PLTR',   # Palantir — demoted from Tier 2
-    'MSFT',   # Microsoft — demoted from Tier 2
-    'SNDK',   # SanDisk
-    'EWY',    # iShares MSCI South Korea ETF
-    'DRAM',   # Resilience Semiconductor ETF
+    'PLTR',   # PUT spreads +$591 lifetime; call losses from CC module only
+    'MSFT',   # Capped at 2 contracts in executor; losses concentrated in Feb 2026 Azure miss
+    'SNDK',
+    'EWY',    # PUT spreads +$178; call losses from CC module only
 ]
 
 # Removed: SPY, QQQ, VOO (too large), NFLX, ORCL, AMAT, ANET, ARM (low conviction)
 # Removed: IONQ, RGTI, MARA, OKLO, MP, QLD, HIMS (high volatility)
+# Removed: QQQM — ETF with thin PUT premium; call losses structural in trending markets
 
 # ============ SCREENING PARAMETERS ============
 RSI_PERIOD = 14
@@ -126,9 +126,9 @@ TIER3_DELTA_MIN = 0.08   # higher-volatility / lower-conviction names — stay f
 TIER3_DELTA_MAX = 0.13
 
 # Per-ticker delta overrides (takes precedence over tier defaults)
-# COST: low-volatility blue chip — higher delta acceptable for better premium
 TICKER_DELTA_OVERRIDE = {
-    'COST': (0.15, 0.28),
+    'COST': (0.15, 0.28),   # low-volatility blue chip — higher delta acceptable for better premium
+    'TSLA': (0.12, 0.17),   # high macro/political volatility — more conservative than Tier 1 default (0.15–0.22)
 }
 
 # Tickers exempt from the is_red_day entry filter.

@@ -186,8 +186,8 @@ def make_charts(df, out_dir='charts'):
 
     # Chart 5: Account P&L
     acct = df.groupby('Account')['Amount'].sum().sort_values(ascending=False).reset_index()
-    name_map = {'Individual': 'Individual', 'Rollover IRA': 'Rollover IRA',
-                'ROTH IRA': 'Roth IRA', 'Health Savings Account': 'HSA'}
+    name_map = {'Individual': 'Account A', 'Rollover IRA': 'Account B',
+                'ROTH IRA': 'Account C', 'Health Savings Account': 'Account D'}
     acct['short'] = acct['Account'].map(name_map).fillna(acct['Account'])
     fig5 = go.Figure(go.Bar(
         x=acct['short'], y=acct['Amount'],
