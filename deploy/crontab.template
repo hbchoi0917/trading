@@ -12,8 +12,9 @@
 #   __REPO_DIR__  __APP_DIR__  __PYTHON__  __LOG_DIR__
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── Market open: run screener + place new spread orders (9:35 AM ET Mon–Fri)
-35 9 * * 1-5 bash __REPO_DIR__/deploy/run_entry.sh >> __LOG_DIR__/cron.log 2>&1
+# ── Entry: 1 hour before close (3:30 PM ET Mon–Fri)
+# Korea reference: 3:30 PM ET = 4:30 AM KST (EDT) / 5:30 AM KST (EST)
+30 15 * * 1-5 bash __REPO_DIR__/deploy/run_entry.sh >> __LOG_DIR__/cron.log 2>&1
 
 # ── Midday: check profit targets / DTE triggers (12:30 PM ET Mon–Fri)
 30 12 * * 1-5 bash __REPO_DIR__/deploy/run_monitor.sh >> __LOG_DIR__/cron.log 2>&1
