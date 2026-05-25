@@ -10,7 +10,7 @@ Responsibilities:
 Risk rules (hardcoded):
   MAX_RISK_PER_SPREAD    $1,000  — max (spread_width * 100) per position
   PROFIT_TARGET_PCT       80%   — close when P&L ≥ 80% of credit collected
-  DTE_CLOSE_THRESHOLD      14   — close regardless of P&L at ≤14 DTE
+  DTE_CLOSE_THRESHOLD      20   — close regardless of P&L at ≤20 DTE
   ROLLOVER_DTE              7   — roll trigger (DTE ≤ 7 + price < short strike)
   MONTHLY_DRAWDOWN_LIMIT -$2,000 — pause new entries if month is down >$2k
   HIGH_BETA_TICKERS        IONQ, RGTI, MARA — max 2 contracts
@@ -47,7 +47,7 @@ logging.basicConfig(
 
 MAX_RISK_PER_SPREAD      = Decimal("1000")
 PROFIT_TARGET_PCT        = Decimal("0.80")
-DTE_CLOSE_THRESHOLD      = 14
+DTE_CLOSE_THRESHOLD      = 20
 ROLLOVER_DTE             = 7
 MONTHLY_DRAWDOWN_LIMIT   = Decimal("-2000")
 HIGH_BETA_TICKERS        = {"IONQ", "RGTI", "MARA"}
@@ -195,7 +195,7 @@ async def monitor_and_close(
 
     Close triggers:
       1. profit_target  — P&L ≥ 80% of original credit (mark < 20% of credit)
-      2. dte_expiry     — DTE ≤ 14 (close regardless of P&L)
+      2. dte_expiry     — DTE ≤ 20 (close regardless of P&L)
       3. emergency      — price ≤ long put strike (Tier 2 emergency)
       4. rollover       — DTE ≤ 7 AND price < short put strike (roll candidate)
     """

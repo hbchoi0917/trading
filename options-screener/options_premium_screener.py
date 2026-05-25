@@ -130,7 +130,7 @@ TICKER_DELTA_OVERRIDE = {
 }
 
 # DTE window for expiry selection
-DTE_MIN = 28   # ~4 weeks
+DTE_MIN = 20
 DTE_MAX = 45
 
 # VIX regime thresholds
@@ -566,8 +566,8 @@ EARLY_CLOSE_PROFIT_PCT  = 0.80
 SPREAD_WIDTH            = 10
 BASE_DTE_ACTION         = 4
 
-EARNINGS_ENTRY_BUFFER_BEFORE = 5
-EARNINGS_ENTRY_BUFFER_AFTER  = 1
+EARNINGS_ENTRY_BUFFER_BEFORE = 1   # block day before earnings
+EARNINGS_ENTRY_BUFFER_AFTER  = 0   # block day of earnings only
 
 T2_ROLLOVER_DTE        = 7
 MAX_ROLLOVER_DEBIT_PCT = 0.50
@@ -901,7 +901,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
             if is_earnings_blackout(earnings_date):
                 logger.info(
                     f"[{tier_label}] {ticker}: EARNINGS BLACKOUT — earnings {earnings_date}, "
-                    f"within ±{EARNINGS_ENTRY_BUFFER_BEFORE}/{EARNINGS_ENTRY_BUFFER_AFTER}d. Skipping."
+                    f"blocking -{EARNINGS_ENTRY_BUFFER_BEFORE}d/day-of. Skipping."
                 )
                 successful_count += 1
                 continue
@@ -1037,7 +1037,7 @@ def run_screener():
     logger.info(f"DTE window                     : {DTE_MIN}–{DTE_MAX} days (monthly preferred)")
     logger.info(f"Early close profit target      : {int(EARLY_CLOSE_PROFIT_PCT*100)}%")
     logger.info(f"Base DTE action (all tiers)    : DTE <= {BASE_DTE_ACTION}")
-    logger.info(f"Earnings blackout              : -{EARNINGS_ENTRY_BUFFER_BEFORE}d / +{EARNINGS_ENTRY_BUFFER_AFTER}d")
+    logger.info(f"Earnings blackout              : day-before + day-of (no entry -{EARNINGS_ENTRY_BUFFER_BEFORE}d to +{EARNINGS_ENTRY_BUFFER_AFTER}d)")
     logger.info(f"Tier 2 Stage 1 rollover        : DTE<={T2_ROLLOVER_DTE} + price<short_put")
     logger.info(f"  -> 1st: net credit roll (lower strike)")
     logger.info(f"  -> 2nd: same-strike debit <= {int(MAX_ROLLOVER_DEBIT_PCT*100)}% of entry credit")

@@ -102,8 +102,8 @@ async def build_put_credit_spread(
     session:        Session,
     symbol:         str,
     target_delta:   float  = 0.15,
-    dte_min:        int    = 21,
-    dte_max:        int    = 35,
+    dte_min:        int    = 20,
+    dte_max:        int    = 45,
     spread_width:   float  = 10.0,
 ) -> Optional[SpreadSpec]:
     """
@@ -123,8 +123,8 @@ async def build_call_credit_spread(
     session:        Session,
     symbol:         str,
     target_delta:   float  = 0.15,
-    dte_min:        int    = 21,
-    dte_max:        int    = 35,
+    dte_min:        int    = 20,
+    dte_max:        int    = 45,
     spread_width:   float  = 10.0,
 ) -> Optional[SpreadSpec]:
     """
@@ -140,8 +140,8 @@ async def build_best_spread(
     symbol:       str,
     spread_type:  str   = "put_credit",
     target_delta: float = 0.15,
-    dte_min:      int   = 21,
-    dte_max:      int   = 35,
+    dte_min:      int   = 20,
+    dte_max:      int   = 45,
 ) -> tuple[Optional[SpreadSpec], int]:
     """
     Compare $10 spread × 1 contract vs $5 spread × 2 contracts.
