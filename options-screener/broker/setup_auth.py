@@ -24,7 +24,7 @@ ENV_FILE = Path(__file__).parent.parent / ".env"
 
 
 def save_to_env(key: str, value: str) -> None:
-    lines = ENV_FILE.read_text().splitlines() if ENV_FILE.exists() else []
+    lines = ENV_FILE.read_text(encoding="utf-8").splitlines() if ENV_FILE.exists() else []
     updated = False
     new_lines = []
     for line in lines:
@@ -35,7 +35,7 @@ def save_to_env(key: str, value: str) -> None:
             new_lines.append(line)
     if not updated:
         new_lines.append(f"{key}={value}")
-    ENV_FILE.write_text("\n".join(new_lines) + "\n")
+    ENV_FILE.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
     print(f"  Saved {key} to {ENV_FILE}")
 
 
