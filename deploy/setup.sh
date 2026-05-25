@@ -32,16 +32,8 @@ echo ""
 # ── 1. System packages ───────────────────────────────────────────────────────
 echo "[1/7] Installing system packages..."
 sudo apt-get update -qq
-
-# Use python3.12 on Ubuntu 24.04, fall back to python3.11 on 22.04
-if apt-cache show python3.12 &>/dev/null; then
-    PYTHON_PKG="python3.12 python3.12-venv"
-    PYTHON_BIN_NAME="python3.12"
-else
-    PYTHON_PKG="python3.11 python3.11-venv"
-    PYTHON_BIN_NAME="python3.11"
-fi
-sudo apt-get install -y $PYTHON_PKG python3-pip git curl tzdata
+sudo apt-get install -y python3 python3-venv python3-pip git curl tzdata
+PYTHON_BIN_NAME="python3"
 
 # ── 2. Timezone ──────────────────────────────────────────────────────────────
 echo "[2/7] Setting timezone to US/Eastern..."
@@ -102,7 +94,7 @@ fi
 echo "[7/7] Installing cron jobs..."
 
 # Substitute actual paths into the template
-PYTHON_BIN="$VENV_DIR/bin/python"
+PYTHON_BIN="$VENV_DIR/bin/python3"
 sed \
     -e "s|__REPO_DIR__|$REPO_DIR|g" \
     -e "s|__APP_DIR__|$APP_DIR|g" \
