@@ -59,6 +59,10 @@ MAX_CONCURRENT_POSITIONS = 25    # target concurrent open spreads; entries throt
 MAX_ENTRIES_PER_RUN      = 10    # new positions per screener run (3:30 PM); actual cap is MIN(this, available_slots)
 HIGH_BETA_TICKERS        = {"IONQ", "RGTI", "MARA"}
 HIGH_BETA_MAX_CONTRACTS  = 2
+# MSFT: capped at 2 contracts — Feb 2026 Azure miss caused -$10,556 with uncapped sizing;
+# large single-event drops demand strict position limits even with 15% OTM rule
+CONSERVATIVE_TICKERS     = {"MSFT"}
+CONSERVATIVE_MAX_CONTRACTS = 2
 MSFT_MIN_OTM_PCT         = 15        # MSFT short strike must be ≥15% OTM
 
 DRY_RUN_DEFAULT = os.environ.get("TT_DRY_RUN", "true").lower() == "true"
@@ -101,6 +105,11 @@ async def execute_entry(
     if symbol in HIGH_BETA_TICKERS and quantity > HIGH_BETA_MAX_CONTRACTS:
         quantity = HIGH_BETA_MAX_CONTRACTS
         logger.warning(f"{symbol}: high-beta — capping quantity to {HIGH_BETA_MAX_CONTRACTS}")
+
+    # Risk guard: conservative single-name cap (large-move risk e.g. MSFT Azure earnings)
+    if symbol in CONSERVATIVE_TICKERS and quantity > CONSERVATIVE_MAX_CONTRACTS:
+        quantity = CONSERVATIVE_MAX_CONTRACTS
+        logger.warning(f"{symbol}: conservative cap — capping quantity to {CONSERVATIVE_MAX_CONTRACTS}")
 
     # Risk guard: total risk across all contracts
     total_risk = spread.max_risk * quantity
