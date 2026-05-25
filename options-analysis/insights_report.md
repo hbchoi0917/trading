@@ -208,7 +208,7 @@
 | Account C | $3,899 | +$2,818 | +$3,107 | $9,824 | Solid Q2; COST and DRAM driving gains |
 | Account D | $143 | +$332 | +$159 | $634 | Small but consistent |
 
-![P&L by Account](charts/chart5_account_pnl.png)
+![P&L by Account](charts/chart5_account_pnl.png?v=2)
 
 ---
 
