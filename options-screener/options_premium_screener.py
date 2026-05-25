@@ -5,13 +5,58 @@ import logging
 from datetime import datetime, timedelta
 
 try:
-    import pandas_ta as ta
-    if ta is None:
-        raise ImportError("pandas_ta imported as None")
+    import pandas_ta as _pandas_ta
+    if _pandas_ta is None:
+        raise ImportError
+    _USE_PANDAS_TA = True
 except ImportError:
-    raise ImportError(
-        "pandas_ta is required. Install it with: pip install pandas_ta"
+    _USE_PANDAS_TA = False
+    logging.getLogger(__name__).info(
+        "pandas_ta not available — using built-in pandas TA fallback"
     )
+
+
+def _append_ta(df: pd.DataFrame, rsi_length: int = 14, atr_length: int = 14) -> None:
+    """
+    Append RSI, ATR, and MACD columns to df in-place.
+    Uses pandas_ta if available, otherwise pure-pandas equivalents.
+    Column names match pandas_ta output format.
+    """
+    if _USE_PANDAS_TA:
+        df.ta.rsi(length=rsi_length, append=True)
+        df.ta.atr(length=atr_length, append=True)
+        df.ta.macd(append=True)
+        return
+
+    # ── RSI (Wilder's exponential smoothing) ─────────────────────────────────
+    delta = df["Close"].diff()
+    gain  = delta.clip(lower=0)
+    loss  = (-delta).clip(lower=0)
+    alpha = 1 / rsi_length
+    avg_gain = gain.ewm(alpha=alpha, min_periods=rsi_length, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=alpha, min_periods=rsi_length, adjust=False).mean()
+    rs = avg_gain / avg_loss.replace(0, float("inf"))
+    df[f"RSI_{rsi_length}"] = 100 - (100 / (1 + rs))
+
+    # ── ATR ──────────────────────────────────────────────────────────────────
+    prev_close = df["Close"].shift(1)
+    tr = pd.concat([
+        df["High"] - df["Low"],
+        (df["High"] - prev_close).abs(),
+        (df["Low"]  - prev_close).abs(),
+    ], axis=1).max(axis=1)
+    df[f"ATR_{atr_length}"] = tr.ewm(
+        alpha=1 / atr_length, min_periods=atr_length, adjust=False
+    ).mean()
+
+    # ── MACD (12/26/9 EMA) ───────────────────────────────────────────────────
+    ema12  = df["Close"].ewm(span=12, adjust=False).mean()
+    ema26  = df["Close"].ewm(span=26, adjust=False).mean()
+    macd   = ema12 - ema26
+    signal = macd.ewm(span=9, adjust=False).mean()
+    df["MACD_12_26_9"]  = macd
+    df["MACDs_12_26_9"] = signal
+    df["MACDh_12_26_9"] = macd - signal
 
 # ============ LOGGING SETUP ============
 logging.basicConfig(
@@ -721,16 +766,14 @@ def screen_spx(vix, adjusted_params):
 
         stock_data['SMA_200']    = stock_data['Close'].rolling(200).mean()
         stock_data['AVG_VOL_50'] = stock_data['Volume'].rolling(50).mean()
-        stock_data.ta.rsi(length=RSI_PERIOD, append=True)
+        _append_ta(stock_data, rsi_length=RSI_PERIOD, atr_length=ATR_PERIOD)
         rsi_col = f'RSI_{RSI_PERIOD}'
         stock_data['BB_middle']   = stock_data['Close'].rolling(BB_PERIOD).mean()
         stock_data['BB_std']      = stock_data['Close'].rolling(BB_PERIOD).std()
         stock_data['BB_upper']    = stock_data['BB_middle'] + stock_data['BB_std'] * 2
         stock_data['BB_lower']    = stock_data['BB_middle'] - stock_data['BB_std'] * 2
         stock_data['BB_position'] = (stock_data['Close'] - stock_data['BB_lower']) / (stock_data['BB_upper'] - stock_data['BB_lower'])
-        stock_data.ta.atr(length=ATR_PERIOD, append=True)
         atr_col = f'ATR_{ATR_PERIOD}'
-        stock_data.ta.macd(append=True)
         if not all(c in stock_data.columns for c in [rsi_col, atr_col, 'MACDh_12_26_9']):
             logger.warning("[SPX] TA indicators missing.")
             return results
@@ -843,7 +886,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
 
             stock_data['SMA_200']    = stock_data['Close'].rolling(200).mean()
             stock_data['AVG_VOL_50'] = stock_data['Volume'].rolling(50).mean()
-            stock_data.ta.rsi(length=RSI_PERIOD, append=True)
+            _append_ta(stock_data, rsi_length=RSI_PERIOD, atr_length=ATR_PERIOD)
             rsi_col = f'RSI_{RSI_PERIOD}'
             stock_data['BB_middle']   = stock_data['Close'].rolling(BB_PERIOD).mean()
             stock_data['BB_std']      = stock_data['Close'].rolling(BB_PERIOD).std()
@@ -853,9 +896,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 (stock_data['Close'] - stock_data['BB_lower']) /
                 (stock_data['BB_upper'] - stock_data['BB_lower'])
             )
-            stock_data.ta.atr(length=ATR_PERIOD, append=True)
             atr_col = f'ATR_{ATR_PERIOD}'
-            stock_data.ta.macd(append=True)
             if not all(c in stock_data.columns for c in [rsi_col, atr_col, 'MACDh_12_26_9']):
                 logger.warning(f"[{tier_label}] TA indicators missing for {ticker}.")
                 error_count += 1
