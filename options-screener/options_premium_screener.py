@@ -130,7 +130,7 @@ TICKER_DELTA_OVERRIDE = {
 }
 
 # DTE window for expiry selection
-DTE_MIN = 20
+DTE_MIN = 28   # ~4 weeks — entry floor; close trigger is DTE_CLOSE_THRESHOLD=14
 DTE_MAX = 45
 
 # VIX regime thresholds

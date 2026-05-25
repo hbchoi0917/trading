@@ -126,7 +126,7 @@ async def build_put_credit_spread(
     session:        Session,
     symbol:         str,
     target_delta:   float  = 0.15,
-    dte_min:        int    = 20,
+    dte_min:        int    = 28,
     dte_max:        int    = 45,
     spread_width:   float  = 10.0,
 ) -> Optional[SpreadSpec]:
@@ -147,7 +147,7 @@ async def build_call_credit_spread(
     session:        Session,
     symbol:         str,
     target_delta:   float  = 0.15,
-    dte_min:        int    = 20,
+    dte_min:        int    = 28,
     dte_max:        int    = 45,
     spread_width:   float  = 10.0,
 ) -> Optional[SpreadSpec]:
@@ -164,7 +164,7 @@ async def build_best_spread(
     symbol:       str,
     spread_type:  str   = "put_credit",
     target_delta: float = 0.15,
-    dte_min:      int   = 20,
+    dte_min:      int   = 28,
     dte_max:      int   = 45,
 ) -> tuple[Optional[SpreadSpec], int]:
     """
