@@ -14,6 +14,7 @@ Risk rules (hardcoded):
   DTE_CLOSE_THRESHOLD      12   — close regardless of P&L at ≤12 DTE
   ROLLOVER_DTE              7   — roll trigger (DTE ≤ 7 + price < short strike)
   MONTHLY_DRAWDOWN_LIMIT -$2,000 — pause new entries if month is down >$2k
+  MAX_ENTRIES_PER_RUN       7   — new positions per screener run (3:30 PM)
   HIGH_BETA_TICKERS        IONQ, RGTI, MARA — max 2 contracts
 """
 
@@ -148,7 +149,7 @@ async def execute_entries_from_signals(
     account_number: str,
     signals:        list[dict],        # rows from screener CSV/dict
     dry_run:        bool = DRY_RUN_DEFAULT,
-    max_entries:    int  = 5,
+    max_entries:    int  = 7,
 ) -> list[EntryResult]:
     """
     Process a list of screener signal dicts and place spread orders.

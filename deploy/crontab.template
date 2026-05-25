@@ -19,7 +19,7 @@
 
 # ── Covered call alert: 3:25 PM ET Mon–Fri (5 min before entry screener)
 # Alerts sent to Telegram/Gmail — execute manually in Fidelity
-25 15 * * 1-5 cd __APP_DIR__ && __PYTHON__ covered_call_screener.py >> __LOG_DIR__/cc_YYYYMMDD.log 2>&1
+25 15 * * 1-5 bash __REPO_DIR__/deploy/run_cc.sh >> __LOG_DIR__/cron.log 2>&1
 
 # ── Midday: check profit targets / DTE triggers (12:30 PM ET Mon–Fri)
 30 12 * * 1-5 bash __REPO_DIR__/deploy/run_monitor.sh >> __LOG_DIR__/cron.log 2>&1

@@ -137,13 +137,20 @@ TICKER_DELTA_OVERRIDE = {
 RED_DAY_EXEMPT = {'COST'}
 
 # DTE window for expiry selection
-DTE_MIN = 28   # ~4 weeks — entry floor; close trigger is DTE_CLOSE_THRESHOLD=14
+DTE_MIN = 28   # ~4 weeks — entry floor; close trigger is DTE_CLOSE_THRESHOLD=12
 DTE_MAX = 45
 
 # VIX regime thresholds
 VIX_LOW    = 15
 VIX_NORMAL = 20
 VIX_HIGH   = 30
+
+# Minimum VIX required for new entries.
+# Below this, premium is too thin relative to the risk taken.
+# VIX 18 = upper half of NORMAL regime — decent premium, avoids the
+# truly quiet LOW-VIX environment where IV Rank rarely clears 25.
+# Raise to 20 for strict ELEVATED-only targeting.
+VIX_ENTRY_MIN = 18
 
 # Tier 2 volatility guard
 TIER2_ATR_MAX = 5.0
@@ -1100,6 +1107,19 @@ def run_screener():
         logger.warning("=" * 70)
         return {}
 
+    # VIX floor — skip entries when premium is too thin to justify the risk
+    if vix is not None and vix < VIX_ENTRY_MIN:
+        logger.warning("=" * 70)
+        logger.warning(
+            f"⚠️  VIX TOO LOW ({vix:.1f} < {VIX_ENTRY_MIN}) — entry signals suppressed."
+        )
+        logger.warning(
+            f"    Premium is thin in this environment. Wait for VIX ≥ {VIX_ENTRY_MIN}."
+        )
+        logger.warning("    Monitor phase still runs normally.")
+        logger.warning("=" * 70)
+        return {}
+
     qw_today = is_quad_witching_day(today_date)
     if qw_today:
         logger.warning("=" * 70)
@@ -1107,7 +1127,7 @@ def run_screener():
         logger.warning("    Pricing near expiry unreliable. Do NOT submit orders today.")
         logger.warning("=" * 70)
 
-    logger.info(f"VIX Regime                     : {regime}")
+    logger.info(f"VIX Regime                     : {regime}  (entry floor: VIX ≥ {VIX_ENTRY_MIN})")
     logger.info(f"RSI Threshold (general, adj.)  : {adjusted_params['rsi_threshold']} (base: {RSI_THRESHOLD})")
     logger.info(f"RSI Threshold (SPX, adj.)      : {adjusted_params['spx_rsi_threshold']} (base: {SPX_RSI_THRESHOLD}) + gap-down >= {SPX_GAP_DOWN_PCT}%")
     logger.info(f"BB Threshold (adj.)            : {adjusted_params['bb_threshold']} (base: 0.40)")
