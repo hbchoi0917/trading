@@ -40,6 +40,7 @@ class SpreadSpec:
     mid_credit:     Decimal
     max_risk:       Decimal        # |short_strike - long_strike| * 100
     short_delta:    Optional[float] = None
+    max_credit:     Optional[Decimal] = None   # natural credit = short_ask - long_bid
 
     def to_order(
         self,
@@ -49,10 +50,16 @@ class SpreadSpec:
         """
         Build a NewOrder for this spread.
 
-        limit_credit: credit to collect per spread (per contract, in dollars).
-                      Defaults to mid_credit rounded to nearest $0.05.
+        limit_credit: override credit (per contract). When omitted, uses the
+                      midpoint of mid_credit and max_credit (natural credit),
+                      rounded to $0.05 — slightly above mid to improve fill odds.
         """
-        credit = limit_credit or _round_to_nickel(self.mid_credit)
+        if limit_credit is not None:
+            credit = limit_credit
+        elif self.max_credit is not None:
+            credit = _round_to_nickel((self.mid_credit + self.max_credit) / 2)
+        else:
+            credit = _round_to_nickel(self.mid_credit)
         if credit <= 0:
             raise ValueError(f"Spread credit must be positive, got {credit}")
 
@@ -237,6 +244,14 @@ async def _build_spread(
         logger.info(f"{symbol}: non-positive mid credit {mid_credit}")
         return None
 
+    # Natural credit = max receivable (short_ask − long_bid); used to price STO above mid
+    try:
+        short_ask = Decimal(str(short_strike_data.ask))
+        long_bid  = Decimal(str(long_strike_data.bid))
+        max_credit: Optional[Decimal] = short_ask - long_bid if short_ask > long_bid else None
+    except Exception:
+        max_credit = None
+
     max_risk = Decimal(str(spread_width)) * 100 - mid_credit * 100
 
     return SpreadSpec(
@@ -249,6 +264,7 @@ async def _build_spread(
         expiration   = exp_date,
         dte          = dte,
         mid_credit   = mid_credit,
+        max_credit   = max_credit,
         max_risk     = max_risk,
         short_delta  = short_strike_data.delta,
     )

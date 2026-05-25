@@ -10,6 +10,7 @@ Responsibilities:
 Risk rules (hardcoded):
   MAX_RISK_PER_SPREAD    $1,000  — max (spread_width * 100) per position
   PROFIT_TARGET_PCT       80%   — close when P&L ≥ 80% of credit collected
+  MAX_BTC_DEBIT           $0.60 — profit-target close only when BTC debit ≤ $0.60/share
   DTE_CLOSE_THRESHOLD      20   — close regardless of P&L at ≤20 DTE
   ROLLOVER_DTE              7   — roll trigger (DTE ≤ 7 + price < short strike)
   MONTHLY_DRAWDOWN_LIMIT -$2,000 — pause new entries if month is down >$2k
@@ -47,6 +48,7 @@ logging.basicConfig(
 
 MAX_RISK_PER_SPREAD      = Decimal("1000")
 PROFIT_TARGET_PCT        = Decimal("0.80")
+MAX_BTC_DEBIT            = Decimal("0.60")   # max debit/share for profit-target early close
 DTE_CLOSE_THRESHOLD      = 20
 ROLLOVER_DTE             = 7
 MONTHLY_DRAWDOWN_LIMIT   = Decimal("-2000")
@@ -234,9 +236,10 @@ def _evaluate_close_trigger(pos: CurrentPosition) -> Optional[str]:
     average_open_price = Decimal(str(pos.average_open_price or 0))
 
     # P&L as % of original credit: (credit - current_price) / credit
+    # Also gate on BTC debit ≤ MAX_BTC_DEBIT to avoid paying too much to close
     if average_open_price > 0:
         pnl_pct = (average_open_price - close_price) / average_open_price
-        if pnl_pct >= PROFIT_TARGET_PCT:
+        if pnl_pct >= PROFIT_TARGET_PCT and close_price <= MAX_BTC_DEBIT:
             return "profit_target"
 
     # DTE-based closes
@@ -262,10 +265,8 @@ async def _place_close_order(
         quantity=abs(pos.quantity),
         action=OrderAction.BUY_TO_CLOSE,
     )
-    # Use a limit at ask (or slightly above mid for urgency on emergency)
+    # Always use mid-point for BTC debit orders
     limit_price = Decimal(str(pos.close_price or 0))
-    if trigger == "emergency":
-        limit_price = limit_price * Decimal("1.05")    # 5% above ask for fills
 
     order = NewOrder(
         time_in_force=OrderTimeInForce.DAY,
