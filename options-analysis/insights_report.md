@@ -1,6 +1,6 @@
 # Options Trading Insights Report
 **Period:** January 1, 2025 – March 31, 2026
-**Accounts:** Individual, Rollover IRA, Roth IRA, HSA
+**Accounts:** Account A, Account B, Account C, Account D
 
 ---
 
@@ -99,7 +99,7 @@
 | IWM | +$2,164 | Core premium source across 3 accounts |
 | CLS | +$1,969 | Full recovery from 2025 losses |
 | BA | +$1,883 | Net positive despite assignment risk |
-| SPXW | +$1,760 | Index PUT spreads in Roth IRA; no assignment risk |
+| SPXW | +$1,760 | Index PUT spreads in Account C; no assignment risk |
 | PLTR | +$1,610 | Turned profitable after 2025 setbacks; improved strike discipline |
 | AVGO | +$1,397 | Consistent performer |
 | NVDA | +$1,302 | Steady contributor |
@@ -120,10 +120,10 @@
 
 ### ✅ What's Working
 1. **Put credit spreads on large-caps** (COST, TSLA, GOOGL, IWM, CLS, BA) drove Q1 2026 — 11 of the top tickers were profitable
-2. **Multi-account diversification** — Rollover IRA and Roth IRA gains offset heavy Individual account losses (MSFT concentrated there)
+2. **Multi-account diversification** — Account B and Account C gains offset heavy Account A losses (MSFT concentrated there)
 3. **PLTR recovery** — from −$3,661 drag in 2025 to +$1,610 gain in Q1 2026; improved strike selection paying off
-4. **SPXW index spreads** in Roth IRA added +$1,760 in Q1 — high premium with no assignment risk
-5. **Rollover IRA led all accounts** in Q1 2026 (+$5,282) by maintaining diversified, index-heavy names
+4. **SPXW index spreads** in Account C added +$1,760 in Q1 — high premium with no assignment risk
+5. **Account B led all accounts** in Q1 2026 (+$5,282) by maintaining diversified, index-heavy names
 6. **CALL options turned profitable** in Q1 2026 (+$1,420 vs. −$2,815 in 2025) — a structural improvement
 7. **Weekday edge**: Monday (+$13,014) and Wednesday (+$11,103) generate the most P&L — consider focusing new opens on these days
 
@@ -132,7 +132,7 @@
 2. **NFLX strike discipline** — near-ATM PUT spreads ($90–$97) are highly vulnerable to sharp moves; strikes need to be further OTM (≥15%) or spreads wider ($20+)
 3. **Roll discipline failure** — both MSFT and NFLX losses were worsened by rolling into new spreads instead of accepting the initial loss; a strict "max 1 roll then close" rule must be enforced
 4. **IONQ/RGTI persistent losses** — combined −$2,353 in Q1 2026; high-beta small caps continue to underperform net
-5. **Individual account MSFT overexposure** — while Rollover IRA (+$5,282) and Roth IRA (+$2,818) performed well, the Individual account only made +$663 due to MSFT concentration
+5. **Account A MSFT overexposure** — while Account B (+$5,282) and Account C (+$2,818) performed well, Account A only made +$663 due to MSFT concentration
 
 ---
 
@@ -140,8 +140,8 @@
 
 ### Immediate (Q2 2026 Open Exposure)
 Confirmed open positions as of March 31, 2026:
-- MSFT MAY 08 $375/$365 PUT spread (Individual)
-- MSFT MAY 15 $365/$355 PUT spread (Individual)
+- MSFT MAY 08 $375/$365 PUT spread (Account A)
+- MSFT MAY 15 $365/$355 PUT spread (Account A)
 - Additional April/May positions likely open in COST, IWM, META, TSLA, CRWD, GS, SPXW, GOOGL, MU, PLTR based on March activity — verify current exposure in brokerage portal
 
 Action items:
@@ -155,7 +155,7 @@ Action items:
 - [ ] **Maintain 20–25% of monthly premium** in core names: COST / TSLA / GOOGL / IWM
 - [ ] **MSFT position sizing cap**: max 10% of monthly premium target (down from ~30% in Q1 2026)
 - [ ] **Roll rule**: max 1 roll per position, then close at market — no exceptions
-- [ ] **IRA accounts**: focus on index names (IWM, SPY, SPXW, GOOGL) — protect tax-advantaged capital
+- [ ] **Account B / Account C**: focus on index names (IWM, SPY, SPXW, GOOGL) — protect tax-advantaged capital
 - [ ] **Build monthly trade log**: track entry IV, DTE, % OTM for each spread to identify winning patterns
 
 ### Risk Management Rules
@@ -172,10 +172,10 @@ Action items:
 
 | Account | 2025 P&L | 2026 Q1 P&L | Lifetime | Recommendation |
 |---|---|---|---|---|
-| Individual | $16,178 | +$663 | $16,841 | MSFT losses heavily concentrated here; enforce strict single-name sizing limits |
-| Rollover IRA | $8,461 | +$5,282 | $13,743 | Best Q1 performer; maintain diversified index-heavy approach |
-| Roth IRA | $3,899 | +$2,818 | $6,717 | Solid Q1 with SPXW index spreads; continue SPXW/IWM focus |
-| HSA | $143 | +$332 | $475 | Small but consistent; continue cash-secured puts on stable names |
+| Account A | $16,178 | +$663 | $16,841 | MSFT losses heavily concentrated here; enforce strict single-name sizing limits |
+| Account B | $8,461 | +$5,282 | $13,743 | Best Q1 performer; maintain diversified index-heavy approach |
+| Account C | $3,899 | +$2,818 | $6,717 | Solid Q1 with SPXW index spreads; continue SPXW/IWM focus |
+| Account D | $143 | +$332 | $475 | Small but consistent; continue cash-secured puts on stable names |
 
 ---
 
