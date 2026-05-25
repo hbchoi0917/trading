@@ -60,28 +60,30 @@ class TastyClient:
         return self._session
 
     async def connect(self) -> None:
-        paper      = os.environ.get("TT_PAPER_TRADING", "false").lower() == "true"
-        paper_key  = os.environ.get("TT_PAPER_API_KEY", "")
+        paper     = os.environ.get("TT_PAPER_TRADING", "false").lower() == "true"
+        paper_key = os.environ.get("TT_PAPER_API_KEY", "")
 
         if paper and paper_key:
-            # Simplest setup: paper trading with API key
             self._session = PaperSession(api_key=paper_key)
             mode = "paper (API key)"
         else:
-            # OAuth-based session (live or certification)
             is_test = paper
             self._session = Session(is_test=is_test)
             mode = f"{'certification' if is_test else 'live'} (OAuth)"
 
-        async with self._session:
-            accounts = await Account.get(self._session)
-            self._accounts = accounts if isinstance(accounts, list) else [accounts]
+        # Enter the session context once and keep it open for all subsequent calls.
+        await self._session.__aenter__()
+
+        accounts = await Account.get(self._session)
+        self._accounts = accounts if isinstance(accounts, list) else [accounts]
 
         logger.info(f"Connected to Tastytrade ({mode}): {len(self._accounts)} account(s)")
         for acct in self._accounts:
             logger.info(f"  {acct.account_number}  {acct.account_type_name}  {acct.nickname}")
 
     async def disconnect(self) -> None:
+        if self._session is not None:
+            await self._session.__aexit__(None, None, None)
         self._session = None
 
     async def __aenter__(self):
@@ -112,8 +114,7 @@ class TastyClient:
 
     async def get_balances(self, account_number: str):
         acct = self.get_account(account_number)
-        async with self._session:
-            return await acct.get_balances(self._session)
+        return await acct.get_balances(self._session)
 
     async def get_positions(
         self,
@@ -124,26 +125,23 @@ class TastyClient:
         kwargs = {}
         if underlying:
             kwargs["underlying_symbols"] = [underlying]
-        async with self._session:
-            return await acct.get_positions(
-                self._session,
-                instrument_type=InstrumentType.EQUITY_OPTION,
-                **kwargs,
-            )
+        return await acct.get_positions(
+            self._session,
+            instrument_type=InstrumentType.EQUITY_OPTION,
+            **kwargs,
+        )
 
     async def get_live_orders(self, account_number: str):
         acct = self.get_account(account_number)
-        async with self._session:
-            return await acct.get_live_orders(self._session)
+        return await acct.get_live_orders(self._session)
 
     async def get_all_positions(self) -> dict[str, list[CurrentPosition]]:
         result = {}
-        async with self._session:
-            for acct in self._accounts:
-                result[acct.account_number] = await acct.get_positions(
-                    self._session,
-                    instrument_type=InstrumentType.EQUITY_OPTION,
-                )
+        for acct in self._accounts:
+            result[acct.account_number] = await acct.get_positions(
+                self._session,
+                instrument_type=InstrumentType.EQUITY_OPTION,
+            )
         return result
 
     async def get_net_liquidating_value(self, account_number: str) -> Decimal:
