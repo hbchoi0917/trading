@@ -25,6 +25,14 @@ logger = logging.getLogger(__name__)
 
 SpreadType = Literal["put_credit", "call_credit"]
 
+# Minimum mid credit (per share) for specific tickers.
+# COST is exempt from is_red_day in the screener; compensate by requiring
+# at least $1.00/share ($100/contract) so green-day entries are only taken
+# when premium is meaningfully fat.
+TICKER_MIN_CREDIT: dict[str, Decimal] = {
+    'COST': Decimal('1.00'),
+}
+
 # ── Quad witching delta guard ─────────────────────────────────────────────────
 # When the selected expiry falls on a quad witching Friday, reduce target_delta
 # so the short strike lands further OTM — provides more cushion against the
@@ -265,6 +273,15 @@ async def _build_spread(
     mid_credit = short_mid - long_mid
     if mid_credit <= Decimal("0"):
         logger.info(f"{symbol}: non-positive mid credit {mid_credit}")
+        return None
+
+    # Per-ticker minimum credit guard (e.g. COST bypasses red-day filter,
+    # so require fat premium to compensate for green-day entry risk)
+    min_credit = TICKER_MIN_CREDIT.get(symbol)
+    if min_credit is not None and mid_credit < min_credit:
+        logger.info(
+            f"{symbol}: mid credit ${mid_credit:.2f} < required minimum ${min_credit:.2f} — skipping"
+        )
         return None
 
     # Natural credit = max receivable (short_ask − long_bid); used to price STO above mid

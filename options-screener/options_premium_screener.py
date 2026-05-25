@@ -2,7 +2,7 @@ import math
 import yfinance as yf
 import pandas as pd
 import logging
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 try:
     import pandas_ta as _pandas_ta
@@ -130,6 +130,11 @@ TIER3_DELTA_MAX = 0.13
 TICKER_DELTA_OVERRIDE = {
     'COST': (0.15, 0.28),
 }
+
+# Tickers exempt from the is_red_day entry filter.
+# COST is a low-beta, trend-consistent name where green-day entries are acceptable
+# provided premium meets the minimum threshold (enforced in spread_builder).
+RED_DAY_EXEMPT = {'COST'}
 
 # DTE window for expiry selection
 DTE_MIN = 28   # ~4 weeks — entry floor; close trigger is DTE_CLOSE_THRESHOLD=14
@@ -709,6 +714,35 @@ def is_quad_witching_day(d=None) -> bool:
     return d == _quad_witching_friday(d.year, d.month)
 
 
+# ============ FOMC DECISION DAY BLACKOUT ============
+# On FOMC announcement days (second day of each two-day meeting), the rate
+# decision drops at 2:00 PM ET followed by a press conference to ~3:30 PM ET.
+# This bleeds directly into the 3:30 PM entry window — post-announcement
+# reversals are common and spreads are wide. Skip new entries; monitor-only.
+#
+# CPI / NFP / GDP releases hit at 8:30 AM ET — well before the entry window,
+# direction is established by 3:30 PM, so NO blackout needed for those.
+#
+# Update this set each November when the Fed releases the following year's schedule.
+
+FOMC_DECISION_DAYS = {
+    # 2025
+    date(2025, 1, 29), date(2025, 3, 19), date(2025, 5, 7),
+    date(2025, 6, 18), date(2025, 7, 30), date(2025, 9, 17),
+    date(2025, 10, 29), date(2025, 12, 10),
+    # 2026 — verify at https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+    date(2026, 1, 28), date(2026, 3, 18), date(2026, 4, 29),
+    date(2026, 6, 17), date(2026, 7, 29), date(2026, 9, 16),
+    date(2026, 10, 28), date(2026, 12, 9),
+}
+
+
+def is_fomc_day(d=None) -> bool:
+    """True if d is a scheduled FOMC rate-decision day."""
+    d = d or datetime.today().date()
+    return d in FOMC_DECISION_DAYS
+
+
 # ============ EXPIRY SELECTION ============
 def get_monthly_expiries(start_date, end_date):
     monthlies = []
@@ -983,7 +1017,8 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 successful_count += 1
                 continue
 
-            if (is_red_day and is_oversold and is_uptrend_long and is_liquid and
+            passes_red_day = is_red_day or (ticker in RED_DAY_EXEMPT)
+            if (passes_red_day and is_oversold and is_uptrend_long and is_liquid and
                     is_near_lower_bb and is_adequate_vol and is_volume_surge):
 
                 iv_data  = compute_iv_rank(ticker)
@@ -1055,6 +1090,16 @@ def run_screener():
     adjusted_params, regime = get_adjusted_params(vix)
 
     today_date = datetime.today().date()
+
+    # FOMC decision day — skip new entries entirely; monitor-only pass is safe
+    if is_fomc_day(today_date):
+        logger.warning("=" * 70)
+        logger.warning("⚠️  FOMC DECISION DAY — entry signals suppressed.")
+        logger.warning("    Rate decision at 2 PM ET bleeds into the 3:30 PM entry window.")
+        logger.warning("    Run 'auto_trade.py monitor' only. No new positions today.")
+        logger.warning("=" * 70)
+        return {}
+
     qw_today = is_quad_witching_day(today_date)
     if qw_today:
         logger.warning("=" * 70)
