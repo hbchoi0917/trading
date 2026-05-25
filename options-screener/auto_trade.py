@@ -50,6 +50,8 @@ from broker.executor import (
     monitor_and_close,
     check_monthly_drawdown,
     DRY_RUN_DEFAULT,
+    MAX_CONCURRENT_POSITIONS,
+    MAX_ENTRIES_PER_RUN,
 )
 from notifications import notify_circuit_breaker, notify_monitor_summary
 
@@ -237,13 +239,34 @@ async def run_entry(client: TastyClient, dry_run: bool) -> None:
         return
 
     for acct_num in accounts:
-        logger.info(f"=== Entry: account {acct_num} ===")
+        # ── Concurrent position cap ───────────────────────────────────────────
+        try:
+            positions     = await client.get_positions(acct_num)
+            open_spreads  = sum(1 for p in positions if p.quantity_direction == "Short")
+        except Exception as e:
+            logger.warning(f"[{acct_num}] Position fetch for cap check failed ({e}) — proceeding")
+            open_spreads = 0
+
+        available_slots = MAX_CONCURRENT_POSITIONS - open_spreads
+        if available_slots <= 0:
+            logger.info(
+                f"[{acct_num}] Concurrent cap reached: "
+                f"{open_spreads}/{MAX_CONCURRENT_POSITIONS} positions open — skipping entry"
+            )
+            continue
+
+        entries_this_run = min(MAX_ENTRIES_PER_RUN, available_slots)
+        logger.info(
+            f"=== Entry: account {acct_num} | "
+            f"{open_spreads}/{MAX_CONCURRENT_POSITIONS} open | "
+            f"{available_slots} slots free | entering up to {entries_this_run} ==="
+        )
         results = await execute_entries_from_signals(
             client=client,
             account_number=acct_num,
             signals=signals,
             dry_run=dry_run,
-            max_entries=5,
+            max_entries=entries_this_run,
         )
 
         placed  = [r for r in results if r.success]

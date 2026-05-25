@@ -13,7 +13,8 @@ This pipeline automates the full lifecycle of a put credit spread strategy:
 1. **Screen** — identify high-probability entry candidates using 10+ technical and volatility indicators
 2. **Execute** — place vertical spread orders on Tastytrade at 3:30 PM ET (1 hour before close)
 3. **Monitor** — auto-close positions at 80% profit target or DTE threshold
-4. **Alert** — send Gmail notifications on every entry, close, and error event
+4. **Alert** — send Telegram / Gmail notifications on every entry, close, and error event
+5. **Covered Calls** — separate alert module for manual CC management on Fidelity positions
 
 Designed to run unattended on a cloud server (AWS EC2) while traveling across time zones.
 
@@ -24,8 +25,9 @@ Designed to run unattended on a cloud server (AWS EC2) while traveling across ti
 ```
 options-screener/
 ├── options_premium_screener.py   # Screening engine → signals_YYYYMMDD.csv
+├── covered_call_screener.py      # CC alert module (Fidelity positions, manual execution)
 ├── auto_trade.py                 # Daily pipeline orchestrator
-├── notifications.py              # Unified alert system (Gmail / Telegram)
+├── notifications.py              # Unified alert system (Telegram / Gmail)
 ├── position_tracker.py           # CSV-based position ledger
 ├── healthcheck.py                # Pre-flight environment check
 ├── requirements.txt
@@ -45,6 +47,7 @@ deploy/
 ├── setup.sh                      # One-command Ubuntu server setup
 ├── run_entry.sh                  # Cron wrapper: screener + entry
 ├── run_monitor.sh                # Cron wrapper: position monitor
+├── run_cc.sh                     # Cron wrapper: covered call screener
 └── crontab.template              # Cron schedule (ET timezone)
 ```
 
@@ -53,14 +56,25 @@ deploy/
 ## Pipeline Flow
 
 ```
+[3:25 PM ET — cron]
+        │
+        ▼
+covered_call_screener.py
+  ├─ Scan VOO, QQQM, EWY, GOOGL, SCHD, DRAM
+  ├─ Entry conditions: green day + RSI 58–78 + BB > 0.65 + above SMA200
+  ├─ Earnings guard: skip if earnings within 7 days
+  └─ Alert: Telegram/Gmail with 3 suggested OTM strikes + bid/ask
+     (execute manually in Fidelity)
+
 [3:30 PM ET — cron]
         │
         ▼
 options_premium_screener.py
+  ├─ Skip if FOMC decision day or VIX < 18
   ├─ Fetch VIX → determine regime (LOW / NORMAL / ELEVATED / HIGH)
   ├─ Download 1yr OHLCV for each ticker (yfinance)
   ├─ Compute RSI, Bollinger Bands, ATR, MACD, IV Rank, IV/HV
-  ├─ Apply VIX-adjusted filters + earnings blackout
+  ├─ Apply all entry filters (see Screening Logic below)
   ├─ Score signals 0–100
   └─ Output: signals_YYYYMMDD.csv
 
@@ -69,10 +83,11 @@ options_premium_screener.py
 auto_trade.py entry
   ├─ Load + normalize signals CSV
   ├─ Check monthly drawdown circuit breaker (positions.csv)
-  ├─ For each signal (sorted by strength, max 5):
-  │     broker/spread_builder.py → find best strike/expiry
-  │     broker/executor.py       → place limit order (dry-run or live)
-  │     notifications.py         → Gmail alert on entry
+  ├─ Check live position count → available slots = 25 − open_spreads
+  ├─ For each signal (ranked by strength, up to min(10, available_slots)):
+  │     spread_builder.py → compare $10×1 vs $5×2, pick higher total premium
+  │     executor.py       → place limit order (dry-run or live)
+  │     notifications.py  → Telegram/Gmail alert on entry
   └─ notify_monitor_summary()
 
 [12:30 PM ET + 4:05 PM ET — cron]
@@ -81,11 +96,11 @@ auto_trade.py entry
 auto_trade.py monitor
   ├─ Fetch all open positions across accounts
   ├─ Evaluate close triggers:
-  │     profit_target  — P&L ≥ 80% of credit collected
-  │     dte_expiry     — DTE ≤ 14
-  │     emergency      — price ≤ long put strike
+  │     profit_target  — P&L ≥ 80% of credit AND BTC debit ≤ $0.60/share
+  │     dte_expiry     — DTE ≤ 12
+  │     emergency      — price ≤ long put strike (retry at 1.05× mid after 90s)
   ├─ Place BTC orders for triggered positions
-  └─ notifications.py → Gmail alert on each close
+  └─ notifications.py → alert on each close
 ```
 
 ---
@@ -96,21 +111,27 @@ auto_trade.py monitor
 
 | Tier | Tickers | Delta Target | Notes |
 |------|---------|--------------|-------|
-| **TIER1_CORE** | SPX, COST, NVDA, IWM, GOOGL | 0.10–0.18 | SPX: gap-down + RSI trigger |
-| **TIER2_WATCH** | MSFT, AAPL, AMZN, META, AVGO, CRWD, PLTR, AMD, MU, TSLA, QQQM, CLS, STX | 0.08–0.13 | ATR% cap ≤ 5.0% |
+| **TIER1_CORE** | SPX, COST, NVDA, IWM, GOOGL, TSLA | 0.15–0.22 (COST: 0.15–0.28) | SPX: gap-down + RSI trigger |
+| **TIER2_WATCH** | AAPL, AMZN, META, AVGO, CRWD, AMD, MU, QQQM, CLS, STX, ASML, GS, JPM | 0.12–0.20 | ATR% cap ≤ 5.0% |
+| **TIER3_WATCH** | PLTR, MSFT, SNDK, EWY, DRAM | 0.08–0.13 | ATR% cap ≤ 5.0% — higher volatility, conservative delta |
 
-### Technical Indicators
+### Entry Filters (all must pass)
 
-| Indicator | Purpose | Threshold |
-|-----------|---------|-----------|
-| RSI (14) | Oversold detection | VIX-adjusted: 28–38 |
-| Bollinger Bands (20) | Price extremes | BB position < VIX-adjusted threshold |
-| SMA (200) | Long-term trend filter | Price > SMA200 required |
-| ATR % (14) | Volatility measurement | > 1.0% required; Tier 2 cap 5.0% |
-| Volume Surge | Liquidity confirmation | > 1.2× 50-day avg |
-| IV Rank (52-week) | Premium quality — Pass 1 | ≥ 25 |
-| IV/HV Ratio | Premium quality — Pass 2 | ≥ 1.0 |
-| VIX Regime | Macro classifier | LOW / NORMAL / ELEVATED / HIGH |
+| Filter | Condition | Notes |
+|--------|-----------|-------|
+| VIX floor | VIX ≥ 18 | Skip entries in thin-premium environment |
+| Red day | Close < prior close | Stock down on the day — premium elevated |
+| RSI (14) | VIX-adjusted oversold | 28–38 depending on regime |
+| Bollinger Band | BB position < threshold | VIX-adjusted: 0.25–0.45 |
+| SMA (200) | Price > SMA200 | Long-term uptrend intact |
+| ATR % (14) | > 1.0% (Tier 2/3: also ≤ 5.0%) | Adequate volatility; cap prevents excessive risk |
+| Volume surge | > 1.2× 50-day avg | Liquidity confirmation |
+| IV Rank | ≥ 25 | Premium historically elevated (Pass 1) |
+| IV/HV Ratio | ≥ 1.0 | Options priced above realized vol (Pass 2) |
+| Earnings blackout | No earnings within 3 days | Wider 7-day buffer for covered calls |
+| FOMC blackout | Not a Fed decision day | 2 PM ET announcement bleeds into entry window |
+
+**COST exception:** exempt from red-day filter; compensated by $1.00/share minimum credit enforced in spread_builder.
 
 ### VIX-Adjusted Thresholds
 
@@ -121,13 +142,56 @@ auto_trade.py monitor
 | ELEVATED | 20–30 | 38 | < 0.45 | Fat premium — slightly relaxed |
 | HIGH | > 30 | 30 | < 0.30 | Tail risk — thresholds tightened |
 
+### Spread Construction
+
+| Parameter | Value |
+|-----------|-------|
+| Width comparison | $10×1 vs $5×2 — whichever yields higher total premium |
+| DTE window | 28–45 days (monthly expiry preferred) |
+| Min credit — $10-wide | $1.30/share ($130/contract) |
+| Min credit — $5-wide | $0.95/share ($95/contract) |
+| STO limit price | Between mid and natural credit (mid + ask) / 2, rounded to $0.05 |
+| Quad witching expiry | Allowed; target delta scaled ×0.75 (floor 0.08) |
+
 ### Risk Controls
 
-- **Monthly drawdown circuit breaker**: pauses new entries if MTD P&L ≤ −$2,000
-- **Max risk per spread**: $1,000 (spread width × 100)
-- **High-beta cap**: IONQ, RGTI, MARA limited to 2 contracts
-- **Earnings blackout**: ±5/+1 days around earnings
-- **Cluster guard**: warns when ≥ 5 tickers trigger simultaneously
+| Rule | Value |
+|------|-------|
+| Max risk per spread | $1,000 (spread width × 100) |
+| Max concurrent positions | 25 (dynamic — checked against live account) |
+| Max entries per run | 10 (further capped to available slots) |
+| Profit target | P&L ≥ 80% of credit collected |
+| BTC debit cap | ≤ $0.60/share (profit-target close only) |
+| DTE close threshold | ≤ 12 DTE (close regardless of P&L) |
+| Emergency BTC | Place at mid → wait 90s → retry at 1.05× if unfilled |
+| Monthly drawdown | Pause entries if MTD P&L ≤ −$2,000 |
+| High-beta cap | IONQ, RGTI, MARA — max 2 contracts |
+| Cluster guard | Warn when ≥ 5 tickers signal simultaneously |
+
+---
+
+## Covered Call Module
+
+`covered_call_screener.py` scans Fidelity positions daily for covered call entry opportunities. **No orders are placed automatically** — alerts are sent to Telegram/Gmail for manual execution in Fidelity.
+
+**Tickers monitored:** VOO, QQQM, EWY, GOOGL, SCHD, DRAM
+
+**Entry conditions (opposite of put credit spreads):**
+- Green day (stock up on the day)
+- RSI 58–78 (mildly overbought, not extreme momentum)
+- BB position > 0.65 (near upper band)
+- Above SMA-200
+- No earnings within 7 days
+
+**Alert content:** current price, RSI, BB position, suggested expiry (21–35 DTE), and 3 OTM call strikes (3% / 5% / 7% OTM) with bid/ask and IV.
+
+```bash
+# Test alert
+python3 covered_call_screener.py --test
+
+# Run manually
+python3 covered_call_screener.py
+```
 
 ---
 
@@ -145,13 +209,13 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-nano .env   # fill in TT_SECRET, TT_REFRESH, GMAIL_PASSWORD
+nano .env   # fill in TT_SECRET, TT_REFRESH, TG_BOT_TOKEN, GMAIL_PASSWORD
 ```
 
 ### 3. Tastytrade OAuth setup (one-time)
 
 ```bash
-python broker/setup_auth.py
+python3 broker/setup_auth.py
 # Choose option 2 → paste Client Secret + Refresh Token → certification? y
 ```
 
@@ -160,7 +224,7 @@ Get credentials from [developer.tastytrade.com](https://developer.tastytrade.com
 ### 4. Health check
 
 ```bash
-python healthcheck.py
+python3 healthcheck.py
 ```
 
 All required checks must pass before proceeding.
@@ -168,7 +232,7 @@ All required checks must pass before proceeding.
 ### 5. Test connection
 
 ```bash
-python auto_trade.py monitor   # dry-run, no orders submitted
+python3 auto_trade.py monitor   # dry-run, no orders submitted
 ```
 
 ---
@@ -176,17 +240,25 @@ python auto_trade.py monitor   # dry-run, no orders submitted
 ## Cloud Deployment (AWS EC2)
 
 ```bash
-# On your EC2 instance (Ubuntu 24.04):
+# On your EC2 instance (Ubuntu 24.04) — first time:
 git clone https://github.com/hbchoi0917/trading.git
 cd trading
-git checkout main
 bash deploy/setup.sh
 
 # Fill in credentials:
 nano options-screener/.env
 
 # Verify:
-cd options-screener && /path/to/.venv/bin/python3 healthcheck.py
+cd options-screener && python3 healthcheck.py
+```
+
+**Updating an existing deployment:**
+
+```bash
+cd ~/trading
+git pull origin main
+chmod +x deploy/run_cc.sh   # only needed if run_cc.sh is new
+bash deploy/setup.sh        # reinstalls crontab with new CC job
 ```
 
 `setup.sh` handles: Python venv, dependencies, US/Eastern timezone, logrotate, and cron installation automatically.
@@ -195,9 +267,10 @@ cd options-screener && /path/to/.venv/bin/python3 healthcheck.py
 
 | Time ET | Time KST | Job |
 |---------|----------|-----|
-| 12:30 PM | 1:30 AM | Monitor — profit target / DTE checks |
-| 3:30 PM | 4:30 AM | Entry — screener + order placement |
-| 4:05 PM | 5:05 AM | Monitor — post-close final scan |
+| 12:30 PM | 1:30 AM +1 | Monitor — profit target / DTE checks |
+| 3:25 PM | 4:25 AM +1 | Covered call alert — Fidelity (manual execution) |
+| 3:30 PM | 4:30 AM +1 | Entry — screener + order placement |
+| 4:05 PM | 5:05 AM +1 | Monitor — post-close final scan |
 
 ---
 
@@ -205,19 +278,22 @@ cd options-screener && /path/to/.venv/bin/python3 healthcheck.py
 
 ```bash
 # Run screener only (generates signals_YYYYMMDD.csv)
-python options_premium_screener.py
+python3 options_premium_screener.py
 
 # Place orders from today's signals (dry-run)
-python auto_trade.py entry
+python3 auto_trade.py entry
 
 # Place orders live
-python auto_trade.py entry --live
+python3 auto_trade.py entry --live
 
 # Monitor + auto-close positions (dry-run)
-python auto_trade.py monitor
+python3 auto_trade.py monitor
 
 # Run full pipeline: entry + monitor
-python auto_trade.py all
+python3 auto_trade.py all
+
+# Covered call alert (manual execution in Fidelity)
+python3 covered_call_screener.py
 ```
 
 ---
@@ -232,12 +308,14 @@ TT_SECRET=                  # OAuth client secret
 TT_REFRESH=                 # OAuth refresh token
 TT_ACCOUNT_NUMBERS=         # comma-separated (blank = all)
 
-# Notifications (Gmail — primary; Telegram — optional)
+# Notifications — Telegram (recommended: instant push to phone)
+TG_BOT_TOKEN=               # from @BotFather
+TG_CHAT_ID=                 # your chat ID
+
+# Notifications — Gmail (fallback)
 GMAIL_SENDER=
 GMAIL_PASSWORD=             # App Password (not your login password)
 GMAIL_RECEIVER=
-TG_BOT_TOKEN=               # optional
-TG_CHAT_ID=                 # optional
 ```
 
 ---
@@ -245,20 +323,21 @@ TG_CHAT_ID=                 # optional
 ## Testing
 
 ```bash
-python -m pytest tests/ -v
-# 43 tests, all passing — no live broker connection required
+python3 -m pytest tests/ -v
+# 48 tests, all passing — no live broker connection required
 ```
 
-Tests cover: signal normalization, delta parsing, spread construction (mocked option chain), order execution (mocked account), monthly drawdown circuit breaker.
+Tests cover: signal normalization, delta parsing, spread construction (mocked option chain), order execution (mocked account), monthly drawdown circuit breaker, build_best_spread width comparison.
 
 ---
 
 ## Go-Live Checklist
 
-- [ ] `python healthcheck.py` — all required checks pass
-- [ ] `python auto_trade.py monitor` — connects, scans positions without error
+- [ ] `python3 healthcheck.py` — all required checks pass
+- [ ] `python3 auto_trade.py monitor` — connects, scans positions without error
 - [ ] `TT_DRY_RUN=false`, `TT_PAPER_TRADING=true` — sandbox orders fill correctly
-- [ ] Gmail alerts received for entry / close events
+- [ ] Telegram or Gmail alert received for entry / close events
+- [ ] `python3 covered_call_screener.py --test` — CC alert notification received
 - [ ] Cron fires at 3:30 PM ET, log appears in `logs/entry_YYYY-MM-DD.log`
 - [ ] Set `TT_PAPER_TRADING=false` only after sandbox testing is complete
 

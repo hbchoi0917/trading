@@ -10,9 +10,12 @@ Responsibilities:
 Risk rules (hardcoded):
   MAX_RISK_PER_SPREAD    $1,000  — max (spread_width * 100) per position
   PROFIT_TARGET_PCT       80%   — close when P&L ≥ 80% of credit collected
-  DTE_CLOSE_THRESHOLD      14   — close regardless of P&L at ≤14 DTE
+  MAX_BTC_DEBIT           $0.60 — profit-target close only when BTC debit ≤ $0.60/share
+  DTE_CLOSE_THRESHOLD      12   — close regardless of P&L at ≤12 DTE
   ROLLOVER_DTE              7   — roll trigger (DTE ≤ 7 + price < short strike)
   MONTHLY_DRAWDOWN_LIMIT -$2,000 — pause new entries if month is down >$2k
+  MAX_CONCURRENT_POSITIONS 25   — target concurrent open spreads (dynamic throttle)
+  MAX_ENTRIES_PER_RUN      10   — new positions per screener run (capped to available slots)
   HIGH_BETA_TICKERS        IONQ, RGTI, MARA — max 2 contracts
 """
 
@@ -33,7 +36,7 @@ from tastytrade.order import (
 from tastytrade.session import Session
 
 from .client import TastyClient
-from .spread_builder import SpreadSpec, build_put_credit_spread, build_call_credit_spread
+from .spread_builder import SpreadSpec, build_best_spread
 from notifications import notify_entry, notify_close, notify_error
 
 logger = logging.getLogger(__name__)
@@ -47,9 +50,13 @@ logging.basicConfig(
 
 MAX_RISK_PER_SPREAD      = Decimal("1000")
 PROFIT_TARGET_PCT        = Decimal("0.80")
-DTE_CLOSE_THRESHOLD      = 14
+MAX_BTC_DEBIT            = Decimal("0.60")   # max debit/share for profit-target early close
+DTE_CLOSE_THRESHOLD      = 12
+EMERGENCY_RETRY_WAIT_SECS = 90              # seconds before escalating emergency BTC price
 ROLLOVER_DTE             = 7
 MONTHLY_DRAWDOWN_LIMIT   = Decimal("-2000")
+MAX_CONCURRENT_POSITIONS = 25    # target concurrent open spreads; entries throttled dynamically
+MAX_ENTRIES_PER_RUN      = 10    # new positions per screener run (3:30 PM); actual cap is MIN(this, available_slots)
 HIGH_BETA_TICKERS        = {"IONQ", "RGTI", "MARA"}
 HIGH_BETA_MAX_CONTRACTS  = 2
 MSFT_MIN_OTM_PCT         = 15        # MSFT short strike must be ≥15% OTM
@@ -74,36 +81,37 @@ async def execute_entry(
     symbol:           str,
     spread_type:      str   = "put_credit",
     target_delta:     float = 0.15,
-    quantity:         int   = 1,
     dry_run:          bool  = DRY_RUN_DEFAULT,
 ) -> EntryResult:
     """
-    Build and place a vertical spread for `symbol`.
+    Build and place the best vertical spread for `symbol`.
 
+    Compares $10×1 vs $5×2 and picks whichever yields higher total premium.
     Returns EntryResult with success/failure details.
     """
+    # Build spread — auto-selects best width and quantity
+    spread, quantity = await build_best_spread(
+        client.session, symbol, spread_type=spread_type, target_delta=target_delta
+    )
+
+    if spread is None:
+        return EntryResult(symbol=symbol, success=False, reject_reason="no_valid_spread")
+
     # Risk guard: high-beta contract limit
     if symbol in HIGH_BETA_TICKERS and quantity > HIGH_BETA_MAX_CONTRACTS:
         quantity = HIGH_BETA_MAX_CONTRACTS
         logger.warning(f"{symbol}: high-beta — capping quantity to {HIGH_BETA_MAX_CONTRACTS}")
 
-    # Build spread
-    builder = build_put_credit_spread if spread_type == "put_credit" else build_call_credit_spread
-    spread = await builder(client.session, symbol, target_delta=target_delta)
-
-    if spread is None:
-        return EntryResult(symbol=symbol, success=False, reject_reason="no_valid_spread")
-
-    # Risk guard: max risk per spread
-    if spread.max_risk > MAX_RISK_PER_SPREAD:
-        reason = f"max_risk=${spread.max_risk:.0f} > limit=${MAX_RISK_PER_SPREAD:.0f}"
+    # Risk guard: total risk across all contracts
+    total_risk = spread.max_risk * quantity
+    if total_risk > MAX_RISK_PER_SPREAD:
+        reason = f"max_risk=${total_risk:.0f} > limit=${MAX_RISK_PER_SPREAD:.0f}"
         logger.warning(f"{symbol}: rejected — {reason}")
         return EntryResult(symbol=symbol, success=False, reject_reason=reason, spread=spread)
 
     # Risk guard: MSFT OTM rule
     if symbol == "MSFT" and spread_type == "put_credit":
-        # Fetch current price from spread's short_delta context is unavailable here;
-        # rely on screener having already validated OTM%. Log as reminder.
+        # Rely on screener having already validated OTM%. Log as reminder.
         logger.info("MSFT: ensure strike is ≥15% OTM before confirming this order")
 
     order = spread.to_order(quantity=quantity)
@@ -144,7 +152,7 @@ async def execute_entries_from_signals(
     account_number: str,
     signals:        list[dict],        # rows from screener CSV/dict
     dry_run:        bool = DRY_RUN_DEFAULT,
-    max_entries:    int  = 5,
+    max_entries:    int  = MAX_ENTRIES_PER_RUN,
 ) -> list[EntryResult]:
     """
     Process a list of screener signal dicts and place spread orders.
@@ -233,9 +241,10 @@ def _evaluate_close_trigger(pos: CurrentPosition) -> Optional[str]:
     average_open_price = Decimal(str(pos.average_open_price or 0))
 
     # P&L as % of original credit: (credit - current_price) / credit
+    # Also gate on BTC debit ≤ MAX_BTC_DEBIT to avoid paying too much to close
     if average_open_price > 0:
         pnl_pct = (average_open_price - close_price) / average_open_price
-        if pnl_pct >= PROFIT_TARGET_PCT:
+        if pnl_pct >= PROFIT_TARGET_PCT and close_price <= MAX_BTC_DEBIT:
             return "profit_target"
 
     # DTE-based closes
@@ -246,6 +255,25 @@ def _evaluate_close_trigger(pos: CurrentPosition) -> Optional[str]:
     return None
 
 
+def _round_nickel(v: Decimal) -> Decimal:
+    return (v / Decimal("0.05")).quantize(Decimal("1")) * Decimal("0.05")
+
+
+def _build_close_order(pos: CurrentPosition, limit_price: Decimal) -> NewOrder:
+    return NewOrder(
+        time_in_force=OrderTimeInForce.DAY,
+        order_type=OrderType.LIMIT,
+        legs=[Leg(
+            instrument_type=InstrumentType.EQUITY_OPTION,
+            symbol=pos.symbol,
+            quantity=abs(pos.quantity),
+            action=OrderAction.BUY_TO_CLOSE,
+        )],
+        price=limit_price,
+        price_effect=PriceEffect.DEBIT,
+    )
+
+
 async def _place_close_order(
     client:     TastyClient,
     acct_num:   str,
@@ -253,55 +281,53 @@ async def _place_close_order(
     trigger:    str,
     dry_run:    bool,
 ) -> CloseResult:
-    """Place a BTC/STC order to close the given short option position."""
-    # For a short option, closing = Buy to Close
-    close_leg = Leg(
-        instrument_type=InstrumentType.EQUITY_OPTION,
-        symbol=pos.symbol,
-        quantity=abs(pos.quantity),
-        action=OrderAction.BUY_TO_CLOSE,
-    )
-    # Use a limit at ask (or slightly above mid for urgency on emergency)
-    limit_price = Decimal(str(pos.close_price or 0))
-    if trigger == "emergency":
-        limit_price = limit_price * Decimal("1.05")    # 5% above ask for fills
+    """
+    Place a BTC limit order at mid-point.
 
-    order = NewOrder(
-        time_in_force=OrderTimeInForce.DAY,
-        order_type=OrderType.LIMIT,
-        legs=[close_leg],
-        price=limit_price,
-        price_effect=PriceEffect.DEBIT,
-    )
-    acct = client.get_account(acct_num)
-    mode = "DRY-RUN" if dry_run else "LIVE"
-    logger.info(f"[{mode}] CLOSE {trigger}: {pos.symbol} qty={abs(pos.quantity)} @ ${limit_price:.2f}")
+    Emergency retry: if the mid order is still unfilled after
+    EMERGENCY_RETRY_WAIT_SECS, cancels and resubmits at mid × 1.05.
+    """
+    mid_price = Decimal(str(pos.close_price or 0))
+    acct      = client.get_account(acct_num)
+    mode      = "DRY-RUN" if dry_run else "LIVE"
 
     try:
+        order    = _build_close_order(pos, mid_price)
+        logger.info(f"[{mode}] CLOSE {trigger}: {pos.symbol} qty={abs(pos.quantity)} @ ${mid_price:.2f} (mid)")
         response = await acct.place_order(client.session, order, dry_run=dry_run)
         order_id = response.order.id if response.order else None
+        final_price = mid_price
+
+        # Emergency: wait, then escalate to 1.05× mid if still unfilled
+        if trigger == "emergency" and not dry_run and order_id:
+            await asyncio.sleep(EMERGENCY_RETRY_WAIT_SECS)
+            try:
+                live        = await client.get_live_orders(acct_num)
+                pending_ids = {o.id for o in (live or [])}
+                if order_id in pending_ids:
+                    await client.cancel_order(acct_num, order_id)
+                    final_price  = _round_nickel(mid_price * Decimal("1.05"))
+                    retry_order  = _build_close_order(pos, final_price)
+                    logger.warning(
+                        f"[{mode}] CLOSE {trigger} RETRY: {pos.symbol} "
+                        f"@ ${final_price:.2f} (1.05× mid — mid unfilled after {EMERGENCY_RETRY_WAIT_SECS}s)"
+                    )
+                    resp2    = await acct.place_order(client.session, retry_order, dry_run=dry_run)
+                    order_id = resp2.order.id if resp2.order else None
+            except Exception as retry_exc:
+                logger.warning(f"Emergency retry check failed: {retry_exc} — original order may still be working")
+
         pnl = float(
-            (Decimal(str(pos.average_open_price or 0)) - limit_price)
+            (Decimal(str(pos.average_open_price or 0)) - final_price)
             * abs(pos.quantity) * 100
         )
-        notify_close(
-            ticker=pos.symbol.split()[0],
-            trigger=trigger,
-            pnl=pnl,
-            account=acct_num,
-            dry_run=dry_run,
-        )
-        return CloseResult(
-            symbol=pos.symbol, account=acct_num, trigger=trigger,
-            success=True, order_id=order_id,
-        )
+        notify_close(ticker=pos.symbol.split()[0], trigger=trigger, pnl=pnl, account=acct_num, dry_run=dry_run)
+        return CloseResult(symbol=pos.symbol, account=acct_num, trigger=trigger, success=True, order_id=order_id)
+
     except Exception as e:
         logger.error(f"Close order failed: {pos.symbol} — {e}")
         notify_error(pos.symbol, f"Close failed ({trigger}): {e}", account=acct_num)
-        return CloseResult(
-            symbol=pos.symbol, account=acct_num, trigger=trigger,
-            success=False, error=str(e),
-        )
+        return CloseResult(symbol=pos.symbol, account=acct_num, trigger=trigger, success=False, error=str(e))
 
 
 # ── Monthly drawdown circuit breaker ─────────────────────────────────────────

@@ -2,7 +2,7 @@ import math
 import yfinance as yf
 import pandas as pd
 import logging
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 try:
     import pandas_ta as _pandas_ta
@@ -76,22 +76,31 @@ TIER1_CORE = [
     'NVDA',   # NVIDIA
     'IWM',    # Russell 2000 ETF
     'GOOGL',  # Alphabet Class A
+    'TSLA',   # Tesla — promoted from Tier 2
 ]
 
 TIER2_WATCHLIST = [
-    'MSFT',
     'AAPL',
     'AMZN',
     'META',
     'AVGO',
     'CRWD',
-    'PLTR',
     'AMD',
     'MU',
-    'TSLA',
     'QQQM',
-    'CLS',    # pending review
-    'STX',    # pending review
+    'CLS',
+    'STX',
+    'ASML',   # ASML Holding
+    'GS',     # Goldman Sachs
+    'JPM',    # JPMorgan Chase
+]
+
+TIER3_WATCHLIST = [
+    'PLTR',   # Palantir — demoted from Tier 2
+    'MSFT',   # Microsoft — demoted from Tier 2
+    'SNDK',   # SanDisk
+    'EWY',    # iShares MSCI South Korea ETF
+    'DRAM',   # Resilience Semiconductor ETF
 ]
 
 # Removed: SPY, QQQ, VOO (too large), NFLX, ORCL, AMAT, ANET, ARM (low conviction)
@@ -109,19 +118,39 @@ SPX_RSI_THRESHOLD = 30      # Base threshold — overridden by VIX regime at run
 SPX_GAP_DOWN_PCT  = -1.0
 
 # Delta targets by tier
-TIER1_DELTA_MIN = 0.10
-TIER1_DELTA_MAX = 0.18
-TIER2_DELTA_MIN = 0.08
-TIER2_DELTA_MAX = 0.13
+TIER1_DELTA_MIN = 0.15
+TIER1_DELTA_MAX = 0.22
+TIER2_DELTA_MIN = 0.12
+TIER2_DELTA_MAX = 0.20
+TIER3_DELTA_MIN = 0.08   # higher-volatility / lower-conviction names — stay further OTM
+TIER3_DELTA_MAX = 0.13
+
+# Per-ticker delta overrides (takes precedence over tier defaults)
+# COST: low-volatility blue chip — higher delta acceptable for better premium
+TICKER_DELTA_OVERRIDE = {
+    'COST': (0.15, 0.28),
+}
+
+# Tickers exempt from the is_red_day entry filter.
+# COST is a low-beta, trend-consistent name where green-day entries are acceptable
+# provided premium meets the minimum threshold (enforced in spread_builder).
+RED_DAY_EXEMPT = {'COST'}
 
 # DTE window for expiry selection
-DTE_MIN = 28   # ~4 weeks
+DTE_MIN = 28   # ~4 weeks — entry floor; close trigger is DTE_CLOSE_THRESHOLD=12
 DTE_MAX = 45
 
 # VIX regime thresholds
 VIX_LOW    = 15
 VIX_NORMAL = 20
 VIX_HIGH   = 30
+
+# Minimum VIX required for new entries.
+# Below this, premium is too thin relative to the risk taken.
+# VIX 18 = upper half of NORMAL regime — decent premium, avoids the
+# truly quiet LOW-VIX environment where IV Rank rarely clears 25.
+# Raise to 20 for strict ELEVATED-only targeting.
+VIX_ENTRY_MIN = 18
 
 # Tier 2 volatility guard
 TIER2_ATR_MAX = 5.0
@@ -551,8 +580,8 @@ EARLY_CLOSE_PROFIT_PCT  = 0.80
 SPREAD_WIDTH            = 10
 BASE_DTE_ACTION         = 4
 
-EARNINGS_ENTRY_BUFFER_BEFORE = 5
-EARNINGS_ENTRY_BUFFER_AFTER  = 1
+EARNINGS_ENTRY_BUFFER_BEFORE = 3   # block 3 days before earnings
+EARNINGS_ENTRY_BUFFER_AFTER  = 0   # block day of earnings only (not day after)
 
 T2_ROLLOVER_DTE        = 7
 MAX_ROLLOVER_DEBIT_PCT = 0.50
@@ -667,6 +696,58 @@ def is_earnings_blackout(earnings_date):
     blackout_start = earnings_date - timedelta(days=EARNINGS_ENTRY_BUFFER_BEFORE)
     blackout_end   = earnings_date + timedelta(days=EARNINGS_ENTRY_BUFFER_AFTER)
     return blackout_start <= today <= blackout_end
+
+
+# ============ QUAD WITCHING (네마녀의 날) ============
+# 3rd Friday of March, June, September, December.
+# All four option classes expire simultaneously — wide spreads, exaggerated moves,
+# distorted pricing on nearby expirations. Never use as target expiry; warn on entry day.
+
+QUAD_WITCHING_MONTHS = {3, 6, 9, 12}
+
+
+def _quad_witching_friday(year: int, month: int):
+    """Return the 3rd Friday of the given month."""
+    first = datetime(year, month, 1).date()
+    first_fri = first + timedelta(days=(4 - first.weekday()) % 7)
+    return first_fri + timedelta(weeks=2)
+
+
+def is_quad_witching_day(d=None) -> bool:
+    """True if d is a quad witching Friday (3rd Fri of Mar/Jun/Sep/Dec)."""
+    d = d or datetime.today().date()
+    if d.month not in QUAD_WITCHING_MONTHS or d.weekday() != 4:
+        return False
+    return d == _quad_witching_friday(d.year, d.month)
+
+
+# ============ FOMC DECISION DAY BLACKOUT ============
+# On FOMC announcement days (second day of each two-day meeting), the rate
+# decision drops at 2:00 PM ET followed by a press conference to ~3:30 PM ET.
+# This bleeds directly into the 3:30 PM entry window — post-announcement
+# reversals are common and spreads are wide. Skip new entries; monitor-only.
+#
+# CPI / NFP / GDP releases hit at 8:30 AM ET — well before the entry window,
+# direction is established by 3:30 PM, so NO blackout needed for those.
+#
+# Update this set each November when the Fed releases the following year's schedule.
+
+FOMC_DECISION_DAYS = {
+    # 2025
+    date(2025, 1, 29), date(2025, 3, 19), date(2025, 5, 7),
+    date(2025, 6, 18), date(2025, 7, 30), date(2025, 9, 17),
+    date(2025, 10, 29), date(2025, 12, 10),
+    # 2026 — verify at https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+    date(2026, 1, 28), date(2026, 3, 18), date(2026, 4, 29),
+    date(2026, 6, 17), date(2026, 7, 29), date(2026, 9, 16),
+    date(2026, 10, 28), date(2026, 12, 9),
+}
+
+
+def is_fomc_day(d=None) -> bool:
+    """True if d is a scheduled FOMC rate-decision day."""
+    d = d or datetime.today().date()
+    return d in FOMC_DECISION_DAYS
 
 
 # ============ EXPIRY SELECTION ============
@@ -853,11 +934,14 @@ def screen_spx(vix, adjusted_params):
 
 # ============ GENERAL TIER SCREENING ============
 def screen_tickers(tickers, tier_label, vix, adjusted_params):
-    is_tier2     = (tier_label == 'TIER2_WATCH')
-    delta_target = (
-        f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}' if is_tier2
-        else f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
-    )
+    is_tier2 = (tier_label == 'TIER2_WATCH')
+    is_tier3 = (tier_label == 'TIER3_WATCH')
+    if is_tier3:
+        default_delta = f'{TIER3_DELTA_MIN}–{TIER3_DELTA_MAX}'
+    elif is_tier2:
+        default_delta = f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}'
+    else:
+        default_delta = f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
     rsi_threshold = adjusted_params['rsi_threshold']
     bb_threshold  = adjusted_params['bb_threshold']
     results = {}
@@ -865,6 +949,13 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
     successful_count = 0
 
     for ticker in tickers:
+        # Apply per-ticker delta override if defined
+        if ticker in TICKER_DELTA_OVERRIDE:
+            d_min, d_max = TICKER_DELTA_OVERRIDE[ticker]
+            delta_target = f'{d_min}–{d_max}'
+        else:
+            delta_target = default_delta
+
         try:
             stock_data = yf.download(ticker, period='1y', interval='1d', progress=False, group_by=False)
             if isinstance(stock_data.columns, pd.MultiIndex):
@@ -879,7 +970,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
             if is_earnings_blackout(earnings_date):
                 logger.info(
                     f"[{tier_label}] {ticker}: EARNINGS BLACKOUT — earnings {earnings_date}, "
-                    f"within ±{EARNINGS_ENTRY_BUFFER_BEFORE}/{EARNINGS_ENTRY_BUFFER_AFTER}d. Skipping."
+                    f"blocking -{EARNINGS_ENTRY_BUFFER_BEFORE}d/day-of. Skipping."
                 )
                 successful_count += 1
                 continue
@@ -925,7 +1016,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
             is_adequate_vol  = atr_pct > 1.0
             is_volume_surge  = volume_surge_ratio > 1.2
 
-            if is_tier2 and atr_pct > TIER2_ATR_MAX:
+            if (is_tier2 or is_tier3) and atr_pct > TIER2_ATR_MAX:
                 logger.info(
                     f"[{tier_label}] {ticker}: ATR% {atr_pct:.2f}% > {TIER2_ATR_MAX}% "
                     f"— too volatile, skipping."
@@ -933,7 +1024,8 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 successful_count += 1
                 continue
 
-            if (is_oversold and is_uptrend_long and is_liquid and
+            passes_red_day = is_red_day or (ticker in RED_DAY_EXEMPT)
+            if (passes_red_day and is_oversold and is_uptrend_long and is_liquid and
                     is_near_lower_bb and is_adequate_vol and is_volume_surge):
 
                 iv_data  = compute_iv_rank(ticker)
@@ -948,11 +1040,12 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 expiry_dte      = expiry_info[1] if expiry_info else None
                 is_monthly      = expiry_info[2] if expiry_info else None
                 earn_avoided    = str(earnings_date) if expiry_info and expiry_info[3] else 'N/A'
+                qw_expiry       = bool(expiry_info and is_quad_witching_day(expiry_info[0]))
                 t2_mgmt_note = (
                     f'Stage1(DTE<={T2_ROLLOVER_DTE}+price<short_put): '
                     f'1st net credit roll, 2nd debit<={int(MAX_ROLLOVER_DEBIT_PCT*100)}% of credit, fallback close | '
                     f'Stage2(DTE<={T2_EMERGENCY_CLOSE_DTE}+price<=long_put): emergency close'
-                ) if is_tier2 else f'Routine review at DTE<={BASE_DTE_ACTION} only'
+                ) if (is_tier2 or is_tier3) else f'Routine review at DTE<={BASE_DTE_ACTION} only'
 
                 results[ticker] = {
                     'Tier': tier_label, 'Signal_Strength': signal_strength,
@@ -976,6 +1069,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                     'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
                     'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
                     'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
+                    'QW_Expiry': qw_expiry,
                     'Position_Mgmt': t2_mgmt_note,
                 }
                 logger.info(
@@ -1002,7 +1096,38 @@ def run_screener():
     vix = get_vix()
     adjusted_params, regime = get_adjusted_params(vix)
 
-    logger.info(f"VIX Regime                     : {regime}")
+    today_date = datetime.today().date()
+
+    # FOMC decision day — skip new entries entirely; monitor-only pass is safe
+    if is_fomc_day(today_date):
+        logger.warning("=" * 70)
+        logger.warning("⚠️  FOMC DECISION DAY — entry signals suppressed.")
+        logger.warning("    Rate decision at 2 PM ET bleeds into the 3:30 PM entry window.")
+        logger.warning("    Run 'auto_trade.py monitor' only. No new positions today.")
+        logger.warning("=" * 70)
+        return {}
+
+    # VIX floor — skip entries when premium is too thin to justify the risk
+    if vix is not None and vix < VIX_ENTRY_MIN:
+        logger.warning("=" * 70)
+        logger.warning(
+            f"⚠️  VIX TOO LOW ({vix:.1f} < {VIX_ENTRY_MIN}) — entry signals suppressed."
+        )
+        logger.warning(
+            f"    Premium is thin in this environment. Wait for VIX ≥ {VIX_ENTRY_MIN}."
+        )
+        logger.warning("    Monitor phase still runs normally.")
+        logger.warning("=" * 70)
+        return {}
+
+    qw_today = is_quad_witching_day(today_date)
+    if qw_today:
+        logger.warning("=" * 70)
+        logger.warning("⚠️  QUAD WITCHING DAY — new entry signals flagged QW_Warning=True.")
+        logger.warning("    Pricing near expiry unreliable. Do NOT submit orders today.")
+        logger.warning("=" * 70)
+
+    logger.info(f"VIX Regime                     : {regime}  (entry floor: VIX ≥ {VIX_ENTRY_MIN})")
     logger.info(f"RSI Threshold (general, adj.)  : {adjusted_params['rsi_threshold']} (base: {RSI_THRESHOLD})")
     logger.info(f"RSI Threshold (SPX, adj.)      : {adjusted_params['spx_rsi_threshold']} (base: {SPX_RSI_THRESHOLD}) + gap-down >= {SPX_GAP_DOWN_PCT}%")
     logger.info(f"BB Threshold (adj.)            : {adjusted_params['bb_threshold']} (base: 0.40)")
@@ -1012,10 +1137,11 @@ def run_screener():
     logger.info(f"Cluster warn threshold         : {CLUSTER_WARN_THRESHOLD} simultaneous signals")
     logger.info(f"Delta — Tier 1                 : {TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}")
     logger.info(f"Delta — Tier 2                 : {TIER2_DELTA_MIN}–{TIER2_DELTA_MAX} (ATR% guard <= {TIER2_ATR_MAX}%)")
+    logger.info(f"Delta — Tier 3                 : {TIER3_DELTA_MIN}–{TIER3_DELTA_MAX} (ATR% guard <= {TIER2_ATR_MAX}%)")
     logger.info(f"DTE window                     : {DTE_MIN}–{DTE_MAX} days (monthly preferred)")
     logger.info(f"Early close profit target      : {int(EARLY_CLOSE_PROFIT_PCT*100)}%")
     logger.info(f"Base DTE action (all tiers)    : DTE <= {BASE_DTE_ACTION}")
-    logger.info(f"Earnings blackout              : -{EARNINGS_ENTRY_BUFFER_BEFORE}d / +{EARNINGS_ENTRY_BUFFER_AFTER}d")
+    logger.info(f"Earnings blackout              : day-before + day-of (no entry -{EARNINGS_ENTRY_BUFFER_BEFORE}d to +{EARNINGS_ENTRY_BUFFER_AFTER}d)")
     logger.info(f"Tier 2 Stage 1 rollover        : DTE<={T2_ROLLOVER_DTE} + price<short_put")
     logger.info(f"  -> 1st: net credit roll (lower strike)")
     logger.info(f"  -> 2nd: same-strike debit <= {int(MAX_ROLLOVER_DEBIT_PCT*100)}% of entry credit")
@@ -1023,6 +1149,7 @@ def run_screener():
     logger.info(f"Tier 2 Stage 2 emergency close : DTE<={T2_EMERGENCY_CLOSE_DTE} + price<=long_put")
     logger.info(f"Tier 1                         : SPX + {', '.join(TIER1_CORE)}")
     logger.info(f"Tier 2                         : {', '.join(TIER2_WATCHLIST)}")
+    logger.info(f"Tier 3                         : {', '.join(TIER3_WATCHLIST)}")
     logger.info("=" * 70)
 
     all_results = {}
@@ -1034,6 +1161,9 @@ def run_screener():
     logger.info("\n>>> Screening TIER 2 — Watchlist <<<")
     tier2_results = screen_tickers(TIER2_WATCHLIST, tier_label="TIER2_WATCH", vix=vix, adjusted_params=adjusted_params)
     all_results.update(tier2_results)
+    logger.info("\n>>> Screening TIER 3 — Extended Watchlist <<<")
+    tier3_results = screen_tickers(TIER3_WATCHLIST, tier_label="TIER3_WATCH", vix=vix, adjusted_params=adjusted_params)
+    all_results.update(tier3_results)
 
     # ============ CLUSTER / CONCENTRATION GUARD ============
     cluster_info = check_cluster_risk(all_results)
@@ -1042,13 +1172,13 @@ def run_screener():
     logger.info("=" * 70)
     logger.info(
         f"Total signals : {len(all_results)}  "
-        f"(SPX: {len(spx_result)}, T1: {len(tier1_results)}, T2: {len(tier2_results)})"
+        f"(SPX: {len(spx_result)}, T1: {len(tier1_results)}, T2: {len(tier2_results)}, T3: {len(tier3_results)})"
     )
 
     if all_results:
         results_df = pd.DataFrame.from_dict(all_results, orient='index')
         results_df.index.name = 'Ticker'
-        tier_order = {'TIER1_CORE': 0, 'TIER2_WATCH': 1}
+        tier_order = {'TIER1_CORE': 0, 'TIER2_WATCH': 1, 'TIER3_WATCH': 2}
         results_df['_tier_rank'] = results_df['Tier'].map(tier_order)
         results_df['_spx_first'] = (results_df.index == 'SPX').astype(int) * -1
         results_df = results_df.sort_values(
@@ -1057,6 +1187,7 @@ def run_screener():
         results_df['Scan_Date']    = datetime.now().strftime('%Y-%m-%d')
         results_df['Scan_Time']    = datetime.now().strftime('%H:%M:%S')
         results_df['Cluster_Risk'] = cluster_info['cluster_risk']
+        results_df['QW_Warning']   = qw_today
         output_file = f'signals_{datetime.now().strftime("%Y%m%d")}.csv'
         results_df.to_csv(output_file)
         logger.info(f"Results saved → {output_file}")

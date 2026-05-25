@@ -6,6 +6,7 @@
 # Korea reference (KST = ET + 13h in EDT, +14h in EST):
 #   9:35 AM ET  →  10:35 PM KST (EDT) / 11:35 PM KST (EST)  ← you're sleeping
 #  12:30 PM ET  →   1:30 AM KST (next day)
+#   3:30 PM ET  →   4:30 AM KST (next day)
 #   4:05 PM ET  →   5:05 AM KST (next day)
 #
 # Placeholders substituted by setup.sh:
@@ -15,6 +16,10 @@
 # ── Entry: 1 hour before close (3:30 PM ET Mon–Fri)
 # Korea reference: 3:30 PM ET = 4:30 AM KST (EDT) / 5:30 AM KST (EST)
 30 15 * * 1-5 bash __REPO_DIR__/deploy/run_entry.sh >> __LOG_DIR__/cron.log 2>&1
+
+# ── Covered call alert: 3:25 PM ET Mon–Fri (5 min before entry screener)
+# Alerts sent to Telegram/Gmail — execute manually in Fidelity
+25 15 * * 1-5 bash __REPO_DIR__/deploy/run_cc.sh >> __LOG_DIR__/cron.log 2>&1
 
 # ── Midday: check profit targets / DTE triggers (12:30 PM ET Mon–Fri)
 30 12 * * 1-5 bash __REPO_DIR__/deploy/run_monitor.sh >> __LOG_DIR__/cron.log 2>&1

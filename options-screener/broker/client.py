@@ -135,6 +135,10 @@ class TastyClient:
         acct = self.get_account(account_number)
         return await acct.get_live_orders(self._session)
 
+    async def cancel_order(self, account_number: str, order_id: int) -> None:
+        acct = self.get_account(account_number)
+        await acct.cancel_order(self._session, order_id)
+
     async def get_all_positions(self) -> dict[str, list[CurrentPosition]]:
         result = {}
         for acct in self._accounts:
