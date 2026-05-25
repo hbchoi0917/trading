@@ -14,7 +14,7 @@ Risk rules (hardcoded):
   DTE_CLOSE_THRESHOLD      12   — close regardless of P&L at ≤12 DTE
   ROLLOVER_DTE              7   — roll trigger (DTE ≤ 7 + price < short strike)
   MONTHLY_DRAWDOWN_LIMIT -$2,000 — pause new entries if month is down >$2k
-  MAX_CONCURRENT_POSITIONS 20   — hard cap on simultaneous open spreads
+  MAX_CONCURRENT_POSITIONS 25   — target concurrent open spreads (dynamic throttle)
   MAX_ENTRIES_PER_RUN      10   — new positions per screener run (capped to available slots)
   HIGH_BETA_TICKERS        IONQ, RGTI, MARA — max 2 contracts
 """
@@ -55,7 +55,7 @@ DTE_CLOSE_THRESHOLD      = 12
 EMERGENCY_RETRY_WAIT_SECS = 90              # seconds before escalating emergency BTC price
 ROLLOVER_DTE             = 7
 MONTHLY_DRAWDOWN_LIMIT   = Decimal("-2000")
-MAX_CONCURRENT_POSITIONS = 20    # hard cap on simultaneous open spreads across all accounts
+MAX_CONCURRENT_POSITIONS = 25    # target concurrent open spreads; entries throttled dynamically
 MAX_ENTRIES_PER_RUN      = 10    # new positions per screener run (3:30 PM); actual cap is MIN(this, available_slots)
 HIGH_BETA_TICKERS        = {"IONQ", "RGTI", "MARA"}
 HIGH_BETA_MAX_CONTRACTS  = 2

@@ -33,6 +33,16 @@ TICKER_MIN_CREDIT: dict[str, Decimal] = {
     'COST': Decimal('1.00'),
 }
 
+# Minimum mid credit (per share) by spread width — applied globally before
+# the ticker override check. Prevents entering thin-premium spreads where
+# credit-to-risk ratio doesn't justify the position.
+#   $10-wide: $1.30/share = $130/contract (13% of spread width)
+#    $5-wide: $0.95/share =  $95/contract (19% of spread width)
+SPREAD_WIDTH_MIN_CREDIT: dict[float, Decimal] = {
+    10.0: Decimal('1.30'),
+     5.0: Decimal('0.95'),
+}
+
 # ── Quad witching delta guard ─────────────────────────────────────────────────
 # When the selected expiry falls on a quad witching Friday, reduce target_delta
 # so the short strike lands further OTM — provides more cushion against the
@@ -273,6 +283,15 @@ async def _build_spread(
     mid_credit = short_mid - long_mid
     if mid_credit <= Decimal("0"):
         logger.info(f"{symbol}: non-positive mid credit {mid_credit}")
+        return None
+
+    # Width-based minimum credit check (global quality gate)
+    width_min = SPREAD_WIDTH_MIN_CREDIT.get(float(spread_width))
+    if width_min is not None and mid_credit < width_min:
+        logger.info(
+            f"{symbol}: ${spread_width:.0f}-wide mid ${mid_credit:.2f} "
+            f"< width minimum ${width_min:.2f} — skipping"
+        )
         return None
 
     # Per-ticker minimum credit guard (e.g. COST bypasses red-day filter,

@@ -89,11 +89,12 @@ class TestBuildPutCreditSpread(unittest.IsolatedAsyncioTestCase):
 
     def _make_chain(self, today):
         exp_date = today + timedelta(days=28)
-        # Tastytrade SDK returns put deltas as positive values when queried
+        # Tastytrade SDK returns put deltas as positive values when queried.
+        # bid/ask chosen so $10-wide mid credit = $1.40 (> SPREAD_WIDTH_MIN_CREDIT[$10] = $1.30)
         puts = [
-            _make_strike("AAPL_PUT_190", 190, 0.14, 1.20, 1.40),
-            _make_strike("AAPL_PUT_180", 180, 0.08, 0.60, 0.80),
-        ]
+            _make_strike("AAPL_PUT_190", 190, 0.14, 2.20, 2.60),  # mid = 2.40
+            _make_strike("AAPL_PUT_180", 180, 0.08, 0.80, 1.20),  # mid = 1.00
+        ]  # net credit = 2.40 - 1.00 = 1.40
         exp = _make_expiration(exp_date, puts=puts)
         chain = MagicMock()
         chain.expirations = [exp]
