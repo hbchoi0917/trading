@@ -751,10 +751,10 @@ def get_target_expiry(ticker, earnings_date=None):
         return abs((exp - earnings_date).days) <= 5
 
     for exp in available:
-        if exp in monthlies and not is_earnings_conflict(exp) and not is_quad_witching_day(exp):
+        if exp in monthlies and not is_earnings_conflict(exp):
             return exp, (exp - today).days, True, (earnings_date is not None)
     for exp in available:
-        if not is_earnings_conflict(exp) and not is_quad_witching_day(exp):
+        if not is_earnings_conflict(exp):
             return exp, (exp - today).days, False, (earnings_date is not None)
     return None
 
@@ -993,6 +993,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 expiry_dte      = expiry_info[1] if expiry_info else None
                 is_monthly      = expiry_info[2] if expiry_info else None
                 earn_avoided    = str(earnings_date) if expiry_info and expiry_info[3] else 'N/A'
+                qw_expiry       = bool(expiry_info and is_quad_witching_day(expiry_info[0]))
                 t2_mgmt_note = (
                     f'Stage1(DTE<={T2_ROLLOVER_DTE}+price<short_put): '
                     f'1st net credit roll, 2nd debit<={int(MAX_ROLLOVER_DEBIT_PCT*100)}% of credit, fallback close | '
@@ -1021,6 +1022,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                     'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
                     'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
                     'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
+                    'QW_Expiry': qw_expiry,
                     'Position_Mgmt': t2_mgmt_note,
                 }
                 logger.info(

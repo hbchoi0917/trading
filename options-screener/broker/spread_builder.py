@@ -25,6 +25,23 @@ logger = logging.getLogger(__name__)
 
 SpreadType = Literal["put_credit", "call_credit"]
 
+# ── Quad witching delta guard ─────────────────────────────────────────────────
+# When the selected expiry falls on a quad witching Friday, reduce target_delta
+# so the short strike lands further OTM — provides more cushion against the
+# exaggerated intraday moves and wide spreads typical on QW day.
+_QW_MONTHS     = {3, 6, 9, 12}
+QW_DELTA_SCALE = 0.75   # multiply target_delta by this on QW expiry
+QW_DELTA_FLOOR = 0.08   # minimum delta after scaling
+
+
+def _is_quad_witching_expiry(exp_date: date) -> bool:
+    """True if exp_date is the 3rd Friday of Mar/Jun/Sep/Dec."""
+    if exp_date.month not in _QW_MONTHS or exp_date.weekday() != 4:
+        return False
+    first = date(exp_date.year, exp_date.month, 1)
+    first_fri = first + timedelta(days=(4 - first.weekday()) % 7)
+    return exp_date == first_fri + timedelta(weeks=2)
+
 
 @dataclass
 class SpreadSpec:
@@ -208,6 +225,12 @@ async def _build_spread(
 
     exp_date = best_exp.expiration_date
     dte      = (exp_date - today).days
+
+    # Quad witching expiry: go further OTM to absorb elevated gamma/noise
+    if _is_quad_witching_expiry(exp_date):
+        orig_delta   = target_delta
+        target_delta = max(QW_DELTA_FLOOR, round(target_delta * QW_DELTA_SCALE, 3))
+        logger.info(f"{symbol}: QW expiry {exp_date} — delta {orig_delta:.2f}→{target_delta:.3f}")
 
     is_put  = spread_type == "put_credit"
     strikes = best_exp.puts if is_put else best_exp.calls
