@@ -1,10 +1,7 @@
-# Options Trading Analysis (2025 Q1 – 2026 Q1)
+# Options Trading Analysis (Jan 2025 – May 2026)
 
 ## Overview
-This folder contains the analysis pipeline and insights derived from personal options trading transaction data (January 1, 2025 – March 31, 2026) across three brokerage accounts:
-- **Individual** (Taxable)
-- **Rollover IRA**
-- **Roth IRA**
+This folder contains the analysis pipeline and insights derived from personal options trading transaction data (January 1, 2025 – May 21, 2026) across four brokerage accounts (Account A, B, C, D).
 
 ---
 
@@ -23,20 +20,16 @@ options-analysis/
 
 ---
 
-## Key Stats (Jan 2025 – Mar 2026)
+## Key Stats (Jan 2025 – May 2026)
 
 | Metric | Value |
 |---|---|
-| Total Net P&L | **$28,681** |
-| Monthly Win Rate | **75%** (9 / 12 months profitable) |
-| Total Transactions | 3,084 |
-| Total Opening Trades | 1,627 |
-| Total Fees Paid | $1,632 |
+| Total Net P&L | **$45,710** |
+| Monthly Win Rate | **76%** (13 / 17 months profitable) |
+| Total Fees Paid | ~$3,157 |
 | Primary Strategy | Put Credit Spreads |
-| Top Earning Ticker | NVDA (+$5,190) |
-| Biggest Losing Ticker | PLTR (−$3,661) |
-| PUT P&L | +$31,496 |
-| CALL P&L | −$2,815 |
+| Top Earning Ticker | COST |
+| Biggest Losing Ticker | MSFT |
 
 ---
 
