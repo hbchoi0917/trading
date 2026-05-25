@@ -21,6 +21,7 @@ from broker.spread_builder import (
     _mid,
     _round_to_nickel,
     build_put_credit_spread,
+    build_best_spread,
 )
 
 
@@ -168,6 +169,75 @@ class TestSpreadSpecToOrder(unittest.TestCase):
         spec = self._make_spec()
         order = spec.to_order()
         self.assertEqual(order.price % Decimal("0.05"), Decimal("0"))
+
+
+class TestBuildBestSpread(unittest.IsolatedAsyncioTestCase):
+
+    def _spec(self, mid_credit: str, spread_width: float = 10.0) -> SpreadSpec:
+        credit = Decimal(mid_credit)
+        return SpreadSpec(
+            underlying="AAPL",
+            spread_type="put_credit",
+            short_symbol="AAPL_SHORT",
+            long_symbol="AAPL_LONG",
+            short_strike=190.0,
+            long_strike=190.0 - spread_width,
+            expiration=date.today() + timedelta(days=28),
+            dte=28,
+            mid_credit=credit,
+            max_risk=Decimal(str(spread_width)) * 100 - credit * 100,
+            short_delta=-0.14,
+        )
+
+    async def test_picks_5_wide_when_higher_total_premium(self):
+        # $10×1: 0.80 × 100 = $80   $5×2: 0.50 × 200 = $100 ← winner
+        spread_10 = self._spec("0.80", 10.0)
+        spread_5  = self._spec("0.50", 5.0)
+        session = MagicMock()
+        with patch("broker.spread_builder.build_put_credit_spread",
+                   side_effect=[spread_10, spread_5]):
+            result_spread, qty = await build_best_spread(session, "AAPL")
+        self.assertEqual(qty, 2)
+        self.assertEqual(result_spread.mid_credit, Decimal("0.50"))
+
+    async def test_picks_10_wide_when_higher_total_premium(self):
+        # $10×1: 1.20 × 100 = $120 ← winner   $5×2: 0.40 × 200 = $80
+        spread_10 = self._spec("1.20", 10.0)
+        spread_5  = self._spec("0.40", 5.0)
+        session = MagicMock()
+        with patch("broker.spread_builder.build_put_credit_spread",
+                   side_effect=[spread_10, spread_5]):
+            result_spread, qty = await build_best_spread(session, "AAPL")
+        self.assertEqual(qty, 1)
+        self.assertEqual(result_spread.mid_credit, Decimal("1.20"))
+
+    async def test_falls_back_to_10_wide_when_5_unavailable(self):
+        spread_10 = self._spec("1.00", 10.0)
+        session = MagicMock()
+        with patch("broker.spread_builder.build_put_credit_spread",
+                   side_effect=[spread_10, None]):
+            result_spread, qty = await build_best_spread(session, "AAPL")
+        self.assertEqual(qty, 1)
+        self.assertIsNotNone(result_spread)
+
+    async def test_returns_none_when_both_unavailable(self):
+        session = MagicMock()
+        with patch("broker.spread_builder.build_put_credit_spread",
+                   side_effect=[None, None]):
+            result_spread, qty = await build_best_spread(session, "AAPL")
+        self.assertIsNone(result_spread)
+        self.assertEqual(qty, 0)
+
+    async def test_equal_premium_prefers_10_wide(self):
+        # $10×1: 0.60 × 100 = $60   $5×2: 0.30 × 200 = $60  → tie → $10 wins
+        spread_10 = self._spec("0.60", 10.0)
+        spread_5  = self._spec("0.30", 5.0)
+        session = MagicMock()
+        with patch("broker.spread_builder.build_put_credit_spread",
+                   side_effect=[spread_10, spread_5]):
+            result_spread, qty = await build_best_spread(session, "AAPL")
+        self.assertEqual(qty, 1)
+        self.assertEqual(result_spread.mid_credit, Decimal("0.60"))
 
 
 if __name__ == "__main__":

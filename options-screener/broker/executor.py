@@ -33,7 +33,7 @@ from tastytrade.order import (
 from tastytrade.session import Session
 
 from .client import TastyClient
-from .spread_builder import SpreadSpec, build_put_credit_spread, build_call_credit_spread
+from .spread_builder import SpreadSpec, build_best_spread
 from notifications import notify_entry, notify_close, notify_error
 
 logger = logging.getLogger(__name__)
@@ -74,36 +74,37 @@ async def execute_entry(
     symbol:           str,
     spread_type:      str   = "put_credit",
     target_delta:     float = 0.15,
-    quantity:         int   = 1,
     dry_run:          bool  = DRY_RUN_DEFAULT,
 ) -> EntryResult:
     """
-    Build and place a vertical spread for `symbol`.
+    Build and place the best vertical spread for `symbol`.
 
+    Compares $10×1 vs $5×2 and picks whichever yields higher total premium.
     Returns EntryResult with success/failure details.
     """
+    # Build spread — auto-selects best width and quantity
+    spread, quantity = await build_best_spread(
+        client.session, symbol, spread_type=spread_type, target_delta=target_delta
+    )
+
+    if spread is None:
+        return EntryResult(symbol=symbol, success=False, reject_reason="no_valid_spread")
+
     # Risk guard: high-beta contract limit
     if symbol in HIGH_BETA_TICKERS and quantity > HIGH_BETA_MAX_CONTRACTS:
         quantity = HIGH_BETA_MAX_CONTRACTS
         logger.warning(f"{symbol}: high-beta — capping quantity to {HIGH_BETA_MAX_CONTRACTS}")
 
-    # Build spread
-    builder = build_put_credit_spread if spread_type == "put_credit" else build_call_credit_spread
-    spread = await builder(client.session, symbol, target_delta=target_delta)
-
-    if spread is None:
-        return EntryResult(symbol=symbol, success=False, reject_reason="no_valid_spread")
-
-    # Risk guard: max risk per spread
-    if spread.max_risk > MAX_RISK_PER_SPREAD:
-        reason = f"max_risk=${spread.max_risk:.0f} > limit=${MAX_RISK_PER_SPREAD:.0f}"
+    # Risk guard: total risk across all contracts
+    total_risk = spread.max_risk * quantity
+    if total_risk > MAX_RISK_PER_SPREAD:
+        reason = f"max_risk=${total_risk:.0f} > limit=${MAX_RISK_PER_SPREAD:.0f}"
         logger.warning(f"{symbol}: rejected — {reason}")
         return EntryResult(symbol=symbol, success=False, reject_reason=reason, spread=spread)
 
     # Risk guard: MSFT OTM rule
     if symbol == "MSFT" and spread_type == "put_credit":
-        # Fetch current price from spread's short_delta context is unavailable here;
-        # rely on screener having already validated OTM%. Log as reminder.
+        # Rely on screener having already validated OTM%. Log as reminder.
         logger.info("MSFT: ensure strike is ≥15% OTM before confirming this order")
 
     order = spread.to_order(quantity=quantity)

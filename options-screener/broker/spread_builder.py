@@ -135,6 +135,40 @@ async def build_call_credit_spread(
     )
 
 
+async def build_best_spread(
+    session:      Session,
+    symbol:       str,
+    spread_type:  str   = "put_credit",
+    target_delta: float = 0.15,
+    dte_min:      int   = 21,
+    dte_max:      int   = 35,
+) -> tuple[Optional[SpreadSpec], int]:
+    """
+    Compare $10 spread × 1 contract vs $5 spread × 2 contracts.
+    Return (best_spread, quantity) whichever yields higher total premium.
+    Total premium = mid_credit × quantity × 100.
+    Both scenarios cap at $1,000 max risk.
+    """
+    builder = build_put_credit_spread if spread_type == "put_credit" else build_call_credit_spread
+
+    spread_10 = await builder(session, symbol, target_delta, dte_min, dte_max, spread_width=10.0)
+    spread_5  = await builder(session, symbol, target_delta, dte_min, dte_max, spread_width=5.0)
+
+    total_10 = spread_10.mid_credit * 100 if spread_10 else Decimal("0")
+    total_5  = spread_5.mid_credit  * 200 if spread_5  else Decimal("0")
+
+    logger.info(
+        f"{symbol}: $10×1 total=${total_10:.2f}  $5×2 total=${total_5:.2f}"
+        f"  → {'$5×2' if spread_5 and total_5 > total_10 else '$10×1'}"
+    )
+
+    if spread_5 and total_5 > total_10:
+        return spread_5, 2
+    if spread_10:
+        return spread_10, 1
+    return None, 0
+
+
 async def _build_spread(
     session:      Session,
     symbol:       str,

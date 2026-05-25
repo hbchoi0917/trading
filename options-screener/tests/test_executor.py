@@ -22,6 +22,7 @@ from broker.executor import (
     HIGH_BETA_TICKERS,
     HIGH_BETA_MAX_CONTRACTS,
 )
+from broker.spread_builder import build_best_spread
 from broker.spread_builder import SpreadSpec
 
 
@@ -79,7 +80,7 @@ class TestExecuteEntry(unittest.IsolatedAsyncioTestCase):
     async def test_successful_entry(self):
         spread = _make_spread()
         client = _make_client(spread)
-        with patch("broker.executor.build_put_credit_spread", new=AsyncMock(return_value=spread)), \
+        with patch("broker.executor.build_best_spread", new=AsyncMock(return_value=(spread, 1))), \
              patch("notifications.notify_entry"):
             result = await execute_entry(client, "ACCT123", "AAPL", dry_run=True)
         self.assertTrue(result.success)
@@ -88,7 +89,7 @@ class TestExecuteEntry(unittest.IsolatedAsyncioTestCase):
 
     async def test_no_valid_spread_returns_failure(self):
         client = _make_client()
-        with patch("broker.executor.build_put_credit_spread", new=AsyncMock(return_value=None)):
+        with patch("broker.executor.build_best_spread", new=AsyncMock(return_value=(None, 0))):
             result = await execute_entry(client, "ACCT123", "AAPL", dry_run=True)
         self.assertFalse(result.success)
         self.assertEqual(result.reject_reason, "no_valid_spread")
@@ -96,14 +97,15 @@ class TestExecuteEntry(unittest.IsolatedAsyncioTestCase):
     async def test_max_risk_exceeded_returns_failure(self):
         oversized_spread = _make_spread(max_risk=MAX_RISK_PER_SPREAD + Decimal("1"))
         client = _make_client()
-        with patch("broker.executor.build_put_credit_spread", new=AsyncMock(return_value=oversized_spread)):
+        with patch("broker.executor.build_best_spread", new=AsyncMock(return_value=(oversized_spread, 1))):
             result = await execute_entry(client, "ACCT123", "AAPL", dry_run=True)
         self.assertFalse(result.success)
         self.assertIn("max_risk", result.reject_reason)
 
     async def test_high_beta_quantity_capped(self):
-        spread = _make_spread()
-        client = _make_client(spread)
+        # Use a $5-wide spread (max_risk≈$430) so 2 contracts stay within the $1k limit
+        spread_5wide = _make_spread(max_risk=Decimal("430"), mid_credit=Decimal("0.70"))
+        client = _make_client(spread_5wide)
         ticker = next(iter(HIGH_BETA_TICKERS))
         placed_quantities = []
 
@@ -117,11 +119,10 @@ class TestExecuteEntry(unittest.IsolatedAsyncioTestCase):
 
         client.get_account.return_value.place_order = fake_place_order
 
-        with patch("broker.executor.build_put_credit_spread", new=AsyncMock(return_value=spread)), \
+        # build_best_spread returns qty=10; executor must cap it to HIGH_BETA_MAX_CONTRACTS
+        with patch("broker.executor.build_best_spread", new=AsyncMock(return_value=(spread_5wide, 10))), \
              patch("notifications.notify_entry"):
-            result = await execute_entry(
-                client, "ACCT123", ticker, quantity=10, dry_run=True
-            )
+            result = await execute_entry(client, "ACCT123", ticker, dry_run=True)
         self.assertTrue(result.success)
         for q in placed_quantities:
             self.assertLessEqual(q, HIGH_BETA_MAX_CONTRACTS)
@@ -132,7 +133,7 @@ class TestExecuteEntry(unittest.IsolatedAsyncioTestCase):
         client.get_account.return_value.place_order = AsyncMock(
             side_effect=Exception("insufficient buying power")
         )
-        with patch("broker.executor.build_put_credit_spread", new=AsyncMock(return_value=spread)), \
+        with patch("broker.executor.build_best_spread", new=AsyncMock(return_value=(spread, 1))), \
              patch("notifications.notify_error"):
             result = await execute_entry(client, "ACCT123", "AAPL", dry_run=True)
         self.assertFalse(result.success)
