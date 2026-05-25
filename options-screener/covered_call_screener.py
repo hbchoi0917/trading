@@ -60,6 +60,8 @@ CC_EARNINGS_DAYS  = 7      # skip if earnings within this many days
 CC_DTE_MIN        = 21
 CC_DTE_MAX        = 35
 CC_OTM_PCTS       = [0.03, 0.05, 0.07]   # suggested strike levels above spot
+CC_NO_ASSIGN_TICKERS  = {'VOO'}   # long-term core ETF; premium only, assignment undesirable
+CC_NO_ASSIGN_MIN_OTM  = 0.05      # minimum OTM for no-assign tickers (skip 3% strikes)
 
 
 # ── Option chain helpers ──────────────────────────────────────────────────────
@@ -105,6 +107,8 @@ def _get_call_strikes(ticker: str, expiry_str: str, spot: float) -> list[dict]:
             return []
         chain = chain[chain['strike'] > spot].copy()
         chain['otm_pct'] = (chain['strike'] - spot) / spot
+        if ticker in CC_NO_ASSIGN_TICKERS:
+            chain = chain[chain['otm_pct'] >= CC_NO_ASSIGN_MIN_OTM]
 
         results = []
         seen_strikes = set()
