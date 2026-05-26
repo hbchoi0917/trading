@@ -93,8 +93,7 @@ def _send_gmail(subject: str, body: str) -> bool:
             server.sendmail(GMAIL_SENDER, GMAIL_RECEIVER, msg.as_bytes())
         return True
     except Exception as e:
-        import traceback
-        logger.warning(f"Gmail send failed: {e}\n{traceback.format_exc()}")
+        logger.warning(f"Gmail send failed: {e}")
         return False
 
 
