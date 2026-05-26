@@ -37,6 +37,7 @@ import urllib.parse
 import urllib.error
 import json
 from datetime import datetime
+from email.message import EmailMessage
 
 logger = logging.getLogger(__name__)
 
@@ -81,11 +82,15 @@ def _send_gmail(subject: str, body: str) -> bool:
     if not GMAIL_SENDER or not GMAIL_PASSWORD or not GMAIL_RECEIVER:
         return False
     try:
-        msg = f"Subject: {subject}\n\n{body}"
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From']    = GMAIL_SENDER
+        msg['To']      = GMAIL_RECEIVER
+        msg.set_content(body)
         ctx = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx) as server:
             server.login(GMAIL_SENDER, GMAIL_PASSWORD)
-            server.sendmail(GMAIL_SENDER, GMAIL_RECEIVER, msg)
+            server.send_message(msg)
         return True
     except Exception as e:
         logger.warning(f"Gmail send failed: {e}")
