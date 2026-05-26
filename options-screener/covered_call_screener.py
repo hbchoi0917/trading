@@ -24,6 +24,9 @@ import logging
 import math
 from datetime import datetime, timedelta
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import pandas as pd
 import yfinance as yf
 
