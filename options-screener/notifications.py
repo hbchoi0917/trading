@@ -264,6 +264,7 @@ def notify_weekly_summary(
     week_placed: int,
     week_closed: int,
     next_week_expiring: list[dict] | None = None,
+    next_week_earnings: list[dict] | None = None,
     top_winner: dict | None = None,
     top_loser: dict | None = None,
 ) -> None:
@@ -271,6 +272,7 @@ def notify_weekly_summary(
     Send end-of-week recap on the last trading day (4:30 PM ET).
 
     next_week_expiring : [{ticker, expiry, dte}]
+    next_week_earnings : [{ticker, earnings_date, weekday}]
     top_winner/loser   : {ticker, pnl}
     """
     subject = f"📅 Weekly Summary — Week of {week_start}"
@@ -286,6 +288,13 @@ def notify_weekly_summary(
             lines.append(
                 f"  {p['ticker']}  {p['expiry']}  ({p['dte']} DTE) — BTC 검토"
             )
+
+    if next_week_earnings:
+        lines.append("")
+        lines.append("다음 주 어닝 (스크리너 티커):")
+        for e in next_week_earnings:
+            lines.append(f"  {e['ticker']:<6} {e['earnings_date']}  ({e['weekday']})")
+        lines.append("  → 어닝 당일 진입 여부 수동 판단")
 
     if top_winner or top_loser:
         lines.append("")

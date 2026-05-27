@@ -34,7 +34,7 @@ import csv
 import logging
 import os
 import re
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -362,18 +362,56 @@ def compute_daily_summary_data(positions_file: Path = POSITIONS_FILE) -> dict:
         return empty
 
 
+def _get_next_week_earnings() -> list[dict]:
+    """
+    Return tickers (from all screener tiers) with earnings in the coming week.
+    Each entry: {ticker, earnings_date, weekday}  (weekday: 월/화/수/목/금)
+    """
+    try:
+        from options_premium_screener import (
+            TIER1_CORE, TIER2_WATCHLIST, TIER3_WATCHLIST, get_earnings_date,
+        )
+    except ImportError:
+        return []
+
+    today           = date.today()
+    next_week_start = today - timedelta(days=today.weekday()) + timedelta(weeks=1)
+    next_week_end   = next_week_start + timedelta(days=4)
+
+    all_tickers = [t for t in TIER1_CORE + TIER2_WATCHLIST + TIER3_WATCHLIST
+                   if not t.startswith("^")]   # exclude ^GSPC etc.
+
+    _WEEKDAY_KR = ["월", "화", "수", "목", "금"]
+    results = []
+    for ticker in all_tickers:
+        try:
+            ed = get_earnings_date(ticker)
+            if ed and next_week_start <= ed <= next_week_end:
+                results.append({
+                    "ticker":        ticker,
+                    "earnings_date": str(ed),
+                    "weekday":       _WEEKDAY_KR[ed.weekday()],
+                })
+        except Exception:
+            continue
+
+    results.sort(key=lambda x: x["earnings_date"])
+    return results
+
+
 def compute_weekly_summary_data(positions_file: Path = POSITIONS_FILE) -> dict:
     """
     Gather positions.csv data for the weekly summary email (last trading day only).
 
     Returns dict with keys:
       week_start, week_pnl, week_placed, week_closed,
-      next_week_expiring, top_winner, top_loser
+      next_week_expiring, next_week_earnings, top_winner, top_loser
     """
     empty = {
         "week_start": str(date.today()), "week_pnl": Decimal("0"),
         "week_placed": 0, "week_closed": 0,
-        "next_week_expiring": [], "top_winner": None, "top_loser": None,
+        "next_week_expiring": [], "next_week_earnings": [],
+        "top_winner": None, "top_loser": None,
     }
     if not positions_file.exists():
         return empty
@@ -422,12 +460,16 @@ def compute_weekly_summary_data(positions_file: Path = POSITIONS_FILE) -> dict:
                 top_winner = {"ticker": by_ticker.idxmax(), "pnl": float(by_ticker.max())}
                 top_loser  = {"ticker": by_ticker.idxmin(), "pnl": float(by_ticker.min())}
 
+        # Next week earnings for all screener tickers
+        next_week_earnings = _get_next_week_earnings()
+
         return {
             "week_start":          str(week_start),
             "week_pnl":            week_pnl,
             "week_placed":         week_placed,
             "week_closed":         week_closed,
             "next_week_expiring":  next_week_expiring,
+            "next_week_earnings":  next_week_earnings,
             "top_winner":          top_winner,
             "top_loser":           top_loser,
         }
@@ -605,6 +647,7 @@ def run_summary() -> None:
             week_placed=wdata["week_placed"],
             week_closed=wdata["week_closed"],
             next_week_expiring=wdata["next_week_expiring"],
+            next_week_earnings=wdata["next_week_earnings"],
             top_winner=wdata["top_winner"],
             top_loser=wdata["top_loser"],
         )
