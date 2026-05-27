@@ -149,10 +149,10 @@ VIX_HIGH   = 30
 
 # Minimum VIX required for new entries.
 # Below this, premium is too thin relative to the risk taken.
-# VIX 18 = upper half of NORMAL regime — decent premium, avoids the
-# truly quiet LOW-VIX environment where IV Rank rarely clears 25.
-# Raise to 20 for strict ELEVATED-only targeting.
-VIX_ENTRY_MIN = 18
+# VIX 16 = lower bound of NORMAL regime — individual stock IV remains
+# tradeable (CLS/TSLA/MRVL often at 30-50% IV even at VIX 16).
+# Raise to 18-20 for conservative premium targeting.
+VIX_ENTRY_MIN = 16
 
 # Tier 2 volatility guard
 TIER2_ATR_MAX = 5.0
