@@ -52,8 +52,9 @@ from broker.executor import (
     DRY_RUN_DEFAULT,
     MAX_CONCURRENT_POSITIONS,
     MAX_ENTRIES_PER_RUN,
+    PORTFOLIO_EXPOSURE_LIMITS,
 )
-from notifications import notify_circuit_breaker, notify_monitor_summary
+from notifications import notify, notify_circuit_breaker, notify_monitor_summary
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -208,6 +209,36 @@ def get_monthly_pnl_from_tracker(positions_file: Path = POSITIONS_FILE) -> Decim
         return Decimal("0")
 
 
+# ── Portfolio-level exposure check ───────────────────────────────────────────
+
+def get_portfolio_exposure(ticker: str, positions_file: Path = POSITIONS_FILE) -> Decimal:
+    """
+    Return total current max risk for `ticker` across ALL open positions (all accounts).
+
+    max_risk per position = (short_put_strike − long_put_strike) × contracts × 100
+    Used to enforce PORTFOLIO_EXPOSURE_LIMITS before any new entry is placed.
+    """
+    if not positions_file.exists():
+        return Decimal("0")
+    try:
+        import pandas as pd
+        df = pd.read_csv(positions_file)
+        if df.empty or "ticker" not in df.columns:
+            return Decimal("0")
+        open_pos = df[(df["ticker"] == ticker) & (df["status"] == "OPEN")]
+        if open_pos.empty:
+            return Decimal("0")
+        total = (
+            (open_pos["short_put_strike"] - open_pos["long_put_strike"])
+            * open_pos["contracts"]
+            * 100
+        ).sum()
+        return Decimal(str(round(float(total), 2)))
+    except Exception as e:
+        logger.warning(f"Portfolio exposure check failed for {ticker}: {e}")
+        return Decimal("0")
+
+
 # ── Account selection ─────────────────────────────────────────────────────────
 
 def get_target_accounts(client: TastyClient) -> list[str]:
@@ -236,6 +267,43 @@ async def run_entry(client: TastyClient, dry_run: bool) -> None:
         logger.warning("Entry phase aborted — monthly drawdown limit hit.")
         from broker.executor import MONTHLY_DRAWDOWN_LIMIT
         notify_circuit_breaker(float(monthly_pnl), float(MONTHLY_DRAWDOWN_LIMIT))
+        return
+
+    # Portfolio-level single-ticker exposure cap (cross-account)
+    # Filters signals BEFORE distributing to any account.
+    filtered_signals = []
+    for sig in signals:
+        ticker = sig["ticker"]
+        limit  = PORTFOLIO_EXPOSURE_LIMITS.get(ticker)
+        if limit is not None:
+            current = get_portfolio_exposure(ticker)
+            if current >= limit:
+                logger.warning(
+                    f"PORTFOLIO CAP BLOCKED: {ticker} "
+                    f"exposure ${current:.0f} ≥ limit ${limit:.0f} "
+                    f"— no new entries in any account"
+                )
+                notify(
+                    f"🚫 Portfolio Cap — {ticker}",
+                    f"Current exposure: ${current:.0f}\n"
+                    f"Limit: ${limit:.0f}\n"
+                    f"New entries blocked across all accounts.",
+                )
+                continue
+            if current > Decimal("0"):
+                logger.info(
+                    f"PORTFOLIO EXPOSURE: {ticker} "
+                    f"${current:.0f} / ${limit:.0f} limit ({current/limit*100:.0f}% used)"
+                )
+        filtered_signals.append(sig)
+
+    if len(filtered_signals) < len(signals):
+        blocked = [s["ticker"] for s in signals if s not in filtered_signals]
+        logger.warning(f"Portfolio cap removed signals: {blocked}")
+    signals = filtered_signals
+
+    if not signals:
+        logger.info("All signals blocked by portfolio exposure caps — skipping entry phase")
         return
 
     for acct_num in accounts:

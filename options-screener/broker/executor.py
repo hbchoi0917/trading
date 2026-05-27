@@ -17,6 +17,7 @@ Risk rules (hardcoded):
   MAX_CONCURRENT_POSITIONS 25   — target concurrent open spreads (dynamic throttle)
   MAX_ENTRIES_PER_RUN      10   — new positions per screener run (capped to available slots)
   HIGH_BETA_TICKERS        IONQ, RGTI, MARA — max 2 contracts
+  PORTFOLIO_EXPOSURE_LIMITS  MSFT=$2,000 / TSLA=$3,000 / SNDK=$2,500 / ASML=$3,000 — cross-account total max risk
 """
 
 import asyncio
@@ -64,6 +65,18 @@ HIGH_BETA_MAX_CONTRACTS  = 2
 CONSERVATIVE_TICKERS     = {"MSFT"}
 CONSERVATIVE_MAX_CONTRACTS = 2
 MSFT_MIN_OTM_PCT         = 15        # MSFT short strike must be ≥15% OTM
+
+# Portfolio-level cross-account exposure caps.
+# These override per-account contract limits: once total open max_risk across
+# ALL accounts reaches the limit, no new entry is placed in any account.
+# MSFT: -$10,556 in Feb 2026 from uncapped multi-account sizing (Azure miss)
+# TSLA: -$3,857 in Q2 2026; high directional risk; put spreads only
+PORTFOLIO_EXPOSURE_LIMITS: dict[str, Decimal] = {
+    "MSFT": Decimal("2000"),   # Feb 2026: -$10,556; largest single-name loss
+    "TSLA": Decimal("3000"),   # Q2 2026: -$3,857; high directional risk
+    "SNDK": Decimal("2500"),   # high-volatility AI sector; most volatile in rotation
+    "ASML": Decimal("3000"),   # expensive stock; single spread risk is large
+}
 
 DRY_RUN_DEFAULT = os.environ.get("TT_DRY_RUN", "true").lower() == "true"
 
