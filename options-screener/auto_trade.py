@@ -54,7 +54,13 @@ from broker.executor import (
     MAX_ENTRIES_PER_RUN,
     PORTFOLIO_EXPOSURE_LIMITS,
 )
-from notifications import notify, notify_circuit_breaker, notify_monitor_summary
+from notifications import (
+    notify,
+    notify_circuit_breaker,
+    notify_monitor_summary,
+    notify_daily_summary,
+    notify_weekly_summary,
+)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -64,6 +70,42 @@ logging.basicConfig(
 )
 
 POSITIONS_FILE = Path("positions.csv")
+
+# NYSE market holidays — update annually
+# Source: https://www.nyse.com/markets/hours-calendars
+_NYSE_HOLIDAYS = {
+    date(2026, 1, 1),    # New Year's Day
+    date(2026, 1, 19),   # MLK Day
+    date(2026, 2, 16),   # Presidents Day
+    date(2026, 4, 3),    # Good Friday
+    date(2026, 5, 25),   # Memorial Day
+    date(2026, 7, 3),    # Independence Day (observed)
+    date(2026, 9, 7),    # Labor Day
+    date(2026, 11, 26),  # Thanksgiving
+    date(2026, 12, 25),  # Christmas
+    date(2027, 1, 1),    # New Year's Day
+    date(2027, 1, 18),   # MLK Day
+    date(2027, 2, 15),   # Presidents Day
+    date(2027, 3, 26),   # Good Friday
+    date(2027, 5, 31),   # Memorial Day
+    date(2027, 7, 5),    # Independence Day (observed)
+    date(2027, 9, 6),    # Labor Day
+    date(2027, 11, 25),  # Thanksgiving
+    date(2027, 12, 24),  # Christmas (observed)
+}
+
+
+def is_last_trading_day() -> bool:
+    """Return True if today is the last trading day of the current week."""
+    today = date.today()
+    if today.weekday() >= 5 or today in _NYSE_HOLIDAYS:
+        return False
+    # Walk forward to find the next trading day
+    next_day = today + timedelta(days=1)
+    while next_day.weekday() >= 5 or next_day in _NYSE_HOLIDAYS:
+        next_day += timedelta(days=1)
+    # If next trading day is Monday, today was the last day of this trading week
+    return next_day.weekday() == 0
 
 
 # ── Signal loading & normalization ────────────────────────────────────────────
@@ -239,6 +281,161 @@ def get_portfolio_exposure(ticker: str, positions_file: Path = POSITIONS_FILE) -
         return Decimal("0")
 
 
+# ── Summary data helpers ──────────────────────────────────────────────────────
+
+def compute_daily_summary_data(positions_file: Path = POSITIONS_FILE) -> dict:
+    """
+    Gather positions.csv data for the daily summary email.
+
+    Returns dict with keys:
+      placed_today, closed_today, open_positions, mtd_pnl,
+      expiring_soon (DTE ≤ 9), cap_warnings (>80% of limit)
+    """
+    empty = {
+        "placed_today": 0, "closed_today": 0, "open_positions": [],
+        "mtd_pnl": Decimal("0"), "expiring_soon": [], "cap_warnings": [],
+    }
+    if not positions_file.exists():
+        return empty
+    try:
+        import pandas as pd
+        df = pd.read_csv(positions_file)
+        if df.empty:
+            return empty
+
+        today = date.today()
+
+        # Parse dates once
+        df["entry_date_d"] = pd.to_datetime(df.get("entry_date"), errors="coerce").dt.date
+        df["close_date_d"] = pd.to_datetime(df.get("close_date"), errors="coerce").dt.date
+        df["expiry_date_d"] = pd.to_datetime(df.get("expiry_date"), errors="coerce").dt.date
+
+        placed_today = int((df["entry_date_d"] == today).sum())
+
+        is_closed = df["status"].isin(["CLOSED", "ROLLED"])
+        closed_today = int((is_closed & (df["close_date_d"] == today)).sum())
+
+        # MTD P&L
+        is_this_month = df["close_date_d"].apply(
+            lambda d: bool(d and d.year == today.year and d.month == today.month)
+        )
+        mtd_raw = pd.to_numeric(df.loc[is_closed & is_this_month, "pnl_usd"], errors="coerce").sum()
+        mtd_pnl = Decimal(str(round(float(mtd_raw), 2)))
+
+        # Open positions
+        open_df = df[df["status"] == "OPEN"].copy()
+        open_positions = []
+        expiring_soon  = []
+        for _, row in open_df.iterrows():
+            expiry = row["expiry_date_d"]
+            dte    = (expiry - today).days if expiry else None
+            pos = {
+                "ticker":       str(row["ticker"]),
+                "short_strike": float(row["short_put_strike"]),
+                "long_strike":  float(row["long_put_strike"]),
+                "expiry":       str(expiry) if expiry else "?",
+                "dte":          dte,
+                "contracts":    int(row["contracts"]),
+            }
+            open_positions.append(pos)
+            if dte is not None and dte <= 9:
+                expiring_soon.append(pos)
+
+        # Portfolio cap warnings >80%
+        cap_warnings = []
+        for ticker, limit in PORTFOLIO_EXPOSURE_LIMITS.items():
+            exposure = get_portfolio_exposure(ticker, positions_file)
+            if exposure >= limit * Decimal("0.8"):
+                pct = int(exposure / limit * 100)
+                cap_warnings.append(f"{ticker} ${exposure:.0f}/${limit:.0f} ({pct}%)")
+
+        return {
+            "placed_today":   placed_today,
+            "closed_today":   closed_today,
+            "open_positions": open_positions,
+            "mtd_pnl":        mtd_pnl,
+            "expiring_soon":  expiring_soon,
+            "cap_warnings":   cap_warnings,
+        }
+    except Exception as e:
+        logger.warning(f"compute_daily_summary_data failed: {e}")
+        return empty
+
+
+def compute_weekly_summary_data(positions_file: Path = POSITIONS_FILE) -> dict:
+    """
+    Gather positions.csv data for the weekly summary email (last trading day only).
+
+    Returns dict with keys:
+      week_start, week_pnl, week_placed, week_closed,
+      next_week_expiring, top_winner, top_loser
+    """
+    empty = {
+        "week_start": str(date.today()), "week_pnl": Decimal("0"),
+        "week_placed": 0, "week_closed": 0,
+        "next_week_expiring": [], "top_winner": None, "top_loser": None,
+    }
+    if not positions_file.exists():
+        return empty
+    try:
+        import pandas as pd
+        df = pd.read_csv(positions_file)
+        if df.empty:
+            return empty
+
+        today      = date.today()
+        week_start = today - timedelta(days=today.weekday())   # Monday
+
+        df["entry_date_d"] = pd.to_datetime(df.get("entry_date"), errors="coerce").dt.date
+        df["close_date_d"] = pd.to_datetime(df.get("close_date"), errors="coerce").dt.date
+        df["expiry_date_d"] = pd.to_datetime(df.get("expiry_date"), errors="coerce").dt.date
+
+        week_placed = int((df["entry_date_d"] >= week_start).sum())
+
+        is_closed  = df["status"].isin(["CLOSED", "ROLLED"])
+        is_this_week = df["close_date_d"].apply(lambda d: bool(d and d >= week_start))
+        week_closed_df = df[is_closed & is_this_week].copy()
+        week_closed = len(week_closed_df)
+        week_pnl_raw = pd.to_numeric(week_closed_df["pnl_usd"], errors="coerce").sum()
+        week_pnl = Decimal(str(round(float(week_pnl_raw), 2)))
+
+        # Next week expiring open positions
+        next_week_start = week_start + timedelta(weeks=1)
+        next_week_end   = next_week_start + timedelta(days=4)
+        open_df = df[df["status"] == "OPEN"].copy()
+        next_week_expiring = []
+        for _, row in open_df.iterrows():
+            expiry = row["expiry_date_d"]
+            if expiry and next_week_start <= expiry <= next_week_end:
+                next_week_expiring.append({
+                    "ticker": str(row["ticker"]),
+                    "expiry": str(expiry),
+                    "dte":    (expiry - today).days,
+                })
+
+        # Top winner / loser this week by ticker P&L
+        top_winner = top_loser = None
+        if not week_closed_df.empty:
+            week_closed_df["pnl_usd"] = pd.to_numeric(week_closed_df["pnl_usd"], errors="coerce")
+            by_ticker = week_closed_df.groupby("ticker")["pnl_usd"].sum()
+            if not by_ticker.empty:
+                top_winner = {"ticker": by_ticker.idxmax(), "pnl": float(by_ticker.max())}
+                top_loser  = {"ticker": by_ticker.idxmin(), "pnl": float(by_ticker.min())}
+
+        return {
+            "week_start":          str(week_start),
+            "week_pnl":            week_pnl,
+            "week_placed":         week_placed,
+            "week_closed":         week_closed,
+            "next_week_expiring":  next_week_expiring,
+            "top_winner":          top_winner,
+            "top_loser":           top_loser,
+        }
+    except Exception as e:
+        logger.warning(f"compute_weekly_summary_data failed: {e}")
+        return empty
+
+
 # ── Account selection ─────────────────────────────────────────────────────────
 
 def get_target_accounts(client: TastyClient) -> list[str]:
@@ -378,6 +575,44 @@ async def run_monitor(client: TastyClient, dry_run: bool) -> None:
     )
 
 
+# ── Phase 3: Daily / Weekly summary ──────────────────────────────────────────
+
+def run_summary() -> None:
+    """
+    Send daily summary email, and weekly summary on the last trading day.
+    Reads positions.csv only — no broker connection required.
+    """
+    from broker.executor import MONTHLY_DRAWDOWN_LIMIT
+
+    data = compute_daily_summary_data()
+    notify_daily_summary(
+        placed=data["placed_today"],
+        closed=data["closed_today"],
+        open_positions=data["open_positions"],
+        mtd_pnl=float(data["mtd_pnl"]),
+        drawdown_limit=float(MONTHLY_DRAWDOWN_LIMIT),
+        expiring_soon=data["expiring_soon"],
+        cap_warnings=data["cap_warnings"],
+    )
+    logger.info("Daily summary sent.")
+
+    if is_last_trading_day():
+        wdata = compute_weekly_summary_data()
+        notify_weekly_summary(
+            week_start=wdata["week_start"],
+            week_pnl=float(wdata["week_pnl"]),
+            mtd_pnl=float(data["mtd_pnl"]),
+            week_placed=wdata["week_placed"],
+            week_closed=wdata["week_closed"],
+            next_week_expiring=wdata["next_week_expiring"],
+            top_winner=wdata["top_winner"],
+            top_loser=wdata["top_loser"],
+        )
+        logger.info("Weekly summary sent (last trading day).")
+    else:
+        logger.info("Not the last trading day — weekly summary skipped.")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 async def main(args: argparse.Namespace) -> None:
@@ -387,6 +622,11 @@ async def main(args: argparse.Namespace) -> None:
         logger.info("Mode: DRY-RUN (orders logged but not submitted — pass --live to execute)")
     else:
         logger.warning("Mode: LIVE — real orders WILL be submitted to Tastytrade!")
+
+    # summary reads only positions.csv — no broker connection needed
+    if args.command == "summary":
+        run_summary()
+        return
 
     async with TastyClient() as client:
         acct_list = [a["account_number"] for a in client.list_accounts()]
@@ -403,8 +643,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Automated options trading pipeline")
     parser.add_argument(
         "command",
-        choices=["entry", "monitor", "all"],
-        help="Phase to run: entry (new positions) | monitor (auto-close) | all (both)",
+        choices=["entry", "monitor", "all", "summary"],
+        help="Phase to run: entry | monitor | all | summary (daily/weekly email)",
     )
     parser.add_argument(
         "--live",

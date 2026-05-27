@@ -206,6 +206,97 @@ def notify_monitor_summary(
     notify(subject, body)
 
 
+# ── Daily / Weekly summary ───────────────────────────────────────────────────
+
+def notify_daily_summary(
+    placed: int,
+    closed: int,
+    open_positions: list[dict],
+    mtd_pnl: float,
+    drawdown_limit: float = -2000.0,
+    expiring_soon: list[dict] | None = None,
+    cap_warnings: list[str] | None = None,
+) -> None:
+    """
+    Send end-of-day portfolio summary (4:30 PM ET).
+
+    open_positions : [{ticker, short_strike, long_strike, expiry, dte, contracts}]
+    expiring_soon  : positions with DTE ≤ 9
+    cap_warnings   : tickers at >80% of portfolio exposure cap
+    """
+    subject  = f"📊 Daily Summary — {datetime.now().strftime('%b %d')}"
+    headroom = mtd_pnl - drawdown_limit   # drawdown_limit is negative (-2000)
+
+    lines = [
+        f"진입 {placed} | 클로즈 {closed} | 오픈 {len(open_positions)}개",
+        f"MTD P&L: ${mtd_pnl:+,.0f}  (서킷브레이커까지 ${headroom:,.0f} 여유)",
+    ]
+
+    if open_positions:
+        lines.append("")
+        lines.append("오픈 포지션:")
+        for p in open_positions:
+            dte_str = f"{p['dte']} DTE" if p.get("dte") is not None else "? DTE"
+            exp_str = p["expiry"][5:] if len(p.get("expiry", "")) >= 7 else p.get("expiry", "?")
+            lines.append(
+                f"  {p['ticker']:<6} ${p['short_strike']:.0f}/${p['long_strike']:.0f}P"
+                f"  {exp_str}  {dte_str}  {p['contracts']}계약"
+            )
+
+    if expiring_soon:
+        lines.append("")
+        for p in expiring_soon:
+            exp_str = p["expiry"][5:] if len(p.get("expiry", "")) >= 7 else p.get("expiry", "?")
+            lines.append(f"⚠️  만기임박: {p['ticker']} {exp_str} ({p['dte']} DTE)")
+
+    if cap_warnings:
+        lines.append("")
+        for w in cap_warnings:
+            lines.append(f"⚠️  캡경고: {w}")
+
+    notify(subject, "\n".join(lines))
+
+
+def notify_weekly_summary(
+    week_start: str,
+    week_pnl: float,
+    mtd_pnl: float,
+    week_placed: int,
+    week_closed: int,
+    next_week_expiring: list[dict] | None = None,
+    top_winner: dict | None = None,
+    top_loser: dict | None = None,
+) -> None:
+    """
+    Send end-of-week recap on the last trading day (4:30 PM ET).
+
+    next_week_expiring : [{ticker, expiry, dte}]
+    top_winner/loser   : {ticker, pnl}
+    """
+    subject = f"📅 Weekly Summary — Week of {week_start}"
+    lines = [
+        f"주간 P&L: ${week_pnl:+,.0f}  |  MTD: ${mtd_pnl:+,.0f}",
+        f"진입 {week_placed}건 | 클로즈 {week_closed}건",
+    ]
+
+    if next_week_expiring:
+        lines.append("")
+        lines.append("다음 주 만기:")
+        for p in next_week_expiring:
+            lines.append(
+                f"  {p['ticker']}  {p['expiry']}  ({p['dte']} DTE) — BTC 검토"
+            )
+
+    if top_winner or top_loser:
+        lines.append("")
+        if top_winner:
+            lines.append(f"🏆 이번 주 최고: {top_winner['ticker']} ${top_winner['pnl']:+,.0f}")
+        if top_loser:
+            lines.append(f"📉 이번 주 최저: {top_loser['ticker']} ${top_loser['pnl']:+,.0f}")
+
+    notify(subject, "\n".join(lines))
+
+
 # ── Quick setup check ─────────────────────────────────────────────────────────
 
 def check_setup() -> None:
