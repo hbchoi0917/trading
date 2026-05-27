@@ -93,6 +93,7 @@ TIER2_WATCHLIST = [
     'GS',
     'JPM',
     'DRAM',   # Promoted from T3: +$6,218 debut quarter, $239/trade; semiconductor tariff-exempt
+    'MRVL',   # Marvell Technology — AI custom silicon / data center; high volatility
 ]
 
 TIER3_WATCHLIST = [
@@ -129,6 +130,7 @@ TIER3_DELTA_MAX = 0.13
 TICKER_DELTA_OVERRIDE = {
     'COST': (0.15, 0.28),   # low-volatility blue chip — higher delta acceptable for better premium
     'TSLA': (0.12, 0.17),   # high macro/political volatility — more conservative than Tier 1 default (0.15–0.22)
+    'MRVL': (0.10, 0.15),   # high volatility AI semiconductor — conservative delta; stay further OTM
 }
 
 # Tickers exempt from the is_red_day entry filter.
