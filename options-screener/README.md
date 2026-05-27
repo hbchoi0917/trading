@@ -48,6 +48,7 @@ deploy/
 ├── run_entry.sh                  # Cron wrapper: screener + entry
 ├── run_monitor.sh                # Cron wrapper: position monitor
 ├── run_cc.sh                     # Cron wrapper: covered call screener
+├── run_summary.sh                # Cron wrapper: daily/weekly summary email
 └── crontab.template              # Cron schedule (ET timezone)
 ```
 
@@ -70,7 +71,7 @@ covered_call_screener.py
         │
         ▼
 options_premium_screener.py
-  ├─ Skip if FOMC decision day or VIX < 18
+  ├─ Skip if FOMC decision day or VIX < 16
   ├─ Fetch VIX → determine regime (LOW / NORMAL / ELEVATED / HIGH)
   ├─ Download 1yr OHLCV for each ticker (yfinance)
   ├─ Compute RSI, Bollinger Bands, ATR, MACD, IV Rank, IV/HV
@@ -83,6 +84,7 @@ options_premium_screener.py
 auto_trade.py entry
   ├─ Load + normalize signals CSV
   ├─ Check monthly drawdown circuit breaker (positions.csv)
+  ├─ Check portfolio exposure caps (MSFT/TSLA/SNDK/ASML — cross-account total)
   ├─ Check live position count → available slots = 25 − open_spreads
   ├─ For each signal (ranked by strength, up to min(10, available_slots)):
   │     spread_builder.py → compare $10×1 vs $5×2, pick higher total premium
@@ -101,6 +103,17 @@ auto_trade.py monitor
   │     emergency      — price ≤ long put strike (retry at 1.05× mid after 90s)
   ├─ Place BTC orders for triggered positions
   └─ notifications.py → alert on each close
+
+[4:30 PM ET — cron]
+        │
+        ▼
+auto_trade.py summary
+  ├─ Read positions.csv → entries/closes today, open positions, MTD P&L
+  ├─ Cap warnings: tickers at >80% of portfolio exposure limit
+  ├─ Expiry alerts: positions at DTE ≤ 9
+  ├─ Send daily summary email (every trading day)
+  └─ Send weekly summary email (last trading day only — Friday or Thursday if Friday is holiday)
+        └─ Week P&L, MTD P&L, next-week expiries, top winner/loser
 ```
 
 ---
@@ -111,15 +124,15 @@ auto_trade.py monitor
 
 | Tier | Tickers | Delta Target | Notes |
 |------|---------|--------------|-------|
-| **TIER1_CORE** | SPX, COST, NVDA, IWM, GOOGL, TSLA | 0.15–0.22 (COST: 0.15–0.28) | SPX: gap-down + RSI trigger |
-| **TIER2_WATCH** | AAPL, AMZN, META, AVGO, CRWD, AMD, MU, QQQM, CLS, STX, ASML, GS, JPM | 0.12–0.20 | ATR% cap ≤ 5.0% |
-| **TIER3_WATCH** | PLTR, MSFT, SNDK, EWY, DRAM | 0.08–0.13 | ATR% cap ≤ 5.0% — higher volatility, conservative delta |
+| **TIER1_CORE** | SPX, COST, NVDA, IWM, GOOGL, TSLA, CLS | 0.15–0.22 (COST: 0.15–0.28, TSLA: 0.12–0.17) | SPX: gap-down + RSI trigger; CLS promoted from T2 |
+| **TIER2_WATCH** | AAPL, AMZN, META, AVGO, CRWD, AMD, MU, STX, ASML, GS, JPM, DRAM, MRVL | 0.12–0.20 (MRVL: 0.10–0.15) | ATR% cap ≤ 5.0%; DRAM promoted from T3; MRVL added May 2026 |
+| **TIER3_WATCH** | PLTR, MSFT, SNDK, EWY | 0.08–0.13 | ATR% cap ≤ 5.0% — higher volatility, conservative delta |
 
 ### Entry Filters (all must pass)
 
 | Filter | Condition | Notes |
 |--------|-----------|-------|
-| VIX floor | VIX ≥ 18 | Skip entries in thin-premium environment |
+| VIX floor | VIX ≥ 16 | Skip entries in thin-premium environment |
 | Red day | Close < prior close | Stock down on the day — premium elevated |
 | RSI (14) | VIX-adjusted oversold | 28–38 depending on regime |
 | Bollinger Band | BB position < threshold | VIX-adjusted: 0.25–0.45 |
@@ -165,7 +178,8 @@ auto_trade.py monitor
 | DTE close threshold | ≤ 12 DTE (close regardless of P&L) |
 | Emergency BTC | Place at mid → wait 90s → retry at 1.05× if unfilled |
 | Monthly drawdown | Pause entries if MTD P&L ≤ −$2,000 |
-| High-beta cap | IONQ, RGTI, MARA — max 2 contracts |
+| Portfolio exposure cap | MSFT ≤ $2,000 / TSLA ≤ $3,000 / SNDK ≤ $2,500 / ASML ≤ $3,000 — cross-account total max risk |
+| Conservative cap | MSFT — max 2 contracts per account |
 | Cluster guard | Warn when ≥ 5 tickers signal simultaneously |
 
 ---
@@ -271,6 +285,7 @@ bash deploy/setup.sh        # reinstalls crontab with new CC job
 | 3:25 PM | 4:25 AM +1 | Covered call alert — Fidelity (manual execution) |
 | 3:30 PM | 4:30 AM +1 | Entry — screener + order placement |
 | 4:05 PM | 5:05 AM +1 | Monitor — post-close final scan |
+| 4:30 PM | 5:30 AM +1 | Summary — daily email; weekly email on last trading day |
 
 ---
 
@@ -291,6 +306,9 @@ python3 auto_trade.py monitor
 
 # Run full pipeline: entry + monitor
 python3 auto_trade.py all
+
+# Send daily/weekly summary email
+python3 auto_trade.py summary
 
 # Covered call alert (manual execution in Fidelity)
 python3 covered_call_screener.py
