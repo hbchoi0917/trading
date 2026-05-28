@@ -133,10 +133,8 @@ TICKER_DELTA_OVERRIDE = {
     'MRVL': (0.10, 0.15),   # high volatility AI semiconductor — conservative delta; stay further OTM
 }
 
-# Tickers exempt from the is_red_day entry filter.
-# COST is a low-beta, trend-consistent name where green-day entries are acceptable
-# provided premium meets the minimum threshold (enforced in spread_builder).
-RED_DAY_EXEMPT = {'COST'}
+# Red-day filter removed — RSI / BB / IV conditions are sufficient gates.
+# is_red_day is still computed and logged for informational purposes.
 
 # DTE window for expiry selection
 DTE_MIN = 28   # ~4 weeks — entry floor; close trigger is DTE_CLOSE_THRESHOLD=12
@@ -1026,9 +1024,14 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 successful_count += 1
                 continue
 
-            passes_red_day = is_red_day or (ticker in RED_DAY_EXEMPT)
-            if (passes_red_day and is_oversold and is_uptrend_long and is_liquid and
-                    is_near_lower_bb and is_adequate_vol and is_volume_surge):
+            if not is_red_day:
+                logger.info(
+                    f"[{tier_label}] {ticker}: not a red day "
+                    f"({latest_close:.2f} vs {prior_close:.2f}) — "
+                    f"proceeding on RSI/BB/IV merit"
+                )
+            if (is_oversold and is_uptrend_long and is_liquid and
+                    is_near_lower_bb and is_adequate_vol):
 
                 iv_data  = compute_iv_rank(ticker)
                 suppress = _apply_iv_filters(ticker, iv_data, f'[{tier_label}]')
@@ -1100,14 +1103,13 @@ def run_screener():
 
     today_date = datetime.today().date()
 
-    # FOMC decision day — skip new entries entirely; monitor-only pass is safe
+    # FOMC decision day — warn only; by 3:30 PM the 2 PM announcement is
+    # already known and priced in. Individual IV filters still apply.
     if is_fomc_day(today_date):
-        logger.warning("=" * 70)
-        logger.warning("⚠️  FOMC DECISION DAY — entry signals suppressed.")
-        logger.warning("    Rate decision at 2 PM ET bleeds into the 3:30 PM entry window.")
-        logger.warning("    Run 'auto_trade.py monitor' only. No new positions today.")
-        logger.warning("=" * 70)
-        return {}
+        logger.warning(
+            "⚠️  FOMC DECISION DAY — rate decision at 2 PM ET already priced in by 3:30 PM. "
+            "Entering on individual IV merit. Review signals before submitting."
+        )
 
     # VIX floor — warn when VIX is low but allow individual tickers to pass
     # on their own IV Rank / IV/HV merit (already checked per-ticker below).
