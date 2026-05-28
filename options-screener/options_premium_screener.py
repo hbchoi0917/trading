@@ -1109,18 +1109,13 @@ def run_screener():
         logger.warning("=" * 70)
         return {}
 
-    # VIX floor — skip entries when premium is too thin to justify the risk
+    # VIX floor — warn when VIX is low but allow individual tickers to pass
+    # on their own IV Rank / IV/HV merit (already checked per-ticker below).
     if vix is not None and vix < VIX_ENTRY_MIN:
-        logger.warning("=" * 70)
         logger.warning(
-            f"⚠️  VIX TOO LOW ({vix:.1f} < {VIX_ENTRY_MIN}) — entry signals suppressed."
+            f"⚠️  VIX LOW ({vix:.1f} < {VIX_ENTRY_MIN}) — "
+            f"index premium thin. Entering on individual IV merit only."
         )
-        logger.warning(
-            f"    Premium is thin in this environment. Wait for VIX ≥ {VIX_ENTRY_MIN}."
-        )
-        logger.warning("    Monitor phase still runs normally.")
-        logger.warning("=" * 70)
-        return {}
 
     qw_today = is_quad_witching_day(today_date)
     if qw_today:
