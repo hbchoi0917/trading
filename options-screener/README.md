@@ -119,28 +119,29 @@ auto_trade.py monitor
 
 | Filter | Condition | Notes |
 |--------|-----------|-------|
-| VIX floor | VIX ≥ 18 | Skip entries in thin-premium environment |
-| Red day | Close < prior close | Stock down on the day — premium elevated |
-| RSI (14) | VIX-adjusted oversold | 28–38 depending on regime |
-| Bollinger Band | BB position < threshold | VIX-adjusted: 0.25–0.45 |
+| VIX floor | VIX ≥ 16 (warning only) | Below this, log warning but proceed on individual IV merit |
+| RSI (14) | VIX + tier-adjusted oversold | Tier 1: 33–43 / Tier 2/3: 28–38 depending on regime |
+| Bollinger Band | BB position < threshold | Tier 1: 0.35–0.55 / Tier 2/3: 0.25–0.45 depending on regime |
 | SMA (200) | Price > SMA200 | Long-term uptrend intact |
 | ATR % (14) | > 1.0% (Tier 2/3: also ≤ 5.0%) | Adequate volatility; cap prevents excessive risk |
-| Volume surge | > 1.2× 50-day avg | Liquidity confirmation |
+| Volume surge | > avg50 (Tier 2/3 only) | Tier 1 exempt — big-cap selloffs always have elevated volume |
 | IV Rank | ≥ 25 | Premium historically elevated (Pass 1) |
 | IV/HV Ratio | ≥ 1.0 | Options priced above realized vol (Pass 2) |
 | Earnings blackout | No earnings within 3 days | Wider 7-day buffer for covered calls |
-| FOMC blackout | Not a Fed decision day | 2 PM ET announcement bleeds into entry window |
-
-**COST exception:** exempt from red-day filter; compensated by $1.00/share minimum credit enforced in spread_builder.
+| FOMC day | Warning only | 2 PM announcement priced in by 3:30 PM entry window |
 
 ### VIX-Adjusted Thresholds
 
-| Regime | VIX | RSI | BB Position | Rationale |
-|--------|-----|-----|-------------|-----------|
-| LOW | < 15 | 28 | < 0.25 | Premium thin — deep oversold only |
-| NORMAL | 15–20 | 35 | < 0.40 | Standard |
-| ELEVATED | 20–30 | 38 | < 0.45 | Fat premium — slightly relaxed |
-| HIGH | > 30 | 30 | < 0.30 | Tail risk — thresholds tightened |
+Tier 1 uses wider RSI/BB thresholds (+5 RSI, +0.10 BB) than Tier 2/3. Tier pre-selection already acts as a quality filter; IV Rank / IV/HV provide the premium backstop. Volume check is omitted for Tier 1.
+
+| Regime | VIX | RSI (Tier 1) | RSI (Tier 2/3) | BB (Tier 1) | BB (Tier 2/3) | Rationale |
+|--------|-----|--------------|----------------|-------------|---------------|-----------|
+| LOW | < 15 | 33 | 28 | < 0.35 | < 0.25 | Premium thin — still selective |
+| NORMAL | 15–20 | 40 | 35 | < 0.50 | < 0.40 | Standard |
+| ELEVATED | 20–30 | 43 | 38 | < 0.55 | < 0.45 | Fat premium — slightly relaxed |
+| HIGH | > 30 | 35 | 30 | < 0.40 | < 0.30 | Tail risk — tightened |
+
+**Per-ticker RSI overrides (take precedence over tier defaults):** COST = 45, GOOGL = 40
 
 ### Spread Construction
 

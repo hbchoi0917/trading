@@ -172,31 +172,48 @@ TIER2_ATR_MAX = 5.0
 #              Require deeper oversold and tighter BB position to confirm real
 #              mean-reversion rather than a trending breakdown.
 #
-# Regime:      LOW (<15)    NORMAL (15-20)  ELEVATED (20-30)  HIGH (>30)
-# RSI:         28           35              38                 30   <- tightened
-# BB pos:      0.25         0.40            0.45               0.30 <- tightened
-# SPX RSI:     25           30              33                 28   <- tightened
+# Regime:           LOW (<15)    NORMAL (15-20)  ELEVATED (20-30)  HIGH (>30)
+# RSI (T2/3):       28           35              38                 30   <- tightened
+# RSI (T1):         33           40              43                 35   <- +5 vs T2/3
+# BB pos (T2/3):    0.25         0.40            0.45               0.30 <- tightened
+# BB pos (T1):      0.35         0.50            0.55               0.40 <- +0.10 vs T2/3
+# SPX RSI:          25           30              33                 28   <- tightened
+#
+# Tier 1 rationale: ticker pre-selection already acts as a quality filter;
+# IV Rank / IV/HV backstop ensures premium quality. Wider RSI/BB windows
+# capture valid pullbacks on low-volatility blue chips (COST, GOOGL) that
+# rarely reach Tier 2/3 oversold levels.
+# Volume condition is also removed for Tier 1 — big-cap selloffs always
+# have elevated volume; the check adds noise without protective value.
 
 VIX_ADJUSTED_PARAMS = {
     'LOW': {
-        'rsi_threshold':     28,    # Only enter on deep oversold — premium is thin
-        'bb_threshold':      0.25,  # Require price very near lower band
-        'spx_rsi_threshold': 25,
+        'rsi_threshold':       28,    # T2/3: deep oversold only — premium thin
+        'tier1_rsi_threshold': 33,    # T1: +5 vs T2/3
+        'bb_threshold':        0.25,  # T2/3: very near lower band
+        'tier1_bb_threshold':  0.35,  # T1: +0.10 vs T2/3
+        'spx_rsi_threshold':   25,
     },
     'NORMAL': {
-        'rsi_threshold':     35,    # Standard thresholds
-        'bb_threshold':      0.40,
-        'spx_rsi_threshold': 30,
+        'rsi_threshold':       35,    # T2/3: standard
+        'tier1_rsi_threshold': 40,    # T1: +5 vs T2/3
+        'bb_threshold':        0.40,  # T2/3: standard
+        'tier1_bb_threshold':  0.50,  # T1: mid-band entries OK
+        'spx_rsi_threshold':   30,
     },
     'ELEVATED': {
-        'rsi_threshold':     38,    # Slightly relaxed — premium is fat, more cushion
-        'bb_threshold':      0.45,
-        'spx_rsi_threshold': 33,
+        'rsi_threshold':       38,    # T2/3: fat premium — slightly relaxed
+        'tier1_rsi_threshold': 43,    # T1: +5 vs T2/3
+        'bb_threshold':        0.45,  # T2/3
+        'tier1_bb_threshold':  0.55,  # T1: +0.10 vs T2/3
+        'spx_rsi_threshold':   33,
     },
     'HIGH': {
-        'rsi_threshold':     30,    # TIGHTENED: tail risk high, demand deeper oversold
-        'bb_threshold':      0.30,  # TIGHTENED: require price near lower band for conviction
-        'spx_rsi_threshold': 28,    # TIGHTENED: SPX gap-down must be more severe
+        'rsi_threshold':       30,    # T2/3: TIGHTENED — tail risk high
+        'tier1_rsi_threshold': 35,    # T1: +5 vs T2/3, still tighter than NORMAL
+        'bb_threshold':        0.30,  # T2/3: TIGHTENED
+        'tier1_bb_threshold':  0.40,  # T1: +0.10 vs T2/3
+        'spx_rsi_threshold':   28,    # TIGHTENED: SPX gap-down must be more severe
     },
 }
 
@@ -234,8 +251,10 @@ def get_adjusted_params(vix):
         regime = get_vix_regime(vix)
         params = VIX_ADJUSTED_PARAMS.get(regime, _FALLBACK_PARAMS)
         logger.info(
-            f"[VIX-PARAMS] Regime={regime} | RSI threshold={params['rsi_threshold']} | "
-            f"BB threshold={params['bb_threshold']} | SPX RSI threshold={params['spx_rsi_threshold']}"
+            f"[VIX-PARAMS] Regime={regime} | "
+            f"RSI T1={params['tier1_rsi_threshold']} T2/3={params['rsi_threshold']} | "
+            f"BB T1={params['tier1_bb_threshold']} T2/3={params['bb_threshold']} | "
+            f"SPX RSI={params['spx_rsi_threshold']}"
         )
         return params, regime
     except Exception as e:
@@ -951,14 +970,23 @@ def screen_spx(vix, adjusted_params):
 def screen_tickers(tickers, tier_label, vix, adjusted_params):
     is_tier2 = (tier_label == 'TIER2_WATCH')
     is_tier3 = (tier_label == 'TIER3_WATCH')
+    is_tier1 = not (is_tier2 or is_tier3)
     if is_tier3:
         default_delta = f'{TIER3_DELTA_MIN}–{TIER3_DELTA_MAX}'
     elif is_tier2:
         default_delta = f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}'
     else:
         default_delta = f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
-    rsi_threshold = adjusted_params['rsi_threshold']
-    bb_threshold  = adjusted_params['bb_threshold']
+
+    # Tier 1 uses wider thresholds — ticker pre-selection acts as quality filter;
+    # IV Rank / IV/HV remain as premium backstop.
+    if is_tier1:
+        rsi_threshold = adjusted_params['tier1_rsi_threshold']
+        bb_threshold  = adjusted_params['tier1_bb_threshold']
+    else:
+        rsi_threshold = adjusted_params['rsi_threshold']
+        bb_threshold  = adjusted_params['bb_threshold']
+
     results = {}
     error_count = 0
     successful_count = 0
@@ -1052,14 +1080,16 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                     f"({latest_close:.2f} vs {prior_close:.2f}) — "
                     f"proceeding on RSI/BB/IV merit"
                 )
-            if not (is_oversold and is_uptrend_long and is_liquid and
-                    is_near_lower_bb and is_adequate_vol):
+            # Tier 1: volume check omitted — big-cap selloffs always have elevated volume
+            passes_core = (is_oversold and is_uptrend_long and is_near_lower_bb and is_adequate_vol)
+            passes_all  = passes_core and (is_tier1 or is_liquid)
+            if not passes_all:
                 failed = []
                 if not is_oversold:
                     failed.append(f"RSI {current_rsi:.1f} >= {effective_rsi_threshold}")
                 if not is_uptrend_long:
                     failed.append(f"price {latest_close:.2f} <= SMA200 {latest_sma_200:.2f}")
-                if not is_liquid:
+                if not is_tier1 and not is_liquid:
                     failed.append(f"vol {latest_volume:.0f} < avg50 {latest_avg_vol_50:.0f}")
                 if not is_near_lower_bb:
                     failed.append(f"BB {latest_bb_pos:.2f} >= {bb_threshold}")
@@ -1168,9 +1198,10 @@ def run_screener():
         logger.warning("=" * 70)
 
     logger.info(f"VIX Regime                     : {regime}  (entry floor: VIX ≥ {VIX_ENTRY_MIN})")
-    logger.info(f"RSI Threshold (general, adj.)  : {adjusted_params['rsi_threshold']} (base: {RSI_THRESHOLD})")
-    logger.info(f"RSI Threshold (SPX, adj.)      : {adjusted_params['spx_rsi_threshold']} (base: {SPX_RSI_THRESHOLD}) + gap-down >= {SPX_GAP_DOWN_PCT}%")
-    logger.info(f"BB Threshold (adj.)            : {adjusted_params['bb_threshold']} (base: 0.40)")
+    logger.info(f"RSI Threshold — Tier 1 (adj.)  : {adjusted_params['tier1_rsi_threshold']}  (T2/3: {adjusted_params['rsi_threshold']})")
+    logger.info(f"RSI Threshold — SPX (adj.)     : {adjusted_params['spx_rsi_threshold']} + gap-down >= {SPX_GAP_DOWN_PCT}%")
+    logger.info(f"BB Threshold  — Tier 1 (adj.)  : {adjusted_params['tier1_bb_threshold']}  (T2/3: {adjusted_params['bb_threshold']})")
+    logger.info(f"Volume check                   : Tier 2/3 only (Tier 1 exempt)")
     logger.info(f"IV Rank minimum (Pass 1)       : {IV_RANK_MIN} (below = premium historically cheap)")
     logger.info(f"IV/HV minimum (Pass 2)         : {IV_HV_MIN} (below = options not priced above realized vol)")
     logger.info(f"IV filter policy               : fail-open (None = proceed without filter)")
