@@ -133,6 +133,15 @@ TICKER_DELTA_OVERRIDE = {
     'MRVL': (0.10, 0.15),   # high volatility AI semiconductor — conservative delta; stay further OTM
 }
 
+# Per-ticker RSI oversold threshold override.
+# Low-volatility blue chips (COST, GOOGL) rarely reach RSI < 35 even on big drops;
+# applying the NORMAL-regime 35 threshold would permanently exclude them.
+# These per-ticker values take precedence over the VIX-regime threshold.
+TICKER_RSI_OVERRIDE = {
+    'COST':  45,   # steady compounder; 4-5% selloff typical RSI 40-43 — use 45 as "oversold for COST"
+    'GOOGL': 40,   # large-cap; 3-5% drops push RSI ~38-42 — 40 is a meaningful pullback signal
+}
+
 # Red-day filter removed — RSI / BB / IV conditions are sufficient gates.
 # is_red_day is still computed and logged for informational purposes.
 
@@ -164,31 +173,48 @@ TIER2_ATR_MAX = 5.0
 #              Require deeper oversold and tighter BB position to confirm real
 #              mean-reversion rather than a trending breakdown.
 #
-# Regime:      LOW (<15)    NORMAL (15-20)  ELEVATED (20-30)  HIGH (>30)
-# RSI:         28           35              38                 30   <- tightened
-# BB pos:      0.25         0.40            0.45               0.30 <- tightened
-# SPX RSI:     25           30              33                 28   <- tightened
+# Regime:           LOW (<15)    NORMAL (15-20)  ELEVATED (20-30)  HIGH (>30)
+# RSI (T2/3):       28           35              38                 30   <- tightened
+# RSI (T1):         33           40              43                 35   <- +5 vs T2/3
+# BB pos (T2/3):    0.25         0.40            0.45               0.30 <- tightened
+# BB pos (T1):      0.35         0.50            0.55               0.40 <- +0.10 vs T2/3
+# SPX RSI:          25           30              33                 28   <- tightened
+#
+# Tier 1 rationale: ticker pre-selection already acts as a quality filter;
+# IV Rank / IV/HV backstop ensures premium quality. Wider RSI/BB windows
+# capture valid pullbacks on low-volatility blue chips (COST, GOOGL) that
+# rarely reach Tier 2/3 oversold levels.
+# Volume condition is also removed for Tier 1 — big-cap selloffs always
+# have elevated volume; the check adds noise without protective value.
 
 VIX_ADJUSTED_PARAMS = {
     'LOW': {
-        'rsi_threshold':     28,    # Only enter on deep oversold — premium is thin
-        'bb_threshold':      0.25,  # Require price very near lower band
-        'spx_rsi_threshold': 25,
+        'rsi_threshold':       28,    # T2/3: deep oversold only — premium thin
+        'tier1_rsi_threshold': 33,    # T1: +5 vs T2/3
+        'bb_threshold':        0.25,  # T2/3: very near lower band
+        'tier1_bb_threshold':  0.35,  # T1: +0.10 vs T2/3
+        'spx_rsi_threshold':   25,
     },
     'NORMAL': {
-        'rsi_threshold':     35,    # Standard thresholds
-        'bb_threshold':      0.40,
-        'spx_rsi_threshold': 30,
+        'rsi_threshold':       35,    # T2/3: standard
+        'tier1_rsi_threshold': 40,    # T1: +5 vs T2/3
+        'bb_threshold':        0.40,  # T2/3: standard
+        'tier1_bb_threshold':  0.50,  # T1: mid-band entries OK
+        'spx_rsi_threshold':   30,
     },
     'ELEVATED': {
-        'rsi_threshold':     38,    # Slightly relaxed — premium is fat, more cushion
-        'bb_threshold':      0.45,
-        'spx_rsi_threshold': 33,
+        'rsi_threshold':       38,    # T2/3: fat premium — slightly relaxed
+        'tier1_rsi_threshold': 43,    # T1: +5 vs T2/3
+        'bb_threshold':        0.45,  # T2/3
+        'tier1_bb_threshold':  0.55,  # T1: +0.10 vs T2/3
+        'spx_rsi_threshold':   33,
     },
     'HIGH': {
-        'rsi_threshold':     30,    # TIGHTENED: tail risk high, demand deeper oversold
-        'bb_threshold':      0.30,  # TIGHTENED: require price near lower band for conviction
-        'spx_rsi_threshold': 28,    # TIGHTENED: SPX gap-down must be more severe
+        'rsi_threshold':       30,    # T2/3: TIGHTENED — tail risk high
+        'tier1_rsi_threshold': 35,    # T1: +5 vs T2/3, still tighter than NORMAL
+        'bb_threshold':        0.30,  # T2/3: TIGHTENED
+        'tier1_bb_threshold':  0.40,  # T1: +0.10 vs T2/3
+        'spx_rsi_threshold':   28,    # TIGHTENED: SPX gap-down must be more severe
     },
 }
 
@@ -226,8 +252,10 @@ def get_adjusted_params(vix):
         regime = get_vix_regime(vix)
         params = VIX_ADJUSTED_PARAMS.get(regime, _FALLBACK_PARAMS)
         logger.info(
-            f"[VIX-PARAMS] Regime={regime} | RSI threshold={params['rsi_threshold']} | "
-            f"BB threshold={params['bb_threshold']} | SPX RSI threshold={params['spx_rsi_threshold']}"
+            f"[VIX-PARAMS] Regime={regime} | "
+            f"RSI T1={params['tier1_rsi_threshold']} T2/3={params['rsi_threshold']} | "
+            f"BB T1={params['tier1_bb_threshold']} T2/3={params['bb_threshold']} | "
+            f"SPX RSI={params['spx_rsi_threshold']}"
         )
         return params, regime
     except Exception as e:
@@ -670,7 +698,14 @@ def get_vix():
 
 
 # ============ EARNINGS DATE FETCH ============
+# ETFs have no earnings calendar — skip the fundamentals HTTP call entirely
+# to avoid yfinance 404 noise in the log.
+_ETF_TICKERS = frozenset({'IWM', 'EWY', 'SPY', 'QQQ', 'VOO', 'QQQM'})
+
+
 def get_earnings_date(ticker):
+    if ticker in _ETF_TICKERS:
+        return None
     try:
         t = yf.Ticker(ticker)
         cal = t.calendar
@@ -936,25 +971,36 @@ def screen_spx(vix, adjusted_params):
 def screen_tickers(tickers, tier_label, vix, adjusted_params):
     is_tier2 = (tier_label == 'TIER2_WATCH')
     is_tier3 = (tier_label == 'TIER3_WATCH')
+    is_tier1 = not (is_tier2 or is_tier3)
     if is_tier3:
         default_delta = f'{TIER3_DELTA_MIN}–{TIER3_DELTA_MAX}'
     elif is_tier2:
         default_delta = f'{TIER2_DELTA_MIN}–{TIER2_DELTA_MAX}'
     else:
         default_delta = f'{TIER1_DELTA_MIN}–{TIER1_DELTA_MAX}'
-    rsi_threshold = adjusted_params['rsi_threshold']
-    bb_threshold  = adjusted_params['bb_threshold']
+
+    # Tier 1 uses wider thresholds — ticker pre-selection acts as quality filter;
+    # IV Rank / IV/HV remain as premium backstop.
+    if is_tier1:
+        rsi_threshold = adjusted_params['tier1_rsi_threshold']
+        bb_threshold  = adjusted_params['tier1_bb_threshold']
+    else:
+        rsi_threshold = adjusted_params['rsi_threshold']
+        bb_threshold  = adjusted_params['bb_threshold']
+
     results = {}
     error_count = 0
     successful_count = 0
 
     for ticker in tickers:
-        # Apply per-ticker delta override if defined
+        # Apply per-ticker overrides
         if ticker in TICKER_DELTA_OVERRIDE:
             d_min, d_max = TICKER_DELTA_OVERRIDE[ticker]
             delta_target = f'{d_min}–{d_max}'
         else:
             delta_target = default_delta
+
+        effective_rsi_threshold = TICKER_RSI_OVERRIDE.get(ticker, rsi_threshold)
 
         try:
             stock_data = yf.download(ticker, period='1y', interval='1d', progress=False, group_by=False)
@@ -1009,12 +1055,17 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
             support_price, pct_above_support = get_support_level(stock_data)
 
             is_red_day       = latest_close < prior_close
-            is_oversold      = current_rsi < rsi_threshold
+            is_oversold      = current_rsi < effective_rsi_threshold
             is_uptrend_long  = latest_close > latest_sma_200
             is_liquid        = latest_volume > latest_avg_vol_50
             is_near_lower_bb = latest_bb_pos < bb_threshold
             is_adequate_vol  = atr_pct > 1.0
-            is_volume_surge  = volume_surge_ratio > 1.2
+
+            if effective_rsi_threshold != rsi_threshold:
+                logger.info(
+                    f"[{tier_label}] {ticker}: using per-ticker RSI threshold "
+                    f"{effective_rsi_threshold} (regime default: {rsi_threshold})"
+                )
 
             if (is_tier2 or is_tier3) and atr_pct > TIER2_ATR_MAX:
                 logger.info(
@@ -1030,59 +1081,74 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                     f"({latest_close:.2f} vs {prior_close:.2f}) — "
                     f"proceeding on RSI/BB/IV merit"
                 )
-            if (is_oversold and is_uptrend_long and is_liquid and
-                    is_near_lower_bb and is_adequate_vol):
+            # Tier 1: volume check omitted — big-cap selloffs always have elevated volume
+            passes_core = (is_oversold and is_uptrend_long and is_near_lower_bb and is_adequate_vol)
+            passes_all  = passes_core and (is_tier1 or is_liquid)
+            if not passes_all:
+                failed = []
+                if not is_oversold:
+                    failed.append(f"RSI {current_rsi:.1f} >= {effective_rsi_threshold}")
+                if not is_uptrend_long:
+                    failed.append(f"price {latest_close:.2f} <= SMA200 {latest_sma_200:.2f}")
+                if not is_tier1 and not is_liquid:
+                    failed.append(f"vol {latest_volume:.0f} < avg50 {latest_avg_vol_50:.0f}")
+                if not is_near_lower_bb:
+                    failed.append(f"BB {latest_bb_pos:.2f} >= {bb_threshold}")
+                if not is_adequate_vol:
+                    failed.append(f"ATR% {atr_pct:.2f} <= 1.0")
+                logger.info(f"[{tier_label}] {ticker}: no signal — {'; '.join(failed)}")
+                successful_count += 1
+                continue
+            iv_data  = compute_iv_rank(ticker)
+            suppress = _apply_iv_filters(ticker, iv_data, f'[{tier_label}]')
+            if suppress:
+                successful_count += 1
+                continue
 
-                iv_data  = compute_iv_rank(ticker)
-                suppress = _apply_iv_filters(ticker, iv_data, f'[{tier_label}]')
-                if suppress:
-                    successful_count += 1
-                    continue
+            signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
+            expiry_info     = get_target_expiry(ticker, earnings_date)
+            expiry_date_str = str(expiry_info[0]) if expiry_info else 'N/A (earnings conflict)'
+            expiry_dte      = expiry_info[1] if expiry_info else None
+            is_monthly      = expiry_info[2] if expiry_info else None
+            earn_avoided    = str(earnings_date) if expiry_info and expiry_info[3] else 'N/A'
+            qw_expiry       = bool(expiry_info and is_quad_witching_day(expiry_info[0]))
+            t2_mgmt_note = (
+                f'Stage1(DTE<={T2_ROLLOVER_DTE}+price<short_put): '
+                f'1st net credit roll, 2nd debit<={int(MAX_ROLLOVER_DEBIT_PCT*100)}% of credit, fallback close | '
+                f'Stage2(DTE<={T2_EMERGENCY_CLOSE_DTE}+price<=long_put): emergency close'
+            ) if (is_tier2 or is_tier3) else f'Routine review at DTE<={BASE_DTE_ACTION} only'
 
-                signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
-                expiry_info     = get_target_expiry(ticker, earnings_date)
-                expiry_date_str = str(expiry_info[0]) if expiry_info else 'N/A (earnings conflict)'
-                expiry_dte      = expiry_info[1] if expiry_info else None
-                is_monthly      = expiry_info[2] if expiry_info else None
-                earn_avoided    = str(earnings_date) if expiry_info and expiry_info[3] else 'N/A'
-                qw_expiry       = bool(expiry_info and is_quad_witching_day(expiry_info[0]))
-                t2_mgmt_note = (
-                    f'Stage1(DTE<={T2_ROLLOVER_DTE}+price<short_put): '
-                    f'1st net credit roll, 2nd debit<={int(MAX_ROLLOVER_DEBIT_PCT*100)}% of credit, fallback close | '
-                    f'Stage2(DTE<={T2_EMERGENCY_CLOSE_DTE}+price<=long_put): emergency close'
-                ) if (is_tier2 or is_tier3) else f'Routine review at DTE<={BASE_DTE_ACTION} only'
-
-                results[ticker] = {
-                    'Tier': tier_label, 'Signal_Strength': signal_strength,
-                    'RSI': round(current_rsi, 2), 'Price': round(latest_close, 2),
-                    'Red_Day': is_red_day, 'SMA_200': round(latest_sma_200, 2),
-                    'BB_Position': round(latest_bb_pos, 2), 'BB_Lower': round(latest_bb_lower, 2),
-                    'BB_Upper': round(latest_bb_upper, 2), 'ATR_%': round(atr_pct, 2),
-                    'Vol_Surge': round(volume_surge_ratio, 2), 'Support': round(support_price, 2),
-                    'Distance_to_Support_%': round(pct_above_support, 1),
-                    'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
-                    'VIX_Regime': get_vix_regime(vix),
-                    'RSI_Threshold_Used': rsi_threshold,
-                    'BB_Threshold_Used':  bb_threshold,
-                    'IV_Rank':      iv_data.get('iv_rank'),
-                    'IV_Pct':       iv_data.get('iv_pct'),
-                    'IV_52w_High':  iv_data.get('iv_52w_high'),
-                    'IV_52w_Low':   iv_data.get('iv_52w_low'),
-                    'HV_30':        iv_data.get('hv_30'),
-                    'IV_HV_Ratio':  iv_data.get('iv_hv_ratio'),
-                    'IV_Skip_Reason': iv_data.get('skipped_reason'),
-                    'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
-                    'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
-                    'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
-                    'QW_Expiry': qw_expiry,
-                    'Position_Mgmt': t2_mgmt_note,
-                }
-                logger.info(
-                    f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} (thr={rsi_threshold}) | "
-                    f"BB {latest_bb_pos:.2f} (thr={bb_threshold}) | ATR% {atr_pct:.2f} | "
-                    f"IV Rank {iv_data.get('iv_rank')} | IV/HV {iv_data.get('iv_hv_ratio')} | "
-                    f"Signal: {signal_strength}/100 | Expiry: {expiry_date_str} (DTE {expiry_dte})"
-                )
+            results[ticker] = {
+                'Tier': tier_label, 'Signal_Strength': signal_strength,
+                'RSI': round(current_rsi, 2), 'Price': round(latest_close, 2),
+                'Red_Day': is_red_day, 'SMA_200': round(latest_sma_200, 2),
+                'BB_Position': round(latest_bb_pos, 2), 'BB_Lower': round(latest_bb_lower, 2),
+                'BB_Upper': round(latest_bb_upper, 2), 'ATR_%': round(atr_pct, 2),
+                'Vol_Surge': round(volume_surge_ratio, 2), 'Support': round(support_price, 2),
+                'Distance_to_Support_%': round(pct_above_support, 1),
+                'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
+                'VIX_Regime': get_vix_regime(vix),
+                'RSI_Threshold_Used': effective_rsi_threshold,
+                'BB_Threshold_Used':  bb_threshold,
+                'IV_Rank':      iv_data.get('iv_rank'),
+                'IV_Pct':       iv_data.get('iv_pct'),
+                'IV_52w_High':  iv_data.get('iv_52w_high'),
+                'IV_52w_Low':   iv_data.get('iv_52w_low'),
+                'HV_30':        iv_data.get('hv_30'),
+                'IV_HV_Ratio':  iv_data.get('iv_hv_ratio'),
+                'IV_Skip_Reason': iv_data.get('skipped_reason'),
+                'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
+                'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
+                'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
+                'QW_Expiry': qw_expiry,
+                'Position_Mgmt': t2_mgmt_note,
+            }
+            logger.info(
+                f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} (thr={effective_rsi_threshold}) | "
+                f"BB {latest_bb_pos:.2f} (thr={bb_threshold}) | ATR% {atr_pct:.2f} | "
+                f"IV Rank {iv_data.get('iv_rank')} | IV/HV {iv_data.get('iv_hv_ratio')} | "
+                f"Signal: {signal_strength}/100 | Expiry: {expiry_date_str} (DTE {expiry_dte})"
+            )
             successful_count += 1
         except Exception as e:
             logger.error(f"[{tier_label}] Error processing {ticker}: {e}")
@@ -1127,9 +1193,10 @@ def run_screener():
         logger.warning("=" * 70)
 
     logger.info(f"VIX Regime                     : {regime}  (entry floor: VIX ≥ {VIX_ENTRY_MIN})")
-    logger.info(f"RSI Threshold (general, adj.)  : {adjusted_params['rsi_threshold']} (base: {RSI_THRESHOLD})")
-    logger.info(f"RSI Threshold (SPX, adj.)      : {adjusted_params['spx_rsi_threshold']} (base: {SPX_RSI_THRESHOLD}) + gap-down >= {SPX_GAP_DOWN_PCT}%")
-    logger.info(f"BB Threshold (adj.)            : {adjusted_params['bb_threshold']} (base: 0.40)")
+    logger.info(f"RSI Threshold — Tier 1 (adj.)  : {adjusted_params['tier1_rsi_threshold']}  (T2/3: {adjusted_params['rsi_threshold']})")
+    logger.info(f"RSI Threshold — SPX (adj.)     : {adjusted_params['spx_rsi_threshold']} + gap-down >= {SPX_GAP_DOWN_PCT}%")
+    logger.info(f"BB Threshold  — Tier 1 (adj.)  : {adjusted_params['tier1_bb_threshold']}  (T2/3: {adjusted_params['bb_threshold']})")
+    logger.info(f"Volume check                   : Tier 2/3 only (Tier 1 exempt)")
     logger.info(f"IV Rank minimum (Pass 1)       : {IV_RANK_MIN} (below = premium historically cheap)")
     logger.info(f"IV/HV minimum (Pass 2)         : {IV_HV_MIN} (below = options not priced above realized vol)")
     logger.info(f"IV filter policy               : fail-open (None = proceed without filter)")
