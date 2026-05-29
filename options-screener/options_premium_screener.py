@@ -129,9 +129,18 @@ TIER3_DELTA_MAX = 0.13
 TICKER_DELTA_OVERRIDE = {
     'COST': (0.15, 0.28),   # low-volatility blue chip — higher delta acceptable for better premium
     'TSLA': (0.12, 0.17),   # high macro/political volatility — more conservative than Tier 1 default (0.15–0.22)
+    'MRVL': (0.10, 0.15),   # high volatility AI semiconductor — conservative delta; stay further OTM
 }
 
-# Tickers exempt from the is_red_day entry filter.
+# Per-ticker RSI oversold threshold override.
+# Low-volatility blue chips (COST, GOOGL) rarely reach RSI < 35 even on big drops;
+# applying the NORMAL-regime 35 threshold would permanently exclude them.
+# These per-ticker values take precedence over the VIX-regime threshold.
+TICKER_RSI_OVERRIDE = {
+    'COST':  45,   # steady compounder; 4-5% selloff typical RSI 40-43 — use 45 as "oversold for COST"
+    'GOOGL': 40,   # large-cap; 3-5% drops push RSI ~38-42 — 40 is a meaningful pullback signal
+}
+
 # Red-day filter removed — RSI / BB / IV conditions are sufficient gates.
 # is_red_day is still computed and logged for informational purposes.
 
@@ -955,12 +964,14 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
     successful_count = 0
 
     for ticker in tickers:
-        # Apply per-ticker delta override if defined
+        # Apply per-ticker overrides
         if ticker in TICKER_DELTA_OVERRIDE:
             d_min, d_max = TICKER_DELTA_OVERRIDE[ticker]
             delta_target = f'{d_min}–{d_max}'
         else:
             delta_target = default_delta
+
+        effective_rsi_threshold = TICKER_RSI_OVERRIDE.get(ticker, rsi_threshold)
 
         try:
             stock_data = yf.download(ticker, period='1y', interval='1d', progress=False, group_by=False)
@@ -1015,11 +1026,17 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
             support_price, pct_above_support = get_support_level(stock_data)
 
             is_red_day       = latest_close < prior_close
-            is_oversold      = current_rsi < rsi_threshold
+            is_oversold      = current_rsi < effective_rsi_threshold
             is_uptrend_long  = latest_close > latest_sma_200
             is_liquid        = latest_volume > latest_avg_vol_50
             is_near_lower_bb = latest_bb_pos < bb_threshold
             is_adequate_vol  = atr_pct > 1.0
+
+            if effective_rsi_threshold != rsi_threshold:
+                logger.info(
+                    f"[{tier_label}] {ticker}: using per-ticker RSI threshold "
+                    f"{effective_rsi_threshold} (regime default: {rsi_threshold})"
+                )
 
             if (is_tier2 or is_tier3) and atr_pct > TIER2_ATR_MAX:
                 logger.info(
@@ -1039,7 +1056,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                     is_near_lower_bb and is_adequate_vol):
                 failed = []
                 if not is_oversold:
-                    failed.append(f"RSI {current_rsi:.1f} >= {rsi_threshold}")
+                    failed.append(f"RSI {current_rsi:.1f} >= {effective_rsi_threshold}")
                 if not is_uptrend_long:
                     failed.append(f"price {latest_close:.2f} <= SMA200 {latest_sma_200:.2f}")
                 if not is_liquid:
@@ -1080,7 +1097,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 'Distance_to_Support_%': round(pct_above_support, 1),
                 'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
                 'VIX_Regime': get_vix_regime(vix),
-                'RSI_Threshold_Used': rsi_threshold,
+                'RSI_Threshold_Used': effective_rsi_threshold,
                 'BB_Threshold_Used':  bb_threshold,
                 'IV_Rank':      iv_data.get('iv_rank'),
                 'IV_Pct':       iv_data.get('iv_pct'),
@@ -1096,7 +1113,7 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 'Position_Mgmt': t2_mgmt_note,
             }
             logger.info(
-                f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} (thr={rsi_threshold}) | "
+                f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} (thr={effective_rsi_threshold}) | "
                 f"BB {latest_bb_pos:.2f} (thr={bb_threshold}) | ATR% {atr_pct:.2f} | "
                 f"IV Rank {iv_data.get('iv_rank')} | IV/HV {iv_data.get('iv_hv_ratio')} | "
                 f"Signal: {signal_strength}/100 | Expiry: {expiry_date_str} (DTE {expiry_dte})"
