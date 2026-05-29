@@ -132,9 +132,8 @@ TICKER_DELTA_OVERRIDE = {
 }
 
 # Tickers exempt from the is_red_day entry filter.
-# COST is a low-beta, trend-consistent name where green-day entries are acceptable
-# provided premium meets the minimum threshold (enforced in spread_builder).
-RED_DAY_EXEMPT = {'COST'}
+# Red-day filter removed — RSI / BB / IV conditions are sufficient gates.
+# is_red_day is still computed and logged for informational purposes.
 
 # DTE window for expiry selection
 DTE_MIN = 28   # ~4 weeks — entry floor; close trigger is DTE_CLOSE_THRESHOLD=12
@@ -670,7 +669,14 @@ def get_vix():
 
 
 # ============ EARNINGS DATE FETCH ============
+# ETFs have no earnings calendar — skip the fundamentals HTTP call entirely
+# to avoid yfinance 404 noise in the log.
+_ETF_TICKERS = frozenset({'IWM', 'EWY', 'SPY', 'QQQ', 'VOO', 'QQQM'})
+
+
 def get_earnings_date(ticker):
+    if ticker in _ETF_TICKERS:
+        return None
     try:
         t = yf.Ticker(ticker)
         cal = t.calendar
@@ -1014,7 +1020,6 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
             is_liquid        = latest_volume > latest_avg_vol_50
             is_near_lower_bb = latest_bb_pos < bb_threshold
             is_adequate_vol  = atr_pct > 1.0
-            is_volume_surge  = volume_surge_ratio > 1.2
 
             if (is_tier2 or is_tier3) and atr_pct > TIER2_ATR_MAX:
                 logger.info(
@@ -1024,60 +1029,78 @@ def screen_tickers(tickers, tier_label, vix, adjusted_params):
                 successful_count += 1
                 continue
 
-            passes_red_day = is_red_day or (ticker in RED_DAY_EXEMPT)
-            if (passes_red_day and is_oversold and is_uptrend_long and is_liquid and
-                    is_near_lower_bb and is_adequate_vol and is_volume_surge):
-
-                iv_data  = compute_iv_rank(ticker)
-                suppress = _apply_iv_filters(ticker, iv_data, f'[{tier_label}]')
-                if suppress:
-                    successful_count += 1
-                    continue
-
-                signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
-                expiry_info     = get_target_expiry(ticker, earnings_date)
-                expiry_date_str = str(expiry_info[0]) if expiry_info else 'N/A (earnings conflict)'
-                expiry_dte      = expiry_info[1] if expiry_info else None
-                is_monthly      = expiry_info[2] if expiry_info else None
-                earn_avoided    = str(earnings_date) if expiry_info and expiry_info[3] else 'N/A'
-                qw_expiry       = bool(expiry_info and is_quad_witching_day(expiry_info[0]))
-                t2_mgmt_note = (
-                    f'Stage1(DTE<={T2_ROLLOVER_DTE}+price<short_put): '
-                    f'1st net credit roll, 2nd debit<={int(MAX_ROLLOVER_DEBIT_PCT*100)}% of credit, fallback close | '
-                    f'Stage2(DTE<={T2_EMERGENCY_CLOSE_DTE}+price<=long_put): emergency close'
-                ) if (is_tier2 or is_tier3) else f'Routine review at DTE<={BASE_DTE_ACTION} only'
-
-                results[ticker] = {
-                    'Tier': tier_label, 'Signal_Strength': signal_strength,
-                    'RSI': round(current_rsi, 2), 'Price': round(latest_close, 2),
-                    'Red_Day': is_red_day, 'SMA_200': round(latest_sma_200, 2),
-                    'BB_Position': round(latest_bb_pos, 2), 'BB_Lower': round(latest_bb_lower, 2),
-                    'BB_Upper': round(latest_bb_upper, 2), 'ATR_%': round(atr_pct, 2),
-                    'Vol_Surge': round(volume_surge_ratio, 2), 'Support': round(support_price, 2),
-                    'Distance_to_Support_%': round(pct_above_support, 1),
-                    'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
-                    'VIX_Regime': get_vix_regime(vix),
-                    'RSI_Threshold_Used': rsi_threshold,
-                    'BB_Threshold_Used':  bb_threshold,
-                    'IV_Rank':      iv_data.get('iv_rank'),
-                    'IV_Pct':       iv_data.get('iv_pct'),
-                    'IV_52w_High':  iv_data.get('iv_52w_high'),
-                    'IV_52w_Low':   iv_data.get('iv_52w_low'),
-                    'HV_30':        iv_data.get('hv_30'),
-                    'IV_HV_Ratio':  iv_data.get('iv_hv_ratio'),
-                    'IV_Skip_Reason': iv_data.get('skipped_reason'),
-                    'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
-                    'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
-                    'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
-                    'QW_Expiry': qw_expiry,
-                    'Position_Mgmt': t2_mgmt_note,
-                }
+            if not is_red_day:
                 logger.info(
-                    f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} (thr={rsi_threshold}) | "
-                    f"BB {latest_bb_pos:.2f} (thr={bb_threshold}) | ATR% {atr_pct:.2f} | "
-                    f"IV Rank {iv_data.get('iv_rank')} | IV/HV {iv_data.get('iv_hv_ratio')} | "
-                    f"Signal: {signal_strength}/100 | Expiry: {expiry_date_str} (DTE {expiry_dte})"
+                    f"[{tier_label}] {ticker}: not a red day "
+                    f"({latest_close:.2f} vs {prior_close:.2f}) — "
+                    f"proceeding on RSI/BB/IV merit"
                 )
+            if not (is_oversold and is_uptrend_long and is_liquid and
+                    is_near_lower_bb and is_adequate_vol):
+                failed = []
+                if not is_oversold:
+                    failed.append(f"RSI {current_rsi:.1f} >= {rsi_threshold}")
+                if not is_uptrend_long:
+                    failed.append(f"price {latest_close:.2f} <= SMA200 {latest_sma_200:.2f}")
+                if not is_liquid:
+                    failed.append(f"vol {latest_volume:.0f} < avg50 {latest_avg_vol_50:.0f}")
+                if not is_near_lower_bb:
+                    failed.append(f"BB {latest_bb_pos:.2f} >= {bb_threshold}")
+                if not is_adequate_vol:
+                    failed.append(f"ATR% {atr_pct:.2f} <= 1.0")
+                logger.info(f"[{tier_label}] {ticker}: no signal — {'; '.join(failed)}")
+                successful_count += 1
+                continue
+            iv_data  = compute_iv_rank(ticker)
+            suppress = _apply_iv_filters(ticker, iv_data, f'[{tier_label}]')
+            if suppress:
+                successful_count += 1
+                continue
+
+            signal_strength = calculate_signal_strength(current_rsi, latest_bb_pos, volume_surge_ratio, atr_pct)
+            expiry_info     = get_target_expiry(ticker, earnings_date)
+            expiry_date_str = str(expiry_info[0]) if expiry_info else 'N/A (earnings conflict)'
+            expiry_dte      = expiry_info[1] if expiry_info else None
+            is_monthly      = expiry_info[2] if expiry_info else None
+            earn_avoided    = str(earnings_date) if expiry_info and expiry_info[3] else 'N/A'
+            qw_expiry       = bool(expiry_info and is_quad_witching_day(expiry_info[0]))
+            t2_mgmt_note = (
+                f'Stage1(DTE<={T2_ROLLOVER_DTE}+price<short_put): '
+                f'1st net credit roll, 2nd debit<={int(MAX_ROLLOVER_DEBIT_PCT*100)}% of credit, fallback close | '
+                f'Stage2(DTE<={T2_EMERGENCY_CLOSE_DTE}+price<=long_put): emergency close'
+            ) if (is_tier2 or is_tier3) else f'Routine review at DTE<={BASE_DTE_ACTION} only'
+
+            results[ticker] = {
+                'Tier': tier_label, 'Signal_Strength': signal_strength,
+                'RSI': round(current_rsi, 2), 'Price': round(latest_close, 2),
+                'Red_Day': is_red_day, 'SMA_200': round(latest_sma_200, 2),
+                'BB_Position': round(latest_bb_pos, 2), 'BB_Lower': round(latest_bb_lower, 2),
+                'BB_Upper': round(latest_bb_upper, 2), 'ATR_%': round(atr_pct, 2),
+                'Vol_Surge': round(volume_surge_ratio, 2), 'Support': round(support_price, 2),
+                'Distance_to_Support_%': round(pct_above_support, 1),
+                'MACD_Histogram': round(macd_histogram, 3), 'VIX': vix,
+                'VIX_Regime': get_vix_regime(vix),
+                'RSI_Threshold_Used': rsi_threshold,
+                'BB_Threshold_Used':  bb_threshold,
+                'IV_Rank':      iv_data.get('iv_rank'),
+                'IV_Pct':       iv_data.get('iv_pct'),
+                'IV_52w_High':  iv_data.get('iv_52w_high'),
+                'IV_52w_Low':   iv_data.get('iv_52w_low'),
+                'HV_30':        iv_data.get('hv_30'),
+                'IV_HV_Ratio':  iv_data.get('iv_hv_ratio'),
+                'IV_Skip_Reason': iv_data.get('skipped_reason'),
+                'Delta_Target': delta_target, 'Expiry_Date': expiry_date_str,
+                'Expiry_DTE': expiry_dte, 'Is_Monthly': is_monthly,
+                'Earnings_Avoided': earn_avoided, 'Earnings_Blackout': False,
+                'QW_Expiry': qw_expiry,
+                'Position_Mgmt': t2_mgmt_note,
+            }
+            logger.info(
+                f"✓ [{tier_label}] {ticker}: RSI {current_rsi:.1f} (thr={rsi_threshold}) | "
+                f"BB {latest_bb_pos:.2f} (thr={bb_threshold}) | ATR% {atr_pct:.2f} | "
+                f"IV Rank {iv_data.get('iv_rank')} | IV/HV {iv_data.get('iv_hv_ratio')} | "
+                f"Signal: {signal_strength}/100 | Expiry: {expiry_date_str} (DTE {expiry_dte})"
+            )
             successful_count += 1
         except Exception as e:
             logger.error(f"[{tier_label}] Error processing {ticker}: {e}")
