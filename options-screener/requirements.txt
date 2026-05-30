@@ -1,0 +1,4 @@
+yfinance>=0.2.28
+pandas>=2.0.0
+python-dotenv>=1.0.0
+pandas-ta>=0.3.14b  # optional — falls back to built-in pandas TA if unavailable
