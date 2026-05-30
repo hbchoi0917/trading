@@ -8,6 +8,15 @@
 
 ---
 
+## What's in this repo
+
+| Folder | Description |
+|--------|-------------|
+| [`options-screener/`](options-screener/) | **Demo screener** — scans a watchlist for put credit spread entry signals using RSI, Bollinger Bands, IV Rank, IV/HV ratio, and earnings blackout filters. Outputs a signals CSV. |
+| [`options-analysis/`](options-analysis/) | **Trade analysis** — pipeline + charts for analyzing personal options trade history (P&L, ticker breakdown, strategy split, efficiency). See its own [README](options-analysis/README.md). |
+
+---
+
 ## Overview
 
 This pipeline automates the full lifecycle of a put credit spread strategy:
@@ -20,33 +29,7 @@ This pipeline automates the full lifecycle of a put credit spread strategy:
 
 Designed to run unattended on a cloud server (AWS EC2).
 
----
-
-## Architecture
-
-```
-options-screener/
-├── options_premium_screener.py   # Screening engine → signals CSV
-├── covered_call_screener.py      # Covered call alert module
-├── auto_trade.py                 # Daily pipeline orchestrator
-├── notifications.py              # Telegram / Gmail alerts
-├── position_tracker.py           # CSV-based position ledger
-├── healthcheck.py                # Pre-flight environment check
-│
-├── broker/
-│   ├── client.py                 # Tastytrade session management
-│   ├── executor.py               # Order placement + position monitor
-│   ├── spread_builder.py         # Option chain → spread selection
-│   └── setup_auth.py             # One-time OAuth credential setup
-│
-└── tests/                        # Unit tests, no live broker required
-
-deploy/
-├── setup.sh                      # One-command Ubuntu server setup
-├── run_entry.sh / run_monitor.sh # Cron wrappers
-├── run_cc.sh / run_summary.sh
-└── crontab.template
-```
+> **Note:** The screener in this repo is a **demo / educational baseline**. The full production system (broker integration, order execution, position monitoring, cron-scheduled deployment) runs in a private repository. See the [customization notes](options-screener/screener.py) at the top of `screener.py` for what's needed to build a complete system.
 
 ---
 
@@ -65,7 +48,26 @@ Tickers are organized into tiers by liquidity and volatility profile. All signal
 
 ---
 
-## Cron Schedule (US/Eastern)
+## Quick Start
+
+```bash
+# 1. Install dependencies
+cd options-screener
+pip install -r requirements.txt
+
+# 2. Run the screener
+python screener.py
+# → signals_YYYYMMDD.csv + console output
+```
+
+For full automation, additional setup is required:
+- **Broker API** — integrate with Tastytrade, IBKR, or similar for order placement
+- **Cloud server** — deploy to AWS EC2 (or equivalent) with cron scheduling in US/Eastern timezone
+- **Notifications** — add Telegram / Gmail alert integration
+
+---
+
+## Cron Schedule (Production)
 
 | Time ET | Job |
 |---------|-----|
@@ -79,9 +81,9 @@ Tickers are organized into tiers by liquidity and volatility profile. All signal
 
 ## Tech Stack
 
-- **[tastytrade](https://pypi.org/project/tastytrade/)** ≥ 12.0 — broker SDK
-- **[pandas](https://pandas.pydata.org/)** — data manipulation
 - **[yfinance](https://pypi.org/project/yfinance/)** — market data and option chains
+- **[pandas](https://pandas.pydata.org/)** — data manipulation
+- **[tastytrade](https://pypi.org/project/tastytrade/)** ≥ 12.0 — broker SDK (production)
 - **[python-dotenv](https://pypi.org/project/python-dotenv/)** — credential management
 
 ---
