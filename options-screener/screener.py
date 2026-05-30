@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
 """
-Put Credit Spread Screener — Demo
+Put Credit Spread Screener — Demo / Educational Baseline
+=========================================================
 
-Scans a watchlist daily for high-probability put credit spread entry candidates.
+⚠️  This is a simplified starting point, not a production-ready system.
+    Customization is required before live trading:
+
+    1. Watchlist     — replace the example tickers with names you've researched
+                       and sized appropriately for your account.
+    2. Thresholds    — RSI, BB, IV Rank cutoffs shown here are illustrative.
+                       Back-test and tune them against your own trade history.
+    3. Delta target  — adjust DELTA_TARGET to match your risk tolerance and
+                       desired probability of profit.
+    4. Broker API    — this script outputs a CSV of signals only.
+                       Automated order placement requires integration with a
+                       broker API (e.g. Tastytrade, IBKR, TD Ameritrade).
+    5. Cloud server  — for fully unattended daily execution, deploy to a cloud
+                       server (e.g. AWS EC2) and schedule via cron (Linux) or
+                       Task Scheduler (Windows). The server must run in the
+                       US/Eastern timezone to align with market hours.
 
 Filters applied (all must pass):
   1. Price > SMA-200         (long-term uptrend)
