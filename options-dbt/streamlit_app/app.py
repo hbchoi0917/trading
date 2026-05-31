@@ -22,7 +22,7 @@ st.set_page_config(
 
 # ── DB connection ─────────────────────────────────────────────────────────────
 
-DB_PATH = os.environ.get("DUCKDB_PATH", os.path.join(os.path.dirname(__file__), "options_trading.duckdb"))
+DB_PATH = os.environ.get("DUCKDB_PATH", os.path.join(os.path.dirname(__file__), "sample_options_trading.duckdb"))
 
 @st.cache_resource
 def get_conn():
