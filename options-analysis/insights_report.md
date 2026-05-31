@@ -125,8 +125,8 @@
 
 | Ticker | Net P&L | Root Cause |
 |---|---|---|
-| MSFT | **−$10,556** | Largest single-name loss in portfolio history; MSFT decline in Feb forced costly spread closeouts and failed roll attempts |
-| NFLX | **−$6,238** | Sharp NFLX move in late Jan 2026 hit near-ATM PUT strikes; repeated closeouts at loss |
+| MSFT | **−$10,556** | MSFT dropped sharply and independently in February with no broad market catalyst — an idiosyncratic move that was difficult to anticipate. Stop-loss was applied later than optimal, compounding the loss through repeated roll attempts. Lesson learned: exit faster on single-name drops with no sector confirmation. **MSFT excluded from rotation going forward.** |
+| NFLX | **−$6,238** | Post-split NFLX was hit by a prolonged M&A speculation overhang that triggered a sharp, sustained decline — a macro/event-driven move outside normal options risk management. Put spreads were already placed when the situation developed; no controllable entry error. **NFLX excluded from rotation going forward.** |
 | IONQ | −$1,245 | High-volatility small-cap; sharp Feb–Mar drop forced early close |
 | RGTI | −$1,108 | Quantum computing sector volatility continued from 2025 |
 
@@ -174,6 +174,7 @@
 5. **META drag reversed** — went from early Q2 loss center to +$344 net positive; rolling discipline paid off
 6. **Account B leading** — +$6,524 Q2 final, best of all accounts; +$20,267 lifetime crosses $20K milestone
 7. **May best month ever** — +$10,770 surpasses all prior single-month records; demonstrates scalability of current approach
+8. **Ticker exclusion after major losses** — MSFT and NFLX both removed from rotation after Q1 losses; neither has appeared in Q2 data; removing high-risk idiosyncratic names after confirmed blow-up events is working as intended
 
 ### ⚠️ Lessons: Covered Call Management
 1. **GOOGL covered call rolling** — Account A holds 100 shares; BTC costs exceeded initial premium during Q2 rally, but rolling the short call forward at $400 strike generates ongoing premium income; cumulative premium will recover drag over time; continue rolling
@@ -213,6 +214,7 @@
 - [ ] **GOOGL: continue covered call rolling on 100 shares (Account A)** — $400 strike; roll at expiry or when 80%+ profit reached; cumulative premium recovery in progress
 - [ ] **EWY: hold Jun 26 $212.5 covered call** — let expire or sell shares above strike; re-evaluate new covered call entry after Jun expiry based on EWY trend
 - [ ] **Account A rebalancing** — increase put spread allocation; covered call positions are intentional; reduce new speculative call entries
+- [ ] **MSFT / NFLX: do not re-enter** — both excluded from rotation after Q1 losses; idiosyncratic risk profile not compatible with current strategy
 
 ### Risk Management Rules
 1. **Max risk per spread**: $1,000 (spread width × contracts × 100)
@@ -220,7 +222,7 @@
 3. **Drawdown circuit breaker**: if any month hits −$2,000, pause new positions for 1 week
 4. **High-beta position limit**: IONQ, RGTI, MARA — max 2 contracts per position
 5. **Call selling rule**: only sell calls when stock is below its 52-week midpoint — never near all-time highs
-6. **MSFT rule**: strikes must be ≥ 15% OTM; spread width ≥ $20; max 1 roll then close
+6. **MSFT rule**: strikes must be ≥ 15% OTM; spread width ≥ $20; max 1 roll then close *(inactive — MSFT excluded from rotation)*
 
 ---
 
