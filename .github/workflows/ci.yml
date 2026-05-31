@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Syntax
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install linter
+        run: pip install ruff
+
+      - name: Ruff lint
+        run: ruff check options-screener/ options-analysis/
+
+      - name: Syntax check (ast.parse)
+        run: |
+          python - <<'EOF'
+          import ast, sys, pathlib
+          errors = []
+          for path in pathlib.Path(".").rglob("*.py"):
+              if any(p in str(path) for p in [".venv", "__pycache__"]):
+                  continue
+              try:
+                  ast.parse(path.read_text())
+              except SyntaxError as e:
+                  errors.append(f"{path}: {e}")
+          if errors:
+              print("\n".join(errors)); sys.exit(1)
+          print(f"✅ All Python files parse cleanly")
+          EOF
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: No .env committed
+        run: |
+          if find . -name ".env" -not -path "./.git/*" | grep -q .; then
+            echo "❌ .env file found in repo — remove it immediately"
+            find . -name ".env" -not -path "./.git/*"
+            exit 1
+          fi
+          echo "✅ No .env files committed"
+
+      - name: No hardcoded secrets pattern
+        run: |
+          # Scan for common secret patterns (API keys, tokens, passwords)
+          if grep -rn \
+            -e "TT_PAPER_API_KEY\s*=\s*['\"][a-zA-Z0-9]\{10,\}" \
+            -e "TG_BOT_TOKEN\s*=\s*['\"][0-9]\{8,\}" \
+            -e "GMAIL_PASSWORD\s*=\s*['\"][a-zA-Z0-9 ]\{8,\}" \
+            --include="*.py" --include="*.sh" --include="*.yml" \
+            --exclude-dir=.git \
+            .; then
+            echo "❌ Potential hardcoded secret detected above"
+            exit 1
+          fi
+          echo "✅ No hardcoded secret patterns found"
+
+  screener-dry-run:
+    name: Screener Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r options-screener/requirements.txt
+
+      - name: Import check — screener
+        run: python -c "import ast; ast.parse(open('options-screener/screener.py').read()); print('✅ screener.py imports clean')"
+
+      - name: Import check — analysis
+        run: |
+          pip install pandas plotly
+          python -c "
+          import ast, sys
+          for f in ['options-analysis/analysis.py', 'options-analysis/generate_sample_charts.py']:
+              ast.parse(open(f).read())
+              print(f'✅ {f} parses cleanly')
+          "

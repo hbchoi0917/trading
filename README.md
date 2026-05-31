@@ -2,6 +2,7 @@
 
 **End-to-end automated pipeline for selling vertical put credit spreads — from screening to execution to position management.**
 
+[![CI](https://github.com/hbchoi0917/trading/actions/workflows/ci.yml/badge.svg)](https://github.com/hbchoi0917/trading/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![Tastytrade](https://img.shields.io/badge/Tastytrade-SDK%20v12-purple.svg)](https://tastytrade.com)
 [![License](https://img.shields.io/badge/license-Personal%20Use-red.svg)](LICENSE)
