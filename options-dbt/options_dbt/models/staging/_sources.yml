@@ -1,0 +1,33 @@
+version: 2
+
+sources:
+  - name: options_dbt
+    description: "Fidelity brokerage transaction exports — options trades across 4 accounts, Jan 2025–May 2026."
+    tables:
+      - name: fidelity_transactions
+        description: "Raw options transaction rows from Fidelity CSV export. One row = one option leg."
+        columns:
+          - name: run_date
+            description: "Trade execution date."
+          - name: account
+            description: "Account name (anonymized: Account_A/B/C/D)."
+          - name: action
+            description: "Full action string from Fidelity, e.g. 'YOU SOLD OPENING TRANSACTION PUT (COST)...'."
+          - name: symbol
+            description: "OCC-style option symbol, e.g. -COST260402P940."
+          - name: description
+            description: "Human-readable contract description."
+          - name: type
+            description: "Margin or Cash account type."
+          - name: price
+            description: "Per-share option premium at execution."
+          - name: quantity
+            description: "+1 = bought, -1 = sold."
+          - name: commission
+            description: "Broker commission per leg. Null for expired-worthless legs."
+          - name: fees
+            description: "Exchange/regulatory fees."
+          - name: amount
+            description: "Net cash impact. Positive = received, negative = paid."
+          - name: settlement_date
+            description: "T+1 settlement date."

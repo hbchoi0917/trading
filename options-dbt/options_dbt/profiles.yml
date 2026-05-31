@@ -1,0 +1,7 @@
+options_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'options_trading.duckdb') }}"
+      threads: 4

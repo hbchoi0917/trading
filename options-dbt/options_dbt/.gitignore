@@ -1,0 +1,7 @@
+target/
+dbt_packages/
+logs/
+*.duckdb
+
+# full transaction data — private, not committed to public repo
+seeds/fidelity_transactions.csv

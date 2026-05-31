@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: stg_fidelity_transactions
+    description: >
+      Cleaned and parsed Fidelity option transaction legs.
+      Each row represents one option contract leg (buy or sell, opening or closing).
+      Symbol parsing extracts ticker, expiry, option type, and strike from the OCC symbol format.
+      DIVIDEND and ASSIGNMENT rows are flagged via transaction_category for downstream filtering.
+    columns:
+      - name: transaction_id
+        description: "Surrogate key (MD5 of trade_date + account + symbol + action + amount)."
+        data_tests:
+          - unique
+          - not_null
+
+      - name: trade_date
+        data_tests:
+          - not_null
+
+      - name: account_name
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Account_A', 'Account_B', 'Account_C', 'Account_D']
+
+      - name: transaction_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['OPENING', 'CLOSING', 'EXPIRED', 'ASSIGNED', 'DIVIDEND', 'OTHER']
+
+      - name: transaction_category
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['OPTION', 'DIVIDEND', 'ASSIGNMENT']
+
+      - name: ticker
+        description: "Underlying ticker parsed from OCC symbol. Null for DIVIDEND rows."
+
+      - name: option_type
+        description: "PUT or CALL. Null for DIVIDEND/ASSIGNMENT rows."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['PUT', 'CALL', null]
+
+      - name: amount
+        description: "Net cash impact. Positive = received (short premium), negative = paid (long premium or buy-to-close)."
+        data_tests:
+          - not_null
