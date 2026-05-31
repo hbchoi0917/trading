@@ -157,7 +157,7 @@
 | EWY | **−$3,167** | Covered calls on 100 shares; BTC cost exceeded initial premium received during sharp KRW/EWY rally; rolled to Jun 26 $212.5 — holding vs. early BTC would have been more profitable |
 | GOOGL | **−$3,091** | Covered calls on 100 shares (Account A); BTC cost exceeded premium on rally; rolled short call forward at $400 strike — ongoing premium collection offsetting drag over time |
 | CRWD | −$1,745 | Put spreads caught downside move; tight strikes punished |
-| QQQM | −$1,673 | Call spread caught sustained QQQM rally in April |
+| QQQM | −$1,673 | Covered call on 100 shares; BTC cost exceeded initial premium during sustained April rally; held through rally and sold shares above strike — stock gain partially offset option drag. New 100 shares purchased; covered call rotation continues into Q3. |
 | PLTR | −$295 | Minor May drag from put spread rolls; manageable |
 
 ![Ticker Efficiency: P&L per Trade vs Frequency](charts/chart9_ticker_efficiency.png)
@@ -174,14 +174,18 @@
 5. **META drag reversed** — went from early Q2 loss center to +$344 net positive; rolling discipline paid off
 6. **Account B leading** — +$6,524 Q2 final, best of all accounts; +$20,267 lifetime crosses $20K milestone
 7. **May best month ever** — +$10,770 surpasses all prior single-month records; demonstrates scalability of current approach
-8. **Ticker exclusion after major losses** — MSFT and NFLX both removed from rotation after Q1 losses; neither has appeared in Q2 data; removing high-risk idiosyncratic names after confirmed blow-up events is working as intended
+8. **Ticker exclusion after major losses** — MSFT, NFLX, IONQ, RGTI all removed from rotation after confirmed blow-up events; discipline of not re-entering high-risk idiosyncratic names is working
+9. **MARA wheel strategy** — CSP entry followed by assignment and covered call rotation generated net positive outcome; validates wheel approach for high-premium tickers with acceptable assignment risk
 
 ### ⚠️ Lessons: Covered Call Management
 1. **GOOGL covered call rolling** — Account A holds 100 shares; BTC costs exceeded initial premium during Q2 rally, but rolling the short call forward at $400 strike generates ongoing premium income; cumulative premium will recover drag over time; continue rolling
 2. **EWY covered call timing** — Q2 BTC cost exceeded initial premium; holding through the rally and selling at a higher stock price (as eventually executed) proved more profitable than early BTC; apply same patience to Jun 26 $212.5 position
-3. **TSLA sizing** — −$3,994 Q2; multiple put spread cycles catching downside moves; reduce contract count or widen strikes
-4. **Account A concentration** — +$897 Q2 despite portfolio gaining +$11,219; covered call drag concentrated here alongside GOOGL position; put spread allocation needs to increase
-5. **PLTR discipline** — minor drag (−$295) from put spread rolls in May; strike selection needs wider OTM buffer given volatility
+3. **QQQM covered call recycling** — BTC cost exceeded initial premium during April rally; held through rally and sold shares above strike — stock gain partially offset option drag; new 100 shares purchased to continue rotation; wheel-adjacent approach worth tracking separately
+4. **Account A concentration** — +$897 Q2 despite portfolio gaining +$11,219; covered call drag (GOOGL, EWY, QQQM) concentrated here; put spread allocation needs to increase
+
+### ⚠️ Lessons: Spread Management
+1. **TSLA sizing** — −$3,994 Q2; multiple put spread cycles catching downside moves; reduce contract count or widen strikes; avoid covered calls on TSLA given directional volatility
+2. **PLTR discipline** — minor drag (−$295) from put spread rolls in May; strike selection needs wider OTM buffer given volatility
 
 ---
 
@@ -195,6 +199,7 @@
 | MRVL | A, B, C | Put spread | JUN 26 – JUL 2 | New position; spreads across all 3 accounts |
 | EWY | A | Covered call | JUN 26 | Short $212.5 call on 100 shares; hold through expiry or sell stock above strike |
 | GOOGL | A | Covered call | JUN 3 | Short $400 call on 100 shares; roll forward on expiry for continued premium |
+| QQQM | A | Covered call | TBD | New 100 shares purchased after prior cycle; ongoing covered call rotation |
 | DRAM | A, B, C | Put/Call (covered) | JUN 12–26 | Multiple legs; monitor bid/ask liquidity |
 | CLS | A, B | Put spread | JUN 26 – JUL 2 | New CLS cycle; strike range $300–$330 |
 | INTC | A, B | Covered call | JUN 5 | Short $120–121 calls; close at 50%+ or roll |
@@ -213,14 +218,16 @@
 - [ ] **TSLA: put spreads only, reduce size** — avoid covered calls entirely; directional risk too high; cap at 1 contract/account per cycle
 - [ ] **GOOGL: continue covered call rolling on 100 shares (Account A)** — $400 strike; roll at expiry or when 80%+ profit reached; cumulative premium recovery in progress
 - [ ] **EWY: hold Jun 26 $212.5 covered call** — let expire or sell shares above strike; re-evaluate new covered call entry after Jun expiry based on EWY trend
-- [ ] **Account A rebalancing** — increase put spread allocation; covered call positions are intentional; reduce new speculative call entries
-- [ ] **MSFT / NFLX: do not re-enter** — both excluded from rotation after Q1 losses; idiosyncratic risk profile not compatible with current strategy
+- [ ] **QQQM: continue covered call rotation on new 100 shares** — sell call at reasonable OTM strike each cycle; track option P&L separately from stock gain/loss
+- [ ] **MARA: CSP/covered call wheel viable** — max 2 contracts; maintain wheel discipline
+- [ ] **Account A rebalancing** — increase put spread allocation; covered call positions (GOOGL, EWY, QQQM) are intentional; reduce new speculative entries
+- [ ] **MSFT / NFLX / IONQ / RGTI: do not re-enter** — all excluded from rotation; idiosyncratic or sector risk confirmed unmanageable
 
 ### Risk Management Rules
 1. **Max risk per spread**: $1,000 (spread width × contracts × 100)
 2. **DTE discipline**: open at 28–45 DTE; close at 80% profit OR 12 DTE — whichever comes first
 3. **Drawdown circuit breaker**: if any month hits −$2,000, pause new positions for 1 week
-4. **High-beta position limit**: IONQ, RGTI, MARA — max 2 contracts per position
+4. **High-beta position limit**: IONQ, RGTI — excluded from new entries (quantum computing sector volatility confirmed unmanageable); MARA — CSP/covered call wheel approach viable; max 2 contracts
 5. **Call selling rule**: only sell calls when stock is below its 52-week midpoint — never near all-time highs
 6. **MSFT rule**: strikes must be ≥ 15% OTM; spread width ≥ $20; max 1 roll then close *(inactive — MSFT excluded from rotation)*
 
@@ -230,7 +237,7 @@
 
 | Account | 2025 P&L | 2026 Q1 P&L | 2026 Q2 Final | Lifetime | Notes |
 |---|---|---|---|---|---|
-| Account A | $16,178 | +$663 | +$897 | $17,738 | GOOGL covered call drag + BTC costs in Q2; rolling strategy ongoing |
+| Account A | $16,178 | +$663 | +$897 | $17,738 | GOOGL/EWY/QQQM covered call drag in Q2; all positions intentional; rolling strategy ongoing |
 | Account B | $8,461 | +$5,282 | +$6,524 | $20,267 | Crossed $20K lifetime; consistent leader |
 | Account C | $3,899 | +$2,818 | +$3,639 | $10,356 | Crossed $10K lifetime; COST and DRAM driving gains |
 | Account D | $143 | +$332 | +$159 | $634 | Small but consistent |
@@ -239,4 +246,4 @@
 
 ---
 
-*Report updated May 30, 2026. P&L figures based on net cash flows from Fidelity transaction exports (premiums received/paid + commissions + fees). Account numbers masked.*
+*Report updated May 30, 2026. P&L figures based on net cash flows from Fidelity transaction exports (premiums received/paid + commissions + fees). Account numbers masked. Option P&L reflects premium cash flows only; stock-level gains/losses from covered call assignments or sales are not captured in transaction export.*
