@@ -174,24 +174,7 @@
 
 ---
 
-## 9. Open Positions (as of May 29, 2026)
-
-| Ticker | Structure | Expiry | Notes |
-|---|---|---|---|
-| COST | Put spread | JUL 10–17 | Core anchor; all accounts; JUL strikes deployed |
-| MRVL | Put spread | JUN 26 – JUL 2 | New position; all accounts |
-| EWY | Covered call | JUN 26 | Short $212.5 call on 100 shares; hold through expiry |
-| GOOGL | Covered call | JUN 3 | Short $400 call on 100 shares; roll forward on expiry |
-| QQQM | Covered call | TBD | New 100 shares; ongoing covered call rotation |
-| DRAM | Put/Call (covered) | JUN 12–26 | Multiple legs; monitor bid/ask liquidity |
-| CLS | Put spread | JUN 26 – JUL 2 | New cycle; strike range $300–$330 |
-| INTC | Covered call | JUN 5 | Short $120–121 calls; close at 50%+ or roll |
-| NVDA | Put spread | JUN 26 | Small position |
-| GOOGL | Put spread | JUN 26 | Standard rotation |
-
----
-
-## 10. Action Plan
+## 9. Action Plan
 
 ### Q3 2026 Positioning
 - [ ] **COST** — maintain as largest allocation; 3–4 spreads/month per account; JUL strikes already deployed
@@ -215,4 +198,4 @@
 
 ---
 
-*Report updated May 30, 2026. P&L figures based on net cash flows from brokerage transaction exports (premiums received/paid + commissions + fees). Specific dollar amounts maintained in private repository. Option P&L reflects premium cash flows only; stock-level gains/losses from covered call assignments are not captured in transaction export.*
+*Report updated May 30, 2026. Specific P&L figures maintained in private repository. Option P&L reflects premium cash flows only; stock-level gains/losses from covered call assignments are not captured in transaction export.*
