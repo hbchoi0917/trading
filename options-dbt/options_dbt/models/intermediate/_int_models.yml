@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: int_option_legs
+    description: >
+      Option legs only (excludes dividends/assignments). One row per contract leg,
+      enriched with DTE, notional value, and leg role classification.
+    columns:
+      - name: transaction_id
+        description: Surrogate key inherited from stg_fidelity_transactions.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: trade_date
+        data_tests:
+          - not_null
+
+      - name: account_name
+        data_tests:
+          - not_null
+
+      - name: option_type
+        data_tests:
+          - accepted_values:
+              values: ['PUT', 'CALL']
+
+      - name: leg_role
+        description: Role of this leg within a spread cycle (SHORT_OPEN, LONG_OPEN, etc.).
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['SHORT_OPEN', 'LONG_OPEN', 'SHORT_CLOSE', 'LONG_CLOSE', 'EXPIRED', 'ASSIGNED', 'UNKNOWN']
+
+      - name: is_opening
+        data_tests:
+          - not_null
+
+      - name: is_closing
+        data_tests:
+          - not_null
+
+      - name: amount
+        data_tests:
+          - not_null
+
+  - name: int_spread_trades
+    description: >
+      Realized spread-level P&L. One row per trade cycle (grouped by account +
+      ticker + expiry + option_type + strike). Positive realized_pnl = net credit received.
+    columns:
+      - name: spread_id
+        description: Surrogate key (MD5 of account + ticker + expiry + option_type + strike).
+        data_tests:
+          - unique
+          - not_null
+
+      - name: account_name
+        data_tests:
+          - not_null
+
+      - name: ticker
+        data_tests:
+          - not_null
+
+      - name: realized_pnl
+        data_tests:
+          - not_null
+
+      - name: trade_result
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['WIN', 'LOSS', 'BREAKEVEN', 'OPEN']
+
+      - name: close_reason
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['EXPIRED_WORTHLESS', 'ASSIGNED', 'CLOSED', 'OPEN']

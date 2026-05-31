@@ -1,0 +1,82 @@
+version: 2
+
+models:
+  - name: mart_monthly_pnl
+    description: >
+      Monthly P&L by account. Closed trades only. Includes cumulative P&L
+      window function and month-over-month change.
+    columns:
+      - name: month
+        data_tests:
+          - not_null
+
+      - name: account_name
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['Account_A', 'Account_B', 'Account_C', 'Account_D']
+
+      - name: net_pnl
+        data_tests:
+          - not_null
+
+      - name: trade_count
+        data_tests:
+          - not_null
+
+      - name: win_rate_pct
+        description: Monthly win rate as a percentage (0–100). Null if no trades in month.
+
+      - name: is_win_month
+        data_tests:
+          - not_null
+
+  - name: mart_ticker_performance
+    description: >
+      Ticker-level performance across all accounts and the full trading period.
+      Key mart for portfolio rotation decisions and efficiency analysis.
+    columns:
+      - name: ticker
+        data_tests:
+          - not_null
+
+      - name: total_trades
+        data_tests:
+          - not_null
+
+      - name: total_pnl
+        data_tests:
+          - not_null
+
+      - name: pnl_rank
+        description: Rank by total_pnl descending. Used for leaderboard sorting.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: win_rate_pct
+        description: Trade win rate 0–100. Null if zero trades.
+
+  - name: mart_account_summary
+    description: >
+      Account-level lifetime summary. One row per account. Joins spread trades
+      with monthly P&L to compute trade-level and month-level win rates separately.
+    columns:
+      - name: account_name
+        data_tests:
+          - unique
+          - not_null
+
+      - name: lifetime_pnl
+        data_tests:
+          - not_null
+
+      - name: total_trades
+        data_tests:
+          - not_null
+
+      - name: trade_win_rate_pct
+        description: Win rate at trade level (0–100).
+
+      - name: monthly_win_rate_pct
+        description: Win rate at monthly level (0–100).
