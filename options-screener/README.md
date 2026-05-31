@@ -27,10 +27,22 @@ All conditions must pass for a signal to be generated:
 
 ---
 
+## Files
+
+| File | Description |
+|------|-------------|
+| `screener.py` | Main screening engine — applies all filters, outputs signals CSV |
+| `.env.example` | Template for credentials (Tastytrade, Telegram, Gmail) |
+| `healthcheck.py` | Pre-flight check for packages, env vars, network, timezone |
+| `requirements.txt` | Python dependencies |
+
+---
+
 ## Setup
 
 ```bash
 pip install -r requirements.txt
+cp .env.example .env   # then fill in your credentials
 ```
 
 ---
@@ -65,6 +77,8 @@ To run this as a production system:
 2. **Cloud server** — deploy to AWS EC2 (Ubuntu); schedule via cron in US/Eastern timezone
 3. **Notifications** — add Telegram or email alerts on entry / close events
 4. **Position monitor** — add logic to auto-close at profit target or DTE threshold
+
+See [`deploy/`](../deploy/) for ready-to-use server setup scripts and cron templates.
 
 ---
 

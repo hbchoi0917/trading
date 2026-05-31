@@ -1,7 +1,7 @@
 # Options Trading Analysis (Jan 2025 – May 2026)
 
 ## Overview
-This folder contains the analysis pipeline and insights derived from personal options trading transaction data (January 1, 2025 – May 21, 2026) across four brokerage accounts (Account A, B, C, D).
+This folder contains the analysis pipeline and insights derived from personal options trading transaction data (January 1, 2025 – May 29, 2026) across four brokerage accounts (Account A, B, C, D).
 
 ---
 
@@ -24,12 +24,12 @@ options-analysis/
 
 | Metric | Value |
 |---|---|
-| Total Net P&L | **$45,710** |
-| Monthly Win Rate | **76%** (13 / 17 months profitable) |
-| Total Fees Paid | ~$3,157 |
+| Monthly Win Rate | **78%** (14 / 18 months profitable) |
 | Primary Strategy | Put Credit Spreads |
-| Top Earning Ticker | COST |
-| Biggest Losing Ticker | MSFT |
+| Accounts | 4 (Individual + IRA types) |
+| Period | Jan 2025 – May 2026 |
+
+> Specific P&L figures are maintained in a private repository.
 
 ---
 
@@ -46,7 +46,7 @@ cp ~/Downloads/Accounts_History*.csv data/
 python analysis.py
 # → Prints summary stats to console
 # → Saves data/options_cleaned.csv
-# → Saves 7 charts to charts/
+# → Saves 9 charts to charts/
 ```
 
 ---

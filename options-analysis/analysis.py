@@ -231,7 +231,7 @@ def make_charts(df, out_dir='charts'):
         textposition='inside', textfont=dict(size=12, color='white')
     ))
     fig7.update_layout(
-        title={'text': f'NVDA Leads with {freq.iloc[0]} Opening Trades in 2025<br>'
+        title={'text': f'{freq.index[0]} Leads with {freq.iloc[0]} Opening Trades<br>'
                        "<span style='font-size:16px;font-weight:normal;'>New Positions (SELL_OPEN) by Ticker | Top 12</span>"},
         xaxis=dict(title_text='Trades'),
         height=500, margin=dict(l=90, r=60, t=120, b=60)
