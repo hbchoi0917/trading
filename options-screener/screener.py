@@ -108,9 +108,11 @@ FOMC_DAYS = {
 
 # ── Technical indicators ──────────────────────────────────────────────────────
 try:
-    import pandas_ta as _pta
-    _USE_PTA = True
-except ImportError:
+    import importlib.util as _ilu
+    _USE_PTA = _ilu.find_spec("pandas_ta") is not None
+    if _USE_PTA:
+        import pandas_ta as _pta  # noqa: F401
+except Exception:
     _USE_PTA = False
 
 
@@ -369,7 +371,7 @@ def screen_ticker(ticker: str, regime: dict) -> dict | None:
         if atr_pct < ATR_MIN_PCT:
             failures.append(f"ATR% {atr_pct:.2f} < {ATR_MIN_PCT}")
         if volume < avg_vol:
-            failures.append(f"vol below 50d avg")
+            failures.append("vol below 50d avg")
         if failures:
             log.info(f"{ticker}: no signal — {'; '.join(failures)}")
             return None

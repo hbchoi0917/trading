@@ -26,18 +26,26 @@ def load_and_clean(file_paths):
 
 def parse_action_type(action):
     action = str(action).upper()
-    if 'EXPIRED' in action:          return 'EXPIRED'
-    elif 'ASSIGNED' in action:       return 'ASSIGNED'
-    elif 'SOLD OPENING' in action:   return 'SELL_OPEN'
-    elif 'BOUGHT OPENING' in action: return 'BUY_OPEN'
-    elif 'SOLD CLOSING' in action:   return 'SELL_CLOSE'
-    elif 'BOUGHT CLOSING' in action: return 'BUY_CLOSE'
+    if 'EXPIRED' in action:
+        return 'EXPIRED'
+    elif 'ASSIGNED' in action:
+        return 'ASSIGNED'
+    elif 'SOLD OPENING' in action:
+        return 'SELL_OPEN'
+    elif 'BOUGHT OPENING' in action:
+        return 'BUY_OPEN'
+    elif 'SOLD CLOSING' in action:
+        return 'SELL_CLOSE'
+    elif 'BOUGHT CLOSING' in action:
+        return 'BUY_CLOSE'
     return 'OTHER'
 
 def parse_option_type(action):
     action = str(action).upper()
-    if ' CALL ' in action: return 'CALL'
-    elif ' PUT ' in action: return 'PUT'
+    if ' CALL ' in action:
+        return 'CALL'
+    elif ' PUT ' in action:
+        return 'PUT'
     return 'UNKNOWN'
 
 def parse_underlying(symbol):

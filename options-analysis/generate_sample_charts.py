@@ -60,7 +60,8 @@ QPNL     = [59, -27, 56, 228, 115, 171]
 qtr = pd.DataFrame({"quarter": QUARTERS, "pnl": QPNL})
 qtr["cum_pnl"] = qtr["pnl"].cumsum()
 
-bar_colors = lambda vals: ["#e74c3c" if v < 0 else "#00d4a8" for v in vals]
+def bar_colors(vals):
+    return ["#e74c3c" if v < 0 else "#00d4a8" for v in vals]
 
 
 def _fmt(v):
