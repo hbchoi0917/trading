@@ -53,7 +53,7 @@ _pnl          _performance  _summary
 
 ## Layer-by-Layer Explanation
 
-### Staging — "원본을 그대로, 깔끔하게"
+### Staging — "Clean the source, nothing more"
 
 **Input:** Raw Fidelity CSV
 ```
@@ -76,7 +76,7 @@ case when action ilike '%YOU SOLD%' then 'SOLD'   end          as direction
 
 ---
 
-### Intermediate — "비즈니스 로직 적용"
+### Intermediate — "Apply business logic"
 
 **The core problem:** Fidelity gives legs; we need spreads.
 
@@ -102,7 +102,7 @@ spread: PLTR PUT 82 | realized_pnl = +550.30 | WIN | held 32 days
 
 ---
 
-### Marts — "질문에 바로 대답할 수 있는 형태"
+### Marts — "Answer business questions directly"
 
 Intermediate gives trade-level rows. Marts answer business questions directly.
 
