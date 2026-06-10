@@ -19,11 +19,35 @@ All conditions must pass for a signal to be generated:
 | Mean reversion | Bollinger Band position (lower band proximity) |
 | Volatility | ATR% > minimum; volume > 50-day average |
 | Premium quality | IV Rank ≥ 25; IV/HV ratio ≥ 1.0 |
-| Earnings | Skip 3 days before announcement |
+| Earnings | Skipped within a configurable window around announcements |
 | FOMC | Warning on rate-decision days |
 
 **VIX regime adjustment** — RSI and BB thresholds shift across four regimes
 (LOW / NORMAL / ELEVATED / HIGH) so entry criteria stay calibrated to market conditions.
+
+---
+
+## Methodology Notes
+
+- **Hourly RSI, not daily** — on large down days, daily RSI can read neutral
+  (~50) while hourly RSI correctly shows oversold. Daily RSI reflects
+  yesterday's close; hourly reflects what the market is doing right now. For
+  intraday entry decisions, hourly is the right timeframe (falls back to
+  daily if intraday data is unavailable).
+- **Real-time intraday patch** — today's OHLCV bar is updated with live
+  intraday data before screening, so signals reflect current prices rather
+  than yesterday's close.
+- **Index screening differs from equities** — for broad-market indices with
+  European-style, cash-settled options (no early assignment risk), RSI is
+  not used as an entry gate. RSI is a directional-trader tool; for premium
+  sellers, IV Rank determines whether there is edge to capture. Index
+  entries require only trend confirmation (long-term moving average) plus
+  the IV dual-pass filter.
+- **IV dual-pass filter** — Pass 1 asks "is IV elevated vs. its own 52-week
+  history?" (IV Rank); Pass 2 asks "is the market paying above recent
+  realized volatility right now?" (IV/HV ratio). Both must pass; if IV data
+  is unavailable, the filter fails open so a data outage never silently
+  blocks a valid entry.
 
 ---
 
