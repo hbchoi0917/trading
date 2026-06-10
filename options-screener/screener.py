@@ -22,13 +22,21 @@ Put Credit Spread Screener — Demo / Educational Baseline
 
 Filters applied (all must pass):
   1. Price > SMA-200         (long-term uptrend)
-  2. RSI (14) oversold       (VIX-regime adjusted threshold)
+  2. RSI (14) oversold       (hourly bars, daily fallback; VIX-regime adjusted)
   3. Bollinger Band position (price near lower band)
   4. ATR% > minimum         (adequate premium-generating volatility)
   5. Volume > 50-day avg    (confirm selling pressure, not just drift)
-  6. IV Rank >= threshold    (premium historically elevated)
-  7. IV/HV ratio >= 1.0     (options priced above realized vol)
-  8. No earnings blackout   (skip 3 days before announcement)
+  6. IV dual-pass           (Pass 1: IV Rank >= threshold; Pass 2: IV/HV >= 1.0)
+  7. No earnings blackout   (configurable window around announcement)
+
+Methodology notes (see README.md for rationale):
+  - Today's daily bar is patched with live intraday data before screening,
+    so signals reflect current prices rather than yesterday's close.
+  - RSI is computed on hourly bars (falls back to daily if intraday data
+    is unavailable) — daily RSI lags badly on large intraday moves.
+  - Broad-market index tickers (INDEX_TICKERS) skip the RSI/BB momentum
+    gates: for premium sellers on cash-settled indices, IV Rank determines
+    the edge; only trend confirmation + the IV dual-pass are required.
 
 Output: signals_YYYYMMDD.csv + console table
 
@@ -65,8 +73,16 @@ WATCHLIST = [
 
 _ETF_TICKERS = frozenset({"SPY", "QQQ", "IWM", "VOO", "GLD", "TLT"})
 
+# Broad-market index-class tickers skip the RSI/BB momentum gates.
+# RSI is a directional-trader tool; for premium sellers on cash-settled
+# indices, IV Rank determines whether there is edge — only trend confirmation
+# plus the IV dual-pass filter are required. (True European-style indices
+# like SPX are the production use case; index ETFs stand in for the demo.)
+INDEX_TICKERS = frozenset({"SPY", "IWM"})
+
 # ── Screening parameters ──────────────────────────────────────────────────────
 RSI_PERIOD  = 14
+RSI_INTERVAL = "1h"  # RSI timeframe — hourly catches intraday oversold that daily misses
 BB_PERIOD   = 20
 ATR_PERIOD  = 14
 SMA_PERIOD  = 200
@@ -75,8 +91,10 @@ DTE_MIN     = 21    # minimum days to expiry
 DTE_MAX     = 45    # maximum days to expiry
 
 ATR_MIN_PCT = 1.0   # skip if ATR% is below this — premium too thin
-IV_RANK_MIN = 25    # skip if IV Rank < 25 — options historically cheap
-IV_HV_MIN   = 1.0   # skip if IV/HV < 1.0 — options priced below realized vol
+IV_RANK_MIN = 25    # IV dual-pass, Pass 1: skip if IV Rank below this
+IV_HV_MIN   = 1.0   # IV dual-pass, Pass 2: skip if IV/HV below this
+
+EARNINGS_BUFFER_DAYS = 3  # illustrative — tune the blackout window to your strategy
 
 # Target delta range for the short put leg.
 # Lower delta = further OTM = lower premium but higher probability of profit.
@@ -116,6 +134,18 @@ except Exception:
     _USE_PTA = False
 
 
+def _wilder_rsi(close: pd.Series, period: int = RSI_PERIOD) -> pd.Series:
+    """RSI with Wilder's exponential smoothing — pure pandas, any bar interval."""
+    delta = close.diff()
+    gain = delta.clip(lower=0)
+    loss = (-delta).clip(lower=0)
+    alpha = 1 / period
+    ag = gain.ewm(alpha=alpha, min_periods=period, adjust=False).mean()
+    al = loss.ewm(alpha=alpha, min_periods=period, adjust=False).mean()
+    rs = ag / al.replace(0, float("inf"))
+    return 100 - (100 / (1 + rs))
+
+
 def _append_ta(df: pd.DataFrame) -> None:
     """Append RSI, ATR, MACD columns in-place. Falls back to pure pandas if pandas_ta is unavailable."""
     if _USE_PTA:
@@ -124,15 +154,7 @@ def _append_ta(df: pd.DataFrame) -> None:
         df.ta.macd(append=True)
         return
 
-    # RSI — Wilder's exponential smoothing
-    delta = df["Close"].diff()
-    gain = delta.clip(lower=0)
-    loss = (-delta).clip(lower=0)
-    alpha = 1 / RSI_PERIOD
-    ag = gain.ewm(alpha=alpha, min_periods=RSI_PERIOD, adjust=False).mean()
-    al = loss.ewm(alpha=alpha, min_periods=RSI_PERIOD, adjust=False).mean()
-    rs = ag / al.replace(0, float("inf"))
-    df[f"RSI_{RSI_PERIOD}"] = 100 - (100 / (1 + rs))
+    df[f"RSI_{RSI_PERIOD}"] = _wilder_rsi(df["Close"])
 
     # ATR — Wilder's smoothing
     pc = df["Close"].shift(1)
@@ -163,6 +185,69 @@ def _safe_mid(row) -> float | None:
     if math.isnan(bid) or math.isnan(ask) or bid < 0 or ask <= 0 or ask < bid:
         return None
     return (bid + ask) / 2.0
+
+
+def _normalize_yf(df: pd.DataFrame) -> pd.DataFrame:
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.droplevel(0)
+    df.columns = [str(c).capitalize() for c in df.columns]
+    return df
+
+
+# ── Intraday data ─────────────────────────────────────────────────────────────
+def get_hourly_rsi(ticker: str) -> float | None:
+    """
+    Latest RSI computed on hourly bars.
+
+    On large down days, daily RSI can read neutral (~50) while hourly RSI
+    correctly shows oversold — daily reflects yesterday's close, hourly
+    reflects what the market is doing right now. Returns None if intraday
+    data is unavailable; callers fall back to daily RSI.
+    """
+    try:
+        h = _normalize_yf(yf.download(
+            ticker, period="30d", interval=RSI_INTERVAL,
+            progress=False, group_by=False,
+        ))
+        if h.empty or len(h) < RSI_PERIOD + 1:
+            return None
+        rsi = _wilder_rsi(h["Close"])
+        val = float(rsi.iloc[-1])
+        return val if not math.isnan(val) else None
+    except Exception as e:
+        log.warning(f"[hourly RSI] {ticker}: {e}")
+        return None
+
+
+def patch_intraday_bar(df: pd.DataFrame, ticker: str) -> None:
+    """
+    Update today's daily OHLCV bar in-place with live intraday data, so
+    indicators reflect current prices rather than yesterday's close.
+    Best-effort: any failure leaves the daily frame untouched.
+    """
+    try:
+        intra = _normalize_yf(yf.download(
+            ticker, period="1d", interval="5m",
+            progress=False, group_by=False,
+        ))
+        if intra.empty:
+            return
+        bar = {
+            "Open":   float(intra["Open"].iloc[0]),
+            "High":   float(intra["High"].max()),
+            "Low":    float(intra["Low"].min()),
+            "Close":  float(intra["Close"].iloc[-1]),
+            "Volume": float(intra["Volume"].sum()),
+        }
+        today = pd.Timestamp(datetime.today().date())
+        last_day = pd.Timestamp(df.index[-1]).normalize()
+        if last_day == today:
+            for col, val in bar.items():
+                df.loc[df.index[-1], col] = val
+        else:
+            df.loc[today] = bar
+    except Exception as e:
+        log.warning(f"[intraday patch] {ticker}: {e}")
 
 
 # ── VIX ───────────────────────────────────────────────────────────────────────
@@ -293,7 +378,7 @@ def get_earnings_date(ticker: str) -> date | None:
         return None
 
 
-def in_earnings_blackout(earnings_date: date | None, buffer_days: int = 3) -> bool:
+def in_earnings_blackout(earnings_date: date | None, buffer_days: int = EARNINGS_BUFFER_DAYS) -> bool:
     if earnings_date is None:
         return False
     today = datetime.today().date()
@@ -322,16 +407,18 @@ def get_target_expiry(ticker: str, earnings_date: date | None = None):
 
 # ── Per-ticker screening ──────────────────────────────────────────────────────
 def screen_ticker(ticker: str, regime: dict) -> dict | None:
-    rsi_thr = regime["rsi"]
-    bb_thr  = regime["bb"]
+    rsi_thr  = regime["rsi"]
+    bb_thr   = regime["bb"]
+    is_index = ticker in INDEX_TICKERS
     try:
-        df = yf.download(ticker, period="1y", interval="1d", progress=False, group_by=False)
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.droplevel(0)
-        df.columns = [c.capitalize() for c in df.columns]
+        df = _normalize_yf(yf.download(ticker, period="1y", interval="1d", progress=False, group_by=False))
         if df.empty or len(df) < SMA_PERIOD:
             log.warning(f"{ticker}: insufficient data")
             return None
+
+        # Patch today's bar with live intraday data — signals should reflect
+        # current prices, not yesterday's close.
+        patch_intraday_bar(df, ticker)
 
         earnings = get_earnings_date(ticker)
         if in_earnings_blackout(earnings):
@@ -354,20 +441,32 @@ def screen_ticker(ticker: str, regime: dict) -> dict | None:
 
         close   = float(df["Close"].iloc[-1])
         sma200  = float(df[f"SMA_{SMA_PERIOD}"].iloc[-1])
-        rsi     = float(df[rsi_col].iloc[-1])
         bb_pos  = float(df["BB_pos"].iloc[-1])
         atr_pct = float(df[atr_col].iloc[-1]) / close * 100
         volume  = float(df["Volume"].iloc[-1])
         avg_vol = float(df["AVG_VOL_50"].iloc[-1])
 
+        # RSI on hourly bars; fall back to daily if intraday data unavailable
+        hourly_rsi = get_hourly_rsi(ticker)
+        if hourly_rsi is not None:
+            rsi, rsi_interval = hourly_rsi, RSI_INTERVAL
+        else:
+            rsi, rsi_interval = float(df[rsi_col].iloc[-1]), "1d"
+
         # Filter checks
         failures = []
         if close <= sma200:
             failures.append(f"price {close:.2f} <= SMA200 {sma200:.2f}")
-        if rsi >= rsi_thr:
-            failures.append(f"RSI {rsi:.1f} >= {rsi_thr}")
-        if bb_pos >= bb_thr:
-            failures.append(f"BB {bb_pos:.2f} >= {bb_thr}")
+        if is_index:
+            # Index-class: trend + IV dual-pass only. RSI/BB momentum gates
+            # are directional-trader tools — for premium sellers on indices,
+            # IV Rank determines whether there is edge to capture.
+            log.info(f"{ticker}: index-class — RSI/BB gates skipped")
+        else:
+            if rsi >= rsi_thr:
+                failures.append(f"RSI({rsi_interval}) {rsi:.1f} >= {rsi_thr}")
+            if bb_pos >= bb_thr:
+                failures.append(f"BB {bb_pos:.2f} >= {bb_thr}")
         if atr_pct < ATR_MIN_PCT:
             failures.append(f"ATR% {atr_pct:.2f} < {ATR_MIN_PCT}")
         if volume < avg_vol:
@@ -376,7 +475,9 @@ def screen_ticker(ticker: str, regime: dict) -> dict | None:
             log.info(f"{ticker}: no signal — {'; '.join(failures)}")
             return None
 
-        # IV quality (fail-open: None values do not suppress the signal)
+        # IV dual-pass filter (fail-open: None values do not suppress the signal)
+        # Pass 1 — is IV elevated vs. its own 52-week history? (IV Rank)
+        # Pass 2 — is the market paying above recent realized vol? (IV/HV)
         iv = compute_iv_rank(ticker)
         if iv["iv_rank"] is not None and iv["iv_rank"] < IV_RANK_MIN:
             log.info(f"{ticker}: IV Rank {iv['iv_rank']} < {IV_RANK_MIN} — premium cheap, skip")
@@ -391,7 +492,8 @@ def screen_ticker(ticker: str, regime: dict) -> dict | None:
             "Ticker":        ticker,
             "Price":         round(close, 2),
             "RSI":           round(rsi, 1),
-            "RSI_Threshold": rsi_thr,
+            "RSI_Interval":  rsi_interval,
+            "RSI_Threshold": rsi_thr if not is_index else "N/A (index)",
             "BB_Position":   round(bb_pos, 2),
             "BB_Threshold":  bb_thr,
             "ATR_%":         round(atr_pct, 2),
