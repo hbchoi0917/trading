@@ -2,7 +2,7 @@
 
 Streamlit + DuckDB + Plotly dashboard built on top of a dbt analytics pipeline.
 
-**Data:** 18 months of real options trading (Jan 2025 – May 2026) · 4 accounts · 50 tickers · 5,598 transaction rows
+**Data:** The public demo runs on **synthetic sample data** (4 accounts · 48 tickers · 162 trades, Jan 2025 – May 2026). The real 18-month trade history is private; point `DUCKDB_PATH` at a dbt-built database to run the same dashboard on real data. Figures shown in the live demo are illustrative and do not reflect actual performance.
 
 **Stack:**
 ```
