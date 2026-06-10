@@ -289,21 +289,26 @@ elif page == "Account Summary":
 
     # Trade detail table
     st.markdown("**Recent Trade Detail**")
-    account_filter = st.selectbox("Filter by account", ["All"] + sorted(trades["account_name"].unique()))
-    result_filter  = st.selectbox("Filter by result",  ["All", "WIN", "LOSS", "BREAKEVEN"])
+    # older sample DBs lack account_name on int_spread_trades
+    has_account = "account_name" in trades.columns
+    account_filter = "All"
+    if has_account:
+        account_filter = st.selectbox("Filter by account", ["All"] + sorted(trades["account_name"].unique()))
+    result_filter = st.selectbox("Filter by result", ["All", "WIN", "LOSS", "BREAKEVEN"])
 
     filtered = trades.copy()
-    if account_filter != "All":
+    if has_account and account_filter != "All":
         filtered = filtered[filtered["account_name"] == account_filter]
     if result_filter != "All":
         filtered = filtered[filtered["trade_result"] == result_filter]
 
-    display = filtered[[
-        "account_name", "ticker", "option_type", "open_date", "close_date",
+    detail_cols = (["account_name"] if has_account else []) + [
+        "ticker", "option_type", "open_date", "close_date",
         "holding_days", "realized_pnl", "close_reason", "trade_result"
-    ]].head(100).copy()
-    display.columns = [
-        "Account", "Ticker", "Type", "Open", "Close",
+    ]
+    display = filtered[detail_cols].head(100).copy()
+    display.columns = (["Account"] if has_account else []) + [
+        "Ticker", "Type", "Open", "Close",
         "Days", "P&L", "Reason", "Result"
     ]
     st.dataframe(
