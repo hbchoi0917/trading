@@ -2,7 +2,8 @@
 Options Trading Analytics Dashboard
 ------------------------------------
 Streamlit + DuckDB + Plotly
-Data: dbt marts built from 18 months of Fidelity transaction exports (Jan 2025 – May 2026)
+Public demo runs on synthetic sample data (real trade history is private).
+Point DUCKDB_PATH at a dbt-built database to use it with real data.
 """
 
 import os
@@ -49,8 +50,8 @@ page = st.sidebar.radio(
 
 st.sidebar.divider()
 st.sidebar.caption("**Stack:** dbt · DuckDB · Streamlit · Plotly")
-st.sidebar.caption("**Data:** Fidelity exports · Jan 2025 – May 2026")
-st.sidebar.caption("**Accounts:** 4 · **Tickers:** 50 · **Rows:** 5,598")
+st.sidebar.caption("**Data:** Synthetic sample data — real trade history is private")
+st.sidebar.caption("**Accounts:** 4 · **Tickers:** 48 · **Trades:** 162")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PAGE 1: Portfolio Overview
@@ -58,7 +59,7 @@ st.sidebar.caption("**Accounts:** 4 · **Tickers:** 50 · **Rows:** 5,598")
 
 if page == "Portfolio Overview":
     st.title("Portfolio Overview")
-    st.caption("Jan 2025 – May 2026  ·  4 Accounts  ·  50 Tickers")
+    st.caption("Demo with synthetic sample data — figures are illustrative  ·  Jan 2025 – May 2026  ·  4 Accounts")
 
     # KPI row
     total_pnl   = accounts["lifetime_pnl"].sum()
@@ -140,7 +141,7 @@ if page == "Portfolio Overview":
 
 elif page == "Ticker Performance":
     st.title("Ticker Performance")
-    st.caption("P&L breakdown across all 50 tickers · Jan 2025 – May 2026")
+    st.caption("Demo with synthetic sample data — figures are illustrative · P&L breakdown by ticker · Jan 2025 – May 2026")
 
     col_left, col_right = st.columns(2)
 
@@ -227,7 +228,7 @@ elif page == "Ticker Performance":
 
 elif page == "Account Summary":
     st.title("Account Summary")
-    st.caption("Lifetime performance across 4 accounts")
+    st.caption("Demo with synthetic sample data — figures are illustrative · Lifetime performance across 4 accounts")
 
     # Account KPI cards
     cols = st.columns(len(accounts))
