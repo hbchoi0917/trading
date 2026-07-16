@@ -48,6 +48,14 @@ All conditions must pass for a signal to be generated:
   realized volatility right now?" (IV/HV ratio). Both must pass; if IV data
   is unavailable, the filter fails open so a data outage never silently
   blocks a valid entry.
+- **Credit/width quality gate** — in the production system, a signal only
+  becomes an order if the spread collects enough premium relative to its width
+  (a minimum return-on-risk); thin, low-ROI spreads are dropped. Broad-market
+  index products are exempt, since their premium is structurally thinner but
+  still worth taking.
+- **Market-calendar aware** — production entry/monitor runs skip weekends and
+  US market holidays automatically from an exchange calendar (no hardcoded date
+  lists), and intraday retry loops respect real early-close (half) days.
 
 ---
 
@@ -101,8 +109,16 @@ To run this as a production system:
 2. **Cloud server** — deploy to AWS EC2 (Ubuntu); schedule via cron in US/Eastern timezone
 3. **Notifications** — add Telegram or email alerts on entry / close events
 4. **Position monitor** — add logic to auto-close at profit target or DTE threshold
+5. **Position ledger + reconciliation** — record every fill to a durable ledger
+   and reconcile it against the broker's actual positions each run, alerting on
+   any drift before it corrupts P&L or risk limits
+6. **Live-trading safety** — keep dry-run and paper flags defaulted on, and gate
+   the first real-money phase behind a minimal-size rollout (one low-risk name,
+   one contract, a hard cap on concurrent positions)
 
 See [`deploy/`](../deploy/) for ready-to-use server setup scripts and cron templates.
+The complete production system (execution, monitoring, reconciliation, live-safety
+gating) runs in a private repository — this repo is the screening baseline.
 
 ---
 
