@@ -36,8 +36,10 @@ Designed to run unattended on a cloud server (AWS EC2).
 > **Project status:** the strategy ran for 18 months as a manual, discretionary
 > book and is now automated. Automation is rolling out to real money through a
 > deliberate **minimal-size gate** (single lowest-risk name, one contract, a hard
-> cap on concurrent positions) that validates one full entry → hold → close
-> lifecycle before any scaling. See [Live-Trading Safety](#broker-environments--live-trading-safety).
+> cap on concurrent positions and on risk concentrated in any single name) that
+> validates one full entry → hold → close lifecycle before any scaling — a
+> milestone the system has now reached, with multiple unattended cycles
+> completed. See [Live-Trading Safety](#broker-environments--live-trading-safety).
 
 > **Note:** The screener in this repo is a **demo / educational baseline**. The full production system (broker integration, order execution, position monitoring, cron-scheduled deployment) runs in a private repository. See the [customization notes](options-screener/screener.py) at the top of `screener.py` for what's needed to build a complete system.
 
@@ -58,6 +60,28 @@ indices:
   only long-term trend confirmation plus the IV dual-pass filter. For a premium
   seller on an index, IV Rank (not RSI position) is what determines whether there
   is edge to capture.
+
+### Methodology Notes
+
+- **Hourly RSI, not daily** — on large down days, daily RSI can read neutral
+  (~50) while hourly RSI correctly shows oversold. Daily RSI reflects
+  yesterday's close; hourly reflects what the market is doing right now. For
+  intraday entry decisions, hourly is the right timeframe (falls back to
+  daily if intraday data is unavailable).
+- **Real-time intraday patch** — today's OHLCV bar is updated with live
+  intraday data before screening, so signals reflect current prices rather
+  than yesterday's close.
+- **Index screening differs from equities** — for broad-market indices with
+  European-style, cash-settled options (no early assignment risk), RSI is
+  not used as an entry gate. RSI is a directional-trader tool; for premium
+  sellers, IV Rank determines whether there is edge to capture. Index
+  entries require only trend confirmation (long-term moving average) plus
+  the IV dual-pass filter.
+- **IV dual-pass filter** — Pass 1 asks "is IV elevated vs. its own 52-week
+  history?" (IV Rank); Pass 2 asks "is the market paying above recent
+  realized volatility right now?" (IV/HV ratio). Both must pass; if IV data
+  is unavailable, the filter fails open so a data outage never silently
+  blocks a valid entry.
 
 ---
 
@@ -95,6 +119,10 @@ Every order passes through layered, deterministic safeguards before and after en
   to the broker's own enforcement on API errors
 - **Per-spread risk cap** — maximum defined risk per position, with
   ticker-class-specific overrides (index vs. equity vs. high-beta names)
+- **Layered open-risk caps** — beyond the per-position cap, a permanent cap on
+  total risk across all open positions AND a separate cap on risk concentrated
+  in any single underlying, so no one name can dominate the book. Both apply
+  at all times, independent of trading phase.
 - **Per-ticker contract limits** — high-volatility names are capped at
   reduced contract counts regardless of signal strength
 - **Monthly drawdown circuit breaker** — all new entries pause automatically
@@ -112,6 +140,9 @@ Every order passes through layered, deterministic safeguards before and after en
 - **Fill confirmation** — close orders are verified against live order status
   before being reported as filled; unfilled orders are re-priced toward the
   ask (price chasing), then cancelled and retried on the next run
+- **Execution slippage tracking** — every close records what the live market
+  implied it would cost alongside what it actually cost, so execution quality
+  is measured from real fills rather than assumed
 - **Position ledger** — every entry and close is recorded to a CSV ledger,
   driving month-to-date statistics in summary notifications
 - **Crash-safe ledger writes** — each fill is booked immediately and
@@ -123,6 +154,16 @@ Every order passes through layered, deterministic safeguards before and after en
   holds none, or the broker holds a position the ledger never recorded — fires an
   alert, and downstream P&L and circuit-breaker figures are flagged unreliable
   until a human resolves it
+- **Entry netting guard** — a new position is refused if opening it would
+  cancel out an existing position at the broker (brokers net identical option
+  contracts together, so an overlapping book can otherwise create a position
+  neither the ledger nor the broker can price or close). Shared strikes are
+  still allowed when they don't net to zero — a narrow, deliberate exception,
+  not a general restriction on overlap
+- **Unpriceable-position escalation** — if a position is ever missing a leg at
+  the broker, it is never priced from the remaining leg alone (doing so can
+  read a small position as a catastrophic loss); the system alerts and skips
+  instead of guessing
 - **Minimal-size live rollout gate** — an optional phase restricts real-money
   entries to a single lowest-risk name, caps concurrent open positions, and
   forces quantity to one contract, validating a full lifecycle at trivial size
@@ -139,16 +180,53 @@ Every order passes through layered, deterministic safeguards before and after en
   (an incomplete streamer snapshot) or that are one-sided (missing bid or ask)
   are rejected before an order is ever built
 - **Assignment blind-spot alerts** — the monitor scans all positions, not just
-  options, and alerts on equity positions from short-put assignment and on
-  orphaned long legs
+  options, and alerts on equity positions from short-put assignment and on any
+  option position the ledger has no record of
 - **Connection / API retry** — transient broker and network failures are retried
   so a momentary blip doesn't abort an entire run
 - **Fail-safe alerting** — shell wrappers trap pipeline errors into email alerts,
   and an optional dead-man switch pings an external monitor after each successful
   summary, so even a fully-down server surfaces (nothing left to email you)
-- **Earnings blackout** — entries are skipped around earnings announcements
+- **Earnings blackout** — entries are skipped within a configurable window
+  around earnings announcements
 - **Concentration guard** — simultaneous signals across correlated tickers
   are flagged as a single macro bet, not independent trades
+
+---
+
+## Position Tracking
+
+The system keeps its own ledger of every position it opens, and treats that
+ledger — not the broker's position list — as the source of truth for what a
+spread *is*.
+
+This is not redundancy. Brokers report **net quantity per strike**, so once
+two spreads share a strike (a deliberate laddering pattern), which long
+belongs to which short is no longer recoverable from broker data. Anything
+derived from that ambiguity — position counts, close orders, P&L — inherits
+it. The ledger records each spread as it was actually opened, and the broker
+is consulted only for what it alone knows: live marks, assigned shares, and
+positions the ledger has no record of.
+
+- **Recorded at the fill, not the quote** — the entry retry loop steps its
+  limit down over the session, so the credit finally collected is usually
+  below the price quoted when the order was written. The fill is what gets
+  booked.
+- **Net of costs** — realized P&L deducts commissions and fees. The same
+  number feeds the drawdown circuit breaker, and a gross figure would make
+  the account look safer than it is, allowing more risk to run than intended.
+- **Reconciled every run** — ledger and broker are compared as signed net
+  quantity per strike across both legs, and any divergence raises an alert
+  that explicitly marks all downstream P&L as unreliable until a human
+  resolves it.
+- **Fails closed** — a ledger row that cannot be parsed into a well-formed
+  spread is skipped rather than guessed at, and an empty ledger closes
+  nothing. A wrong leg here would become a wrong live order.
+- **Performance compared per day of capital held** — closes are grouped by
+  why they closed (profit target vs. time-based exit) and compared on
+  realized return per dollar of risk per day held, so a faster, smaller win
+  can be correctly weighed against a slower, larger one instead of comparing
+  raw dollar totals.
 
 ---
 
@@ -268,6 +346,31 @@ Analytics side: **dbt** · **DuckDB** · **Streamlit** · **Plotly** (see [`opti
 High-level themes from recent iterations (no thresholds, per-ticker parameters,
 or account figures — those stay private):
 
+- **Ledger-driven position identity** — the broker only reports net quantity
+  per strike, which cannot distinguish overlapping positions that happen to
+  share a strike. The system's own ledger, not broker state, is now the
+  source of truth for what was actually opened; the broker is consulted only
+  for live pricing and for anything the ledger has no record of. This
+  resolved several defects that traced back to the same root cause —
+  mis-sized risk caps, false alerts on a healthy book, and P&L distorted by
+  an overlapping position.
+- **Unattended lifecycle validation** — the minimal-size gate exists to
+  validate a full entry → hold → close cycle with no manual intervention
+  before any scaling; the system has now completed that cycle multiple times
+  unattended.
+- **Layered + concentration risk caps made permanent** — the open-risk caps
+  no longer depend on which rollout phase is active; a dedicated cap now also
+  bounds risk concentrated in any single underlying, closing a gap where the
+  total cap alone did not prevent one name from dominating the book.
+- **Entry-time safety guards** — a new position is refused if it would net an
+  existing position's leg to zero at the broker (which would otherwise leave
+  a position neither system can price or close), and a position missing a leg
+  at the broker is escalated rather than priced off the leg that remains.
+- **Execution-quality measurement** — every close now records what the market
+  implied it would cost alongside what it actually cost, so execution
+  slippage is measured from real fills instead of assumed; performance is
+  compared per day of capital held, not just per trade, so exit-timing
+  trade-offs can be judged on real numbers.
 - **Live-trading transition** — moved from wiring/validation toward real money
   behind a minimal-size rollout gate, with explicit defaulted-safe dry-run and
   paper flags and a hard healthcheck failure when misconfigured against a broker
