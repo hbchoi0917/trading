@@ -39,7 +39,9 @@ Designed to run unattended on a cloud server (AWS EC2).
 > cap on concurrent positions and on risk concentrated in any single name) that
 > validates one full entry → hold → close lifecycle before any scaling — a
 > milestone the system has now reached, with multiple unattended cycles
-> completed. See [Live-Trading Safety](#broker-environments--live-trading-safety).
+> completed. The tradeable name set and risk budget have since scaled up
+> gradually, each expansion checked against real trading history rather than
+> assumed. See [Live-Trading Safety](#broker-environments--live-trading-safety).
 
 > **Note:** The screener in this repo is a **demo / educational baseline**. The full production system (broker integration, order execution, position monitoring, cron-scheduled deployment) runs in a private repository. See the [customization notes](options-screener/screener.py) at the top of `screener.py` for what's needed to build a complete system.
 
@@ -49,12 +51,20 @@ Designed to run unattended on a cloud server (AWS EC2).
 
 Tickers are organized into tiers by liquidity and volatility profile. All signals must pass momentum, mean-reversion, volatility, and earnings blackout filters. RSI and Bollinger Band thresholds shift automatically across four VIX regimes (LOW / NORMAL / ELEVATED / HIGH).
 
-Two entry paths reflect the difference between single names and broad-market
-indices:
+Three entry paths reflect different levels of established conviction, not a
+single uniform bar:
 
-- **Equities / ETFs** — the full stack of momentum (hourly RSI), mean-reversion
-  (Bollinger position), trend, volatility, earnings blackout, and the IV
-  dual-pass premium-quality gate.
+- **Equities / ETFs (standard)** — the full stack of momentum (hourly RSI),
+  mean-reversion (Bollinger position), trend, volatility, earnings blackout,
+  and the IV dual-pass premium-quality gate.
+- **Established, high-conviction names** — a smaller set of names with a
+  proven track record against real trading history trade the full
+  directional-timing pattern for a simplified, volatility-and-premium-quality
+  bar instead: is there enough movement to be worth selling into, and is the
+  premium not historically cheap right now. This deliberately trades some
+  directional selectivity for entry frequency, on names where that trade-off
+  has already been checked against real results — newer candidates still have
+  to earn it.
 - **Broad-market indices** — European-style, cash-settled options carry no early
   assignment risk, so RSI timing is dropped as an entry gate; entries require
   only long-term trend confirmation plus the IV dual-pass filter. For a premium
@@ -82,6 +92,22 @@ indices:
   realized volatility right now?" (IV/HV ratio). Both must pass; if IV data
   is unavailable, the filter fails open so a data outage never silently
   blocks a valid entry.
+- **Data-driven ticker selection, re-weighted by realized return per
+  trade** — the tradeable ticker set is periodically re-evaluated against
+  the owner's own multi-quarter trading history, ranked by **realized P&L
+  per trade** rather than by trade frequency or total P&L alone — both of
+  which reward high-volume, thin-margin names over fewer, more efficient
+  ones. Names confirmed to be structurally weak performers (not just
+  temporarily out of favor) stay excluded even after conditions loosen
+  elsewhere; a single bad month is distinguished from a sustained pattern
+  before either confirming an exclusion or admitting a new name.
+- **Risk caps scale with the tradeable roster, not just with capital** — as
+  more independently-vetted, largely uncorrelated names are added to the
+  tradeable set, the total open-risk budget can reasonably increase (a
+  book spread across more uncorrelated names carries less concentration
+  risk per dollar), while the *share* of that budget any single name can
+  claim is reduced in step, so growing the roster doesn't just grow how
+  much one name can absorb.
 
 ---
 
@@ -93,11 +119,19 @@ Sizing and order placement are as deterministic as screening:
   closer-to-the-money delta while its trend is intact, and switches to a
   two-layer strike ladder (collecting premium at two different strikes in the
   same expiry) when it pulls back into a downtrend, where elevated IV is exactly
-  the premium-selling edge. Other names use conservative, further-OTM targets.
-- **Credit/width ratio filter** — spreads that don't collect enough premium
-  relative to their width are skipped as low return-on-risk; broad-market index
-  products are exempt, since their premium is structurally thinner but still
-  worth taking.
+  the premium-selling edge. Established, high-conviction names that trade
+  outside a confirmed trend get the same defensive-ladder treatment (a lower,
+  more out-of-the-money delta range) rather than their normal calm-market
+  target. Other names use conservative, further-OTM targets.
+- **Per-instrument-class credit/width floor** — spreads that don't collect
+  enough premium relative to their width are skipped as low return-on-risk.
+  The minimum is calibrated per instrument class rather than being a single
+  fixed number or a full exemption for any class: broad-market index products
+  get a lower floor than single-name equities (reflecting their structurally
+  thinner but still worthwhile premium and lower assignment risk), but even
+  they have a floor now, benchmarked against what comparably low-risk names
+  actually collect — a full exemption turned out to mean genuinely unlimited,
+  not just "looser."
 - **Per-ticker daily entry limits** — most names are capped at a single entry
   per day; the laddering core name is allowed a small, explicit multiple. This
   stops overlapping scheduled runs from stacking unintended duplicates.
@@ -122,7 +156,8 @@ Every order passes through layered, deterministic safeguards before and after en
 - **Layered open-risk caps** — beyond the per-position cap, a permanent cap on
   total risk across all open positions AND a separate cap on risk concentrated
   in any single underlying, so no one name can dominate the book. Both apply
-  at all times, independent of trading phase.
+  at all times, independent of trading phase, and both scale as the tradeable
+  roster grows (see Methodology Notes above).
 - **Per-ticker contract limits** — high-volatility names are capped at
   reduced contract counts regardless of signal strength
 - **Monthly drawdown circuit breaker** — all new entries pause automatically
@@ -131,9 +166,16 @@ Every order passes through layered, deterministic safeguards before and after en
   configured percentage of the collected credit has decayed
 - **Stop loss** — positions are closed when the loss reaches a multiple of
   the credit collected (the standard premium-selling convention); the stop
-  fires immediately and is never gated by the holding window
-- **DTE-based forced close** — positions are closed regardless of P&L once
-  expiration approaches, avoiding gamma risk in the final weeks
+  fires immediately regardless of moneyness or the holding window — a
+  volatility spike can still hurt an otherwise-safe position, so this
+  safeguard is never suppressed
+- **Moneyness-aware, DTE-based forced close** — a position approaching
+  expiration is force-closed only if it's still meaningfully at risk (in or
+  very near the money); one that has moved safely out of the money is left
+  to ride out its remaining decay instead of being closed at an unnecessary
+  loss. A small buffer around the strike (a fraction of a percent of the
+  underlying's price) keeps a marginal, easily-reversible breach from being
+  treated the same as a real one.
 - **Minimum holding window** — profit-taking is gated by a minimum holding
   period to prevent same-day churn; risk-management closes (stop loss, DTE)
   are exempt and always fire
@@ -153,7 +195,13 @@ Every order passes through layered, deterministic safeguards before and after en
   strike / expiry / type). Any divergence — the ledger shows open but the broker
   holds none, or the broker holds a position the ledger never recorded — fires an
   alert, and downstream P&L and circuit-breaker figures are flagged unreliable
-  until a human resolves it
+  until a human resolves it. This reconciliation is contract-symbol aware: some
+  index option products settle under more than one distinct contract root
+  depending on the specific expiration chosen (e.g. a standard monthly vs. a
+  weekly variant), and the check derives the correct root from the expiration
+  itself rather than assuming a single fixed one — an earlier fixed assumption
+  produced false divergence alerts and blocked pricing/closing for the
+  affected expirations.
 - **Entry netting guard** — a new position is refused if opening it would
   cancel out an existing position at the broker (brokers net identical option
   contracts together, so an overlapping book can otherwise create a position
@@ -346,6 +394,36 @@ Analytics side: **dbt** · **DuckDB** · **Streamlit** · **Plotly** (see [`opti
 High-level themes from recent iterations (no thresholds, per-ticker parameters,
 or account figures — those stay private):
 
+- **Roster-scaled diversification** — the tradeable name set was widened
+  substantially, with each addition checked against the owner's own
+  multi-quarter trading history and ranked by realized return per trade
+  rather than by how often a name traded — a metric that otherwise favors
+  high-volume, thin-margin names. Names confirmed as structurally weak
+  performers, not just temporarily out of favor, stay excluded. Open-risk
+  caps were raised in step, with the per-name share of the total budget
+  reduced rather than held flat, so a larger roster translates into real
+  diversification rather than just a bigger ceiling for the same
+  concentration.
+- **Tiered screening by conviction** — a subset of well-established names
+  now use a simplified volatility-and-premium-quality entry bar instead of
+  the full directional-timing pattern, trading some selectivity for entry
+  frequency on names where that trade-off has already been validated —
+  newer candidates still earn the full pattern first.
+- **Moneyness-aware risk-management closes** — a time-based forced close
+  now accounts for how far a position actually is from its strike, not just
+  calendar proximity to expiration; a marginal, easily-reversible breach is
+  no longer treated the same as a position genuinely at risk. Loss-limit
+  closes remain unconditional regardless of moneyness.
+- **Per-instrument-class credit floor** — the minimum acceptable premium
+  relative to defined risk is no longer a full exemption for any instrument
+  class; index/cash-settled products get their own floor, calibrated
+  against what comparably low-risk names actually collect.
+- **Root-symbol reconciliation fix** — index option products that settle
+  under more than one contract root depending on the expiration chosen
+  (e.g. standard monthly vs. weekly) previously used a single hardcoded
+  root when reconciling the ledger against the broker, producing false
+  divergence alerts for the affected expirations; the correct root is now
+  derived from the expiration date itself.
 - **Ledger-driven position identity** — the broker only reports net quantity
   per strike, which cannot distinguish overlapping positions that happen to
   share a strike. The system's own ledger, not broker state, is now the
