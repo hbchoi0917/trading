@@ -31,6 +31,16 @@ This pipeline automates the full lifecycle of a put credit spread strategy:
 4. **Alert** — send Telegram / Gmail notifications on every entry, close, and error event
 5. **Covered Calls** — separate alert module for manual CC management on Fidelity positions
 
+```mermaid
+flowchart LR
+    A[📡 Screen] --> B[⚡ Execute]
+    B --> C[👁 Monitor]
+    C -->|profit target<br/>or DTE hit| D[✅ Close]
+    C -->|still open| C
+    B --> E[🔔 Alert]
+    D --> E
+```
+
 Designed to run unattended on a cloud server (AWS EC2).
 
 > **Project status:** the strategy ran for 18 months as a manual, discretionary
@@ -53,6 +63,14 @@ Tickers are organized into tiers by liquidity and volatility profile. All signal
 
 Three entry paths reflect different levels of established conviction, not a
 single uniform bar:
+
+```mermaid
+flowchart TD
+    T[Candidate ticker] --> Q{Conviction tier}
+    Q -->|Standard equities / ETFs| S["Full stack:<br/>RSI + Bollinger + trend<br/>+ earnings blackout + IV dual-pass"]
+    Q -->|Established, high-conviction| H["Simplified bar:<br/>volatility + IV dual-pass only"]
+    Q -->|Broad-market index| I["Trend confirmation<br/>+ IV dual-pass only"]
+```
 
 - **Equities / ETFs (standard)** — the full stack of momentum (hourly RSI),
   mean-reversion (Bollinger position), trend, volatility, earnings blackout,
@@ -148,6 +166,30 @@ Sizing and order placement are as deterministic as screening:
 
 Every order passes through layered, deterministic safeguards before and after entry:
 
+```mermaid
+flowchart TD
+    subgraph PRE["Pre-Trade"]
+        direction LR
+        P1[Buying power] --> P2[Risk caps:<br/>per-spread / total / per-ticker]
+        P2 --> P3[Credit-width floor<br/>+ entry limits]
+    end
+    subgraph LIVE["While Open"]
+        direction LR
+        L1[Profit target]
+        L2[Stop loss<br/>unconditional]
+        L3[Moneyness-aware<br/>DTE close]
+    end
+    subgraph ALWAYS["Always-On"]
+        direction LR
+        A1[Ledger ↔ broker<br/>reconciliation]
+        A2[Assignment /<br/>unpriceable alerts]
+    end
+    PRE --> LIVE --> ALWAYS
+```
+
+<details>
+<summary><strong>Full list of safeguards (click to expand)</strong></summary>
+
 - **Pre-trade buying power check** — required margin is validated against
   available option buying power before any order is submitted; fails open
   to the broker's own enforcement on API errors
@@ -240,6 +282,8 @@ Every order passes through layered, deterministic safeguards before and after en
 - **Concentration guard** — simultaneous signals across correlated tickers
   are flagged as a single macro bet, not independent trades
 
+</details>
+
 ---
 
 ## Position Tracking
@@ -255,6 +299,12 @@ derived from that ambiguity — position counts, close orders, P&L — inherits
 it. The ledger records each spread as it was actually opened, and the broker
 is consulted only for what it alone knows: live marks, assigned shares, and
 positions the ledger has no record of.
+
+```mermaid
+flowchart LR
+    L["📒 Ledger<br/>(source of truth for identity)"] -->|reconciled every run| B["🏦 Broker<br/>(source of truth for marks,<br/>assignment, untracked legs)"]
+    B -.->|divergence| X[⚠️ Alert —<br/>P&L flagged unreliable]
+```
 
 - **Recorded at the fill, not the quote** — the entry retry loop steps its
   limit down over the session, so the credit finally collected is usually
