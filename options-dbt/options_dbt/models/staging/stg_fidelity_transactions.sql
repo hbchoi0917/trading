@@ -5,6 +5,17 @@
     )
 }}
 
+{#-
+  Input seed is selected by the `transactions_seed` var (default: the committed
+  sample). The full export seeds/fidelity_transactions.csv is gitignored, so run
+  real data with: dbt build --vars '{transactions_seed: fidelity_transactions}'
+-#}
+{%- set transactions_seed = var('transactions_seed') -%}
+{%- if execute and transactions_seed == 'sample_fidelity_transactions' -%}
+    {{ log("stg_fidelity_transactions: building from SAMPLE seed (sample_fidelity_transactions). "
+           ~ "Pass --vars '{transactions_seed: fidelity_transactions}' for the full export.", info=True) }}
+{%- endif %}
+
 with source as (
     select
         *,
@@ -12,7 +23,7 @@ with source as (
             partition by run_date, account, symbol, action, amount
             order by (select null)
         ) as _row_num
-    from {{ ref('fidelity_transactions') }}
+    from {{ ref(transactions_seed) }}
 ),
 
 parsed as (

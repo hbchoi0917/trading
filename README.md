@@ -525,7 +525,9 @@ or account figures — those stay private):
   now accounts for how far a position actually is from its strike, not just
   calendar proximity to expiration; a marginal, easily-reversible breach is
   no longer treated the same as a position genuinely at risk. Loss-limit
-  closes remain unconditional regardless of moneyness.
+  closes follow the same principle: the stop fires only when the short leg
+  is actually threatened, and still fires whenever moneyness can't be
+  confirmed.
 - **Per-instrument-class credit floor** — the minimum acceptable premium
   relative to defined risk is no longer a full exemption for any instrument
   class; index/cash-settled products get their own floor, calibrated

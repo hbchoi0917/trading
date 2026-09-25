@@ -81,8 +81,8 @@ with_rank as (
             else null
         end                                                             as pnl_per_trade,
 
-        -- rank by total P&L
-        rank() over (order by total_pnl desc)                          as pnl_rank,
+        -- rank by total P&L; ties broken by the grain (ticker, option_type) so each rank is unique
+        row_number() over (order by total_pnl desc, ticker, option_type) as pnl_rank,
 
         -- flag tickers excluded from rotation (based on insights_report)
         case

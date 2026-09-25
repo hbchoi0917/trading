@@ -49,10 +49,13 @@ models/
 pip install dbt-duckdb
 
 # run with sample data (37 anonymized rows, all edge cases covered)
-dbt seed --select sample_fidelity_transactions
-dbt run
-dbt test
+dbt build --profiles-dir .
+
+# run with the full export (seeds/fidelity_transactions.csv, gitignored)
+dbt build --profiles-dir . --vars '{transactions_seed: fidelity_transactions}'
 ```
+
+The input seed is chosen by the `transactions_seed` var (default: `sample_fidelity_transactions`); the build logs a line whenever it is using the sample.
 
 ---
 

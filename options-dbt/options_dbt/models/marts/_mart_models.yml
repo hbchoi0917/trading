@@ -49,7 +49,7 @@ models:
           - not_null
 
       - name: pnl_rank
-        description: Rank by total_pnl descending. Used for leaderboard sorting.
+        description: Rank by total_pnl descending, ties broken alphabetically by ticker, then option_type. Used for leaderboard sorting.
         data_tests:
           - unique
           - not_null
