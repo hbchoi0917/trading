@@ -18,9 +18,9 @@
 
 | 폴더 | 설명 |
 |------|------|
-| [`options-screener/`](options-screener/) | **데모 스크리너** — RSI, 볼린저 밴드, IV Rank, IV/HV, 어닝 블랙아웃 필터로 관심 종목을 스캔해 풋 크레딧 스프레드 진입 후보를 뽑고 시그널 CSV로 출력합니다. |
-| [`options-analysis/`](options-analysis/) | **매매 분석** — 개인 옵션 거래 내역의 손익, 종목별 성과, 전략 비중, 효율을 분석하는 파이프라인과 차트 |
-| [`options-dbt/streamlit_app/`](options-dbt/streamlit_app/) | **라이브 대시보드** — dbt + DuckDB로 모델링한 데이터를 Streamlit·Plotly로 보여주는 3페이지 대시보드. [**→ 대시보드 열기**](https://options-trading-dash.streamlit.app/) |
+| [`options-screener/`](options-screener/README.ko.md) | **데모 스크리너** — RSI, 볼린저 밴드, IV Rank, IV/HV, 어닝 블랙아웃 필터로 관심 종목을 스캔해 풋 크레딧 스프레드 진입 후보를 뽑고 시그널 CSV로 출력합니다. |
+| [`options-analysis/`](options-analysis/README.ko.md) | **매매 분석** — 개인 옵션 거래 내역의 손익, 종목별 성과, 전략 비중, 효율을 분석하는 파이프라인과 차트 |
+| [`options-dbt/streamlit_app/`](options-dbt/streamlit_app/README.ko.md) | **라이브 대시보드** — dbt + DuckDB로 모델링한 데이터를 Streamlit·Plotly로 보여주는 3페이지 대시보드. [**→ 대시보드 열기**](https://options-trading-dash.streamlit.app/) |
 | [`deploy/`](deploy/) | **서버 셋업** — Ubuntu EC2 원커맨드 셋업, cron 래퍼, 로그 로테이션 |
 
 ---
@@ -250,7 +250,7 @@ python screener.py
 - **[pandas-market-calendars](https://pypi.org/project/pandas-market-calendars/)** — NYSE 휴장일·조기 폐장 캘린더 (실운영)
 - **[python-dotenv](https://pypi.org/project/python-dotenv/)** — 인증정보 관리
 
-분석 쪽: **dbt** · **DuckDB** · **Streamlit** · **Plotly** ([`options-dbt/`](options-dbt/) 참고)
+분석 쪽: **dbt** · **DuckDB** · **Streamlit** · **Plotly** ([`options-dbt/`](options-dbt/README.ko.md) 참고)
 
 ---
 

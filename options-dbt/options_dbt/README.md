@@ -1,5 +1,7 @@
 # Options Trading dbt Project
 
+**English** | [한국어](README.ko.md)
+
 Analytics pipeline for a real options trading portfolio — 18 months of live trade data (Jan 2025–May 2026), 4 brokerage accounts, 50 tickers.
 
 Raw data source: Fidelity transaction exports (options legs only).
@@ -59,7 +61,9 @@ The input seed is chosen by the `transactions_seed` var (default: `sample_fideli
 
 ---
 
-## Data Quality Tests (10 total, all passing)
+## Data Quality Tests (48 total, all passing)
+
+44 schema tests (`unique`, `not_null`, `accepted_values`) across every layer, plus 4 singular SQL assertions in `tests/`. Staging-layer examples:
 
 - `unique` + `not_null` on `transaction_id`
 - `not_null` on `trade_date`, `account_name`, `transaction_type`, `amount`

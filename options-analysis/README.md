@@ -1,5 +1,7 @@
 # Options Trading Analysis (Jan 2025 – May 2026)
 
+**English** | [한국어](README.ko.md)
+
 ## Overview
 This folder contains the analysis pipeline and insights derived from personal options trading transaction data (January 1, 2025 – May 29, 2026) across four brokerage accounts (Account A, B, C, D).
 

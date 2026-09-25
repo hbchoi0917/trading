@@ -1,5 +1,7 @@
 # Options Trading Analytics Dashboard
 
+**English** | [한국어](README.ko.md)
+
 Streamlit + DuckDB + Plotly dashboard built on top of a dbt analytics pipeline.
 
 **Data:** The public demo runs on **synthetic sample data** (4 accounts · 48 tickers · 162 trades, Jan 2025 – May 2026). The real 18-month trade history is private; point `DUCKDB_PATH` at a dbt-built database to run the same dashboard on real data. Figures shown in the live demo are illustrative and do not reflect actual performance.

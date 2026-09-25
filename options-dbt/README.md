@@ -4,6 +4,8 @@
 
 [![Streamlit](https://img.shields.io/badge/Streamlit-Live-FF4B4B?logo=streamlit&logoColor=white)](https://options-trading-dash.streamlit.app/)
 
+**English** | [한국어](README.ko.md)
+
 ---
 
 ## What Problem This Solves
@@ -118,7 +120,7 @@ case when net_pnl > 0 then true else false end               as is_win_month
 ```sql
 sum(realized_pnl)                          as total_pnl
 count(*) filter (trade_result = 'WIN')     as wins
-rank() over (order by total_pnl desc)      as pnl_rank
+row_number() over (order by total_pnl desc, ticker, option_type) as pnl_rank
 case when ticker in ('MSFT','NFLX','IONQ','RGTI') then true end as is_excluded
 ```
 
@@ -181,7 +183,7 @@ options-dbt/
 │   ├── tests/
 │   │   ├── assert_win_loss_pnl_sign.sql        WIN → pnl > 0, LOSS → pnl < 0
 │   │   ├── assert_close_after_open.sql         close_date ≥ open_date
-│   │   ├── assert_dte_non_negative.sql         DTE at trade ≥ 0
+│   │   ├── assert_dte_non_negative.sql         DTE ≥ 0 on opening/closing legs
 │   │   └── assert_win_rate_valid_range.sql     win_rate_pct in [0, 100]
 │   ├── seeds/
 │   │   └── sample_fidelity_transactions.csv   Synthetic sample data for dbt seed

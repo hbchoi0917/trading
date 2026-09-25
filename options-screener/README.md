@@ -1,5 +1,7 @@
 # Options Screener — Demo
 
+**English** | [한국어](README.ko.md)
+
 A runnable put credit spread screener that scans a watchlist daily for entry candidates.
 
 > **Demo / educational baseline.** Customization is required before live trading.
