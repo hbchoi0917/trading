@@ -2,7 +2,7 @@
 
 **풋 크레딧 스프레드 매도 전략을 스크리닝부터 주문 체결, 포지션 관리까지 자동화한 엔드투엔드 파이프라인입니다.**
 
-[![CI](https://github.com/hbchoi0917/trading/actions/workflows/ci.yml/badge.svg)](https://github.com/hbchoi0917/trading/actions/workflows/ci.yml)
+[![CI](https://github.com/hbchoi0917/trading/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hbchoi0917/trading/actions/workflows/ci.yml)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Live-FF4B4B?logo=streamlit&logoColor=white)](https://options-trading-dash.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![Tastytrade](https://img.shields.io/badge/Tastytrade-SDK%20v12-purple.svg)](https://tastytrade.com)
