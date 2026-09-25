@@ -45,8 +45,8 @@ Usage:
     python screener.py
 """
 
-import math
 import logging
+import math
 from datetime import date, datetime, timedelta
 
 import pandas as pd
