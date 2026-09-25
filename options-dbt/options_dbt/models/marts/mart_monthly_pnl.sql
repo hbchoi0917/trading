@@ -20,9 +20,10 @@ monthly as (
         count(*)                                    as trade_count,
         sum(case when trade_result = 'WIN'  then 1 else 0 end)  as wins,
         sum(case when trade_result = 'LOSS' then 1 else 0 end)  as losses,
+        -- realized_pnl is already net of fees (Fidelity amount), so don't subtract total_fees again
         round(sum(realized_pnl), 2)                 as net_pnl,
         round(sum(total_fees), 2)                   as total_fees,
-        round(sum(realized_pnl) - sum(total_fees), 2) as net_pnl_after_fees
+        round(sum(realized_pnl), 2)                 as net_pnl_after_fees
 
     from closed_spreads
     group by 1,2,3,4

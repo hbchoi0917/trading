@@ -13,7 +13,8 @@
   attempting sequential leg matching. This handles rolls naturally — a CLOSING leg followed
   by an OPENING leg on the same key creates two separate cycle rows.
 
-  P&L = sum(amount) across all legs for the cycle.
+  P&L = sum(amount) across all legs for the cycle. Fidelity's amount is already net of
+  commission + fees, so realized_pnl is after fees; realized_pnl_gross adds them back.
   Positive = net received (profitable short spread). Negative = net paid (loss or long side).
 */
 
@@ -37,9 +38,10 @@ spread_agg as (
 
         sum(case when is_opening then amount else 0 end)               as entry_credit,
         sum(case when is_closing then amount else 0 end)               as exit_amount,
+        -- Fidelity's amount is already net of commission + fees
         sum(amount)                                                     as realized_pnl,
         sum(total_cost)                                                 as total_fees,
-        sum(amount) - sum(total_cost)                                   as realized_pnl_gross,
+        sum(amount) + sum(total_cost)                                   as realized_pnl_gross,
 
         count(*)                                                        as leg_count,
         max(contracts)                                                  as contracts,
