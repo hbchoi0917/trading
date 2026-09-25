@@ -274,8 +274,11 @@ flowchart TD
 - **Expiration-day guard** — the out-of-the-money buffer is switched off in
   the final day before expiration: there's no time left for a marginal breach
   to recover, and exchange auto-exercise treats anything a cent in the money
-  as exercised. A final pre-close check catches positions that slip into the
-  money late in the last session
+  as exercised. On expiration day itself a position must sit a clear margin
+  beyond the strike to count as safe — a barely out-of-the-money short can
+  still slip into the money before the bell or be exercised against on an
+  after-hours move (pin risk). A final pre-close check catches positions that
+  drift late in the last session
 - **Unpriceable-position escalation** — if a position is ever missing a leg
   at the broker, it is never priced from the remaining leg alone (doing so
   can read a small position as a catastrophic loss). The system alerts and
