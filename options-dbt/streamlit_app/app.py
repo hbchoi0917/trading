@@ -103,7 +103,7 @@ if page == "Portfolio Overview":
         hovermode="x unified",
         height=420,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # Monthly by account (stacked)
     col_left, col_right = st.columns(2)
@@ -118,7 +118,7 @@ if page == "Portfolio Overview":
             height=350,
         )
         fig2.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02))
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width="stretch")
 
     with col_right:
         # Quarterly summary table
@@ -132,7 +132,7 @@ if page == "Portfolio Overview":
         qtly["win_rate_pct"] = qtly["win_rate_pct"].map("{:.1f}%".format)
         qtly.columns = ["Quarter", "Net P&L", "Trades", "Win Rate"]
         st.markdown("**Quarterly Breakdown**")
-        st.dataframe(qtly, use_container_width=True, hide_index=True)
+        st.dataframe(qtly, width="stretch", hide_index=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -156,7 +156,7 @@ elif page == "Ticker Performance":
             height=400,
         )
         fig.update_layout(coloraxis_showscale=False, yaxis=dict(autorange="reversed"))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with col_right:
         losers = tickers[tickers["total_pnl"] < 0].tail(8)
@@ -169,7 +169,7 @@ elif page == "Ticker Performance":
             height=400,
         )
         fig.update_layout(coloraxis_showscale=False, yaxis=dict(autorange="reversed"))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     st.divider()
 
@@ -186,7 +186,7 @@ elif page == "Ticker Performance":
     )
     fig3.add_hline(y=0, line_dash="dot", line_color="gray")
     fig3.add_vline(x=50, line_dash="dot", line_color="gray")
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig3, width="stretch")
 
     st.divider()
 
@@ -198,7 +198,7 @@ elif page == "Ticker Performance":
     ex_display["total_pnl"] = ex_display["total_pnl"].map("${:,.0f}".format)
     ex_display["win_rate_pct"] = ex_display["win_rate_pct"].map("{:.1f}%".format)
     ex_display.columns = ["Ticker", "Total P&L", "Trades", "Win Rate"]
-    st.dataframe(ex_display, use_container_width=True, hide_index=True)
+    st.dataframe(ex_display, width="stretch", hide_index=True)
 
     st.divider()
 
@@ -217,7 +217,7 @@ elif page == "Ticker Performance":
     st.dataframe(
         display_fmt.style
             .format({"Total P&L": "${:,.0f}", "Avg P&L/Trade": "${:,.0f}", "Win %": "{:.1f}%", "Avg Days": "{:.1f}"}),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -250,7 +250,7 @@ elif page == "Account Summary":
         height=380,
     )
     fig.update_traces(mode="lines+markers", marker=dict(size=4))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     col_left, col_right = st.columns(2)
 
@@ -265,7 +265,7 @@ elif page == "Account Summary":
             height=350,
         )
         fig2.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02))
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width="stretch")
 
     with col_right:
         # Account summary table
@@ -282,7 +282,7 @@ elif page == "Account Summary":
                 "Worst Trade": "${:,.0f}",
                 "Win %": "{:.1f}%",
             }),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
@@ -314,6 +314,6 @@ elif page == "Account Summary":
     ]
     st.dataframe(
         display.style.format({"P&L": "${:,.0f}"}),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
