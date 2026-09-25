@@ -29,6 +29,8 @@ All conditions must pass for a signal to be generated:
 
 ## Methodology Notes
 
+### Signals
+
 - **Hourly RSI, not daily** — on large down days, daily RSI can read neutral
   (~50) while hourly RSI correctly shows oversold. Daily RSI reflects
   yesterday's close; hourly reflects what the market is doing right now. For
@@ -47,15 +49,54 @@ All conditions must pass for a signal to be generated:
   history?" (IV Rank); Pass 2 asks "is the market paying above recent
   realized volatility right now?" (IV/HV ratio). Both must pass; if IV data
   is unavailable, the filter fails open so a data outage never silently
-  blocks a valid entry.
-- **Credit/width quality gate** — in the production system, a signal only
-  becomes an order if the spread collects enough premium relative to its width
-  (a minimum return-on-risk); thin, low-ROI spreads are dropped. Broad-market
-  index products are exempt, since their premium is structurally thinner but
-  still worth taking.
-- **Market-calendar aware** — production entry/monitor runs skip weekends and
-  US market holidays automatically from an exchange calendar (no hardcoded date
-  lists), and intraday retry loops respect real early-close (half) days.
+  blocks a valid entry — and a product whose IV data fails persistently is
+  paused rather than left trading without its quality gate.
+- **Screening conditions are tiered by conviction, not applied uniformly** —
+  a small set of names with an established track record use a simplified,
+  volatility-and-premium-quality-based entry condition instead of the full
+  directional-timing pattern (oversold-dip-in-an-uptrend) applied to newer or
+  less-proven names. This trades some directional selectivity for entry
+  frequency where the trade-off has already been validated against real
+  results, while newer candidates still have to earn that treatment.
+
+### Selection & calibration
+
+- **Data-driven ticker selection, re-weighted by realized return per trade**
+  — the tradeable ticker set is periodically re-evaluated against the
+  owner's own multi-quarter trading history, ranked by **realized P&L per
+  trade** rather than by trade frequency or total P&L alone — both of which
+  reward high-volume, thin-margin names over fewer, more efficient ones.
+  Names confirmed to be structurally weak performers stay excluded even after
+  conditions loosen elsewhere; a single bad month is distinguished from a
+  sustained pattern before either confirming an exclusion or admitting a
+  new name.
+- **Thresholds are calibrated from observed near-misses, not guessed** —
+  screening and credit floors are revisited using logged rejection data
+  across multiple sessions. A threshold is loosened only when rejected
+  candidates cluster just under it; when rejections are spread far below it
+  (e.g. a volume filter catching genuinely low-conviction moves), the filter
+  is judged to be working as designed and left alone.
+
+### Measuring results
+
+- **Ledger-driven position identity** — the broker only reports net
+  quantity per strike, which cannot distinguish overlapping positions that
+  happen to share a strike. The system's own ledger, not broker state, is
+  the source of truth for what was actually opened; the broker is consulted
+  only for live pricing and for anything the ledger has no record of.
+- **Realized P&L, not cash flow, is the performance metric** — summary
+  notifications report realized P&L for the current month alongside the
+  prior month and quarter-to-date. Net cash flow (summing every premium
+  received and paid in a period) is deliberately not used: opening a credit
+  spread brings cash in before its outcome is known, so a month with many
+  new positions can look profitable while carrying unresolved losses. On
+  the owner's own history, monthly cash flow and realized P&L diverged
+  sharply — in one month even pointing in opposite directions.
+- **Return measured per day of capital held, not just per trade** — closes
+  are grouped by why they closed (profit target vs. time-based exit vs.
+  stop) and compared on realized return per dollar of risk per day held, so
+  a faster, smaller win can be correctly weighed against a slower, larger
+  one instead of comparing raw dollar totals.
 
 ---
 

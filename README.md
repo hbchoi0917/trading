@@ -164,123 +164,162 @@ Sizing and order placement are as deterministic as screening:
 
 ## Risk Management
 
-Every order passes through layered, deterministic safeguards before and after entry:
+Every order passes through layered, deterministic safeguards before and after
+entry. The guiding principle: a defined-risk credit spread only realizes a loss
+if it's forced to close, so exits are driven by genuine risk to the position —
+not by mark-to-market noise — while anything that could lead to assignment is
+closed without hesitation.
 
 ```mermaid
 flowchart TD
-    subgraph PRE["Pre-Trade"]
+    subgraph PRE["Before Entry"]
         direction LR
         P1[Buying power] --> P2[Risk caps:<br/>per-spread / total / per-ticker]
-        P2 --> P3[Credit-width floor<br/>+ entry limits]
+        P2 --> P3[Credit floor + quote ceiling<br/>+ netting guard]
     end
     subgraph LIVE["While Open"]
         direction LR
         L1[Profit target]
-        L2[Stop loss<br/>unconditional]
-        L3[Moneyness-aware<br/>DTE close]
+        L2[Moneyness-aware<br/>stop loss]
+        L3[Staged expiration<br/>handling]
     end
-    subgraph ALWAYS["Always-On"]
+    subgraph BOOK["Execution & Bookkeeping"]
         direction LR
-        A1[Ledger ↔ broker<br/>reconciliation]
-        A2[Assignment /<br/>unpriceable alerts]
+        A1[Fill confirmation<br/>+ slippage tracking]
+        A2[Expiry / ledger<br/>reconciliation]
     end
-    PRE --> LIVE --> ALWAYS
+    PRE --> LIVE --> BOOK
 ```
 
 <details>
 <summary><strong>Full list of safeguards (click to expand)</strong></summary>
+
+### Before entry
 
 - **Pre-trade buying power check** — required margin is validated against
   available option buying power before any order is submitted; fails open
   to the broker's own enforcement on API errors
 - **Per-spread risk cap** — maximum defined risk per position, with
   ticker-class-specific overrides (index vs. equity vs. high-beta names)
-- **Layered open-risk caps** — beyond the per-position cap, a permanent cap on
-  total risk across all open positions AND a separate cap on risk concentrated
-  in any single underlying, so no one name can dominate the book. Both apply
-  at all times, independent of trading phase, and both scale as the tradeable
-  roster grows (see Methodology Notes above).
+- **Layered open-risk caps** — beyond the per-position cap, the system
+  enforces a cap on total risk across all open positions AND a cap on risk
+  concentrated in any single underlying, so no one name can dominate the
+  book. As more independently-vetted, largely uncorrelated names are added,
+  the total budget can grow while the share any single name may claim shrinks
 - **Per-ticker contract limits** — high-volatility names are capped at
   reduced contract counts regardless of signal strength
-- **Monthly drawdown circuit breaker** — all new entries pause automatically
-  if month-to-date P&L breaches a configured loss limit
-- **Profit target close** — positions are closed automatically once a
-  configured percentage of the collected credit has decayed
-- **Stop loss** — positions are closed when the loss reaches a multiple of
-  the credit collected (the standard premium-selling convention); the stop
-  fires immediately regardless of moneyness or the holding window — a
-  volatility spike can still hurt an otherwise-safe position, so this
-  safeguard is never suppressed
-- **Moneyness-aware, DTE-based forced close** — a position approaching
-  expiration is force-closed only if it's still meaningfully at risk (in or
-  very near the money); one that has moved safely out of the money is left
-  to ride out its remaining decay instead of being closed at an unnecessary
-  loss. A small buffer around the strike (a fraction of a percent of the
-  underlying's price) keeps a marginal, easily-reversible breach from being
-  treated the same as a real one.
-- **Minimum holding window** — profit-taking is gated by a minimum holding
-  period to prevent same-day churn; risk-management closes (stop loss, DTE)
-  are exempt and always fire
-- **Fill confirmation** — close orders are verified against live order status
-  before being reported as filled; unfilled orders are re-priced toward the
-  ask (price chasing), then cancelled and retried on the next run
-- **Execution slippage tracking** — every close records what the live market
-  implied it would cost alongside what it actually cost, so execution quality
-  is measured from real fills rather than assumed
-- **Position ledger** — every entry and close is recorded to a CSV ledger,
-  driving month-to-date statistics in summary notifications
-- **Crash-safe ledger writes** — each fill is booked immediately and
-  idempotently (keyed by order id) under a file lock with atomic replace, so a
-  crash mid-run never corrupts or double-books the ledger
-- **Ledger ↔ broker reconciliation** — on every monitor run, open ledger rows
-  are cross-checked against the broker's actual positions per account (matched by
-  strike / expiry / type). Any divergence — the ledger shows open but the broker
-  holds none, or the broker holds a position the ledger never recorded — fires an
-  alert, and downstream P&L and circuit-breaker figures are flagged unreliable
-  until a human resolves it. This reconciliation is contract-symbol aware: some
-  index option products settle under more than one distinct contract root
-  depending on the specific expiration chosen (e.g. a standard monthly vs. a
-  weekly variant), and the check derives the correct root from the expiration
-  itself rather than assuming a single fixed one — an earlier fixed assumption
-  produced false divergence alerts and blocked pricing/closing for the
-  affected expirations.
+- **Per-instrument-class credit floor** — every entry must collect a minimum
+  premium relative to its defined risk; index/cash-settled products get their
+  own floor calibrated against what comparably low-risk names actually
+  collect, rather than an exemption
+- **Quote sanity ceiling** — a vertical spread can never be worth more than
+  its width. Any entry price computed above that bound (a sign of a wide or
+  stale quote on a thinly traded option) is rejected locally instead of being
+  sent to the broker
 - **Entry netting guard** — a new position is refused if opening it would
   cancel out an existing position at the broker (brokers net identical option
-  contracts together, so an overlapping book can otherwise create a position
-  neither the ledger nor the broker can price or close). Shared strikes are
-  still allowed when they don't net to zero — a narrow, deliberate exception,
-  not a general restriction on overlap
-- **Unpriceable-position escalation** — if a position is ever missing a leg at
-  the broker, it is never priced from the remaining leg alone (doing so can
-  read a small position as a catastrophic loss); the system alerts and skips
-  instead of guessing
-- **Minimal-size live rollout gate** — an optional phase restricts real-money
-  entries to a single lowest-risk name, caps concurrent open positions, and
-  forces quantity to one contract, validating a full lifecycle at trivial size
-  before any scaling (fail-safe: on a broker API error the open-position count
-  reports "at cap" and blocks rather than over-opens)
-- **Double-fill prevention** — entry and close retry loops confirm a cancel
-  actually succeeded before placing a replacement; a failed cancel usually means
-  the order just filled, and blindly replacing it would double the position or
-  leave a naked leg
+  contracts together, so an overlapping book could otherwise create a
+  position neither the ledger nor the broker can price or close). Shared
+  strikes are still allowed when they don't net to zero
+- **Monthly drawdown circuit breaker** — all new entries pause automatically
+  if month-to-date realized P&L breaches a configured loss limit
+- **Earnings blackout** — entries are skipped within a configurable window
+  around earnings announcements
+- **Concentration guard** — simultaneous signals across correlated tickers
+  are flagged as a single macro bet, not independent trades
 - **Cross-run duplicate-entry guard** — a ticker that already has a working
   order at the broker is skipped on the next scheduled run (with a small,
   explicit allowance for intentional laddering); the broker stays the authority
 - **Data-quality guards** — option quotes whose delta drifts too far from target
   (an incomplete streamer snapshot) or that are one-sided (missing bid or ask)
   are rejected before an order is ever built
+- **Minimal-size live rollout gate** — an optional phase restricts real-money
+  entries to a single lowest-risk name, caps concurrent open positions, and
+  forces quantity to one contract, validating a full lifecycle at trivial size
+  before any scaling (fail-safe: on a broker API error the open-position count
+  reports "at cap" and blocks rather than over-opens)
+
+### While open
+
+- **Profit target close** — positions are closed automatically once a
+  configured percentage of the collected credit has decayed, gated by a
+  short minimum holding window to prevent same-day churn
+- **Profit-target closes can't erode their own target** — if a profit-taking
+  close doesn't fill at first and is re-priced to chase a fill, re-pricing
+  stops before the realized profit would fall below the target that
+  triggered it. An unfilled close waits for the next run instead of
+  accepting a fill that no longer meets the target
+- **Moneyness-aware stop loss** — positions are closed when the loss reaches
+  a multiple of the credit collected, but only if the short leg is actually
+  threatened. A mark-to-market spike on a position still safely out of the
+  money is volatility noise, not assignment risk, and closing it would turn a
+  likely max-profit expiry into a realized loss. When moneyness can't be
+  confirmed (e.g. the price feed fails), the stop fails safe and still fires.
+  A small buffer around the strike prevents a marginal, easily-reversible
+  breach from being treated like a real one
+- **Near-expiry profit lock** — an out-of-the-money position that has
+  already reached its profit target close to expiration is taken rather than
+  held for the last few cents of decaying premium
+- **Staged expiration handling** — instead of one blunt force-close as
+  expiration approaches, a threatened position first gets a window to
+  recover, then daily observe-only alerts with a countdown (time to roll it
+  manually), and is force-closed only once there is genuinely no runway
+  left. Because defined-risk spreads cap max loss at the width, an early
+  forced exit mostly just locks in a loss a roll might have avoided
+- **Skipped-alert catch-up** — the staged handling never force-closes a
+  position that hasn't received at least one warning first. If a gap between
+  runs (a market holiday, an outage) jumps a position straight past its alert
+  window, the system sends the alert and defers the close by one run —
+  except on expiration day itself, when it closes immediately
+- **Expiration-day guard** — the out-of-the-money buffer is switched off in
+  the final day before expiration: there's no time left for a marginal breach
+  to recover, and exchange auto-exercise treats anything a cent in the money
+  as exercised. A final pre-close check catches positions that slip into the
+  money late in the last session
+- **Unpriceable-position escalation** — if a position is ever missing a leg
+  at the broker, it is never priced from the remaining leg alone (doing so
+  can read a small position as a catastrophic loss). The system alerts and
+  skips instead of guessing
 - **Assignment blind-spot alerts** — the monitor scans all positions, not just
   options, and alerts on equity positions from short-put assignment and on any
   option position the ledger has no record of
+
+### Execution & bookkeeping
+
+- **Fill confirmation** — close orders are verified against live order status
+  before being reported as filled; unfilled orders are re-priced toward the
+  ask (price chasing), then cancelled and retried on the next run. Every
+  close price, including the first attempt, is capped at the spread's width
+- **Double-fill prevention** — entry and close retry loops confirm a cancel
+  actually succeeded before placing a replacement; a failed cancel usually means
+  the order just filled, and blindly replacing it would double the position or
+  leave a naked leg
+- **Execution slippage tracking** — every close records what the live market
+  implied it would cost alongside what it actually cost, so execution quality
+  is measured from real fills rather than assumed
+- **Expired-position reconciliation** — when a position reaches expiration
+  and its legs disappear from the broker, it is booked as expired worthless
+  only if that outcome is confirmed (no assigned stock, settled in shares,
+  and the underlying closed on the safe side of the short strike). Anything
+  ambiguous — including both legs expiring in the money, which leaves no
+  stock but is the maximum loss — is escalated for manual review rather than
+  recorded as a win
+- **Root-symbol reconciliation for multi-convention index options** — some
+  index option products trade under more than one contract root depending on
+  the expiration (e.g. standard monthly vs. weekly). The correct root is
+  derived from the expiration date itself rather than assumed, avoiding false
+  mismatch alerts and blocked closes
+- **Position ledger** — every entry and close is recorded to a ledger that
+  drives realized-P&L statistics (month-to-date, prior month, quarter-to-date)
+  in summary notifications — see Position Tracking below
+- **Crash-safe ledger writes** — each fill is booked immediately and
+  idempotently (keyed by order id) under a file lock with atomic replace, so a
+  crash mid-run never corrupts or double-books the ledger
 - **Connection / API retry** — transient broker and network failures are retried
   so a momentary blip doesn't abort an entire run
 - **Fail-safe alerting** — shell wrappers trap pipeline errors into email alerts,
   and an optional dead-man switch pings an external monitor after each successful
   summary, so even a fully-down server surfaces (nothing left to email you)
-- **Earnings blackout** — entries are skipped within a configurable window
-  around earnings announcements
-- **Concentration guard** — simultaneous signals across correlated tickers
-  are flagged as a single macro bet, not independent trades
 
 </details>
 
@@ -316,15 +355,14 @@ flowchart LR
 - **Reconciled every run** — ledger and broker are compared as signed net
   quantity per strike across both legs, and any divergence raises an alert
   that explicitly marks all downstream P&L as unreliable until a human
-  resolves it.
+  resolves it. Manual interventions (e.g. a hand-placed roll) surface here
+  immediately and are booked back into the ledger as a close plus a new open.
+- **Expirations are retired, not left dangling** — a position that expires
+  is closed out of the ledger once its outcome is confirmed, so it stops
+  holding risk budget and its result lands in realized P&L.
 - **Fails closed** — a ledger row that cannot be parsed into a well-formed
   spread is skipped rather than guessed at, and an empty ledger closes
   nothing. A wrong leg here would become a wrong live order.
-- **Performance compared per day of capital held** — closes are grouped by
-  why they closed (profit target vs. time-based exit) and compared on
-  realized return per dollar of risk per day held, so a faster, smaller win
-  can be correctly weighed against a slower, larger one instead of comparing
-  raw dollar totals.
 
 ---
 
@@ -410,12 +448,36 @@ engineering decision, not a limitation.
    train or even validate a model — overfitting is guaranteed.
 3. **Auditability is the moat.** Every entry and exit traces to an explicit
    rule. Subtle execution bugs (leg mis-pairing across positions, same-day
-   open/close churn) were only findable *because* the logic is deterministic
-   — with probabilistic judgment, "bug or model decision?" becomes
-   unanswerable.
+   open/close churn, a close firing on volatility noise while the position was
+   safely out of the money) were only findable *because* the logic is
+   deterministic — with probabilistic judgment, "bug or model decision?"
+   becomes unanswerable.
 4. **Responsibility stays clear.** User-authored rules, user's account,
    user's risk caps. Losses are unambiguously the owner's responsibility —
    no broker-AI fiduciary ambiguity.
+
+**Where AI would actually help — and why it's not here yet:**
+
+Rule-based isn't a rejection of AI, it's a scoping call for where this
+system's constraints (small sample, need for auditability, live capital)
+make it the wrong tool. Some parts of the problem genuinely fit AI better,
+and are candidates for later, separate from the entry/exit decision rule:
+
+- **Earnings/news sentiment on watchlist tickers** — an NLP pass flagging
+  unusual sentiment shifts to widen the earnings blackout window per ticker,
+  instead of the fixed window used now.
+- **Regime/anomaly detection on volatility or sector correlation** — an
+  unsupervised model flagging "conditions unlike the training history" as
+  an extra pause signal, on top of (not replacing) the deterministic gate.
+- **Backtested threshold tuning** — searching the parameter space
+  systematically instead of manual calibration from live data, while still
+  producing a fixed, auditable rule as output.
+
+None of these change *how* a trade decision is made once thresholds are
+set — that stays deterministic, for the accountability reasons above.
+They're about improving the inputs to the rules, a different and
+lower-stakes place for a probabilistic model to sit than the trade
+decision itself.
 
 **The accepted evolution path is quant-style, not AI-style:** as the trade
 ledger accumulates history, fixed thresholds can become data-derived
