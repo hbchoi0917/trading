@@ -89,7 +89,7 @@ fig1.add_trace(go.Scatter(
 ), row=2, col=1)
 fig1.update_layout(
     title={"text": "Cumulative P&L — Jan 2025 to May 2026<br>"
-                   "<span style='font-size:15px;font-weight:normal;'>All Accounts | 78% Monthly Win Rate (14/18 months)</span>"},
+                   "<span style='font-size:15px;font-weight:normal;'>All Accounts | Synthetic sample data, relative units</span>"},
     height=600, margin=dict(t=100)
 )
 fig1.update_yaxes(title_text="P&L (relative)", row=1, col=1)
@@ -220,7 +220,7 @@ fig8.add_trace(go.Scatter(
 ), row=2, col=1)
 fig8.update_layout(
     title={"text": "Quarterly P&L Trajectory<br>"
-                   "<span style='font-size:15px;font-weight:normal;'>Consistent growth Q1 2025 → Q2 2026 | 2026 Q2 best quarter on record</span>"}
+                   "<span style='font-size:15px;font-weight:normal;'>All Accounts | Synthetic sample data, relative units</span>"}
 )
 fig8.update_yaxes(title_text="P&L (relative)", row=1, col=1)
 fig8.update_yaxes(title_text="Cumul. (relative)", row=2, col=1)

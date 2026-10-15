@@ -2,13 +2,24 @@
 **Period:** January 1, 2025 – May 29, 2026
 **Primary Strategy:** Put Credit Spreads + Covered Calls + Wheel
 
+> **Basis note (added Oct 2026).** This report was written in May 2026 on a
+> **net cash flow** basis — premium in and out summed by transaction date. The
+> month marks (✅/❌), best/worst months and quarter-over-quarter comparisons
+> below follow that basis. Cash flow overstates results while positions are
+> still open, because a credit spread pays its premium before its outcome is
+> known. On a **realized P&L** basis (FIFO-matched, booked in the month the
+> position closed) the same months score 10/18; through September 2026 it is
+> 12/21. Realized P&L is the performance metric used everywhere else in this
+> repo — see the [README](README.md).
+
 ---
 
 ## 1. Overall Performance
 
 | Metric | 2025 Full Year | 2026 YTD | Lifetime |
 |---|---|---|---|
-| **Monthly Win Rate** | 75% (9/12) | 83% (5/6) | 78% (14/18) |
+| **Monthly Win Rate (realized P&L)** | 58% (7/12) | 50% (3/6) | 56% (10/18) |
+| Months with positive net cash flow | 75% (9/12) | 83% (5/6) | 78% (14/18) |
 | **Primary Strategy** | Put Credit Spreads | Put Credit Spreads | Put Credit Spreads |
 
 **2025 pattern:** H2 significantly outperformed H1. H1 was essentially flat — April tariff-driven drawdown erased all early gains. H2 recovered strongly, with Q4 being the dominant quarter.
