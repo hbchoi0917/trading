@@ -109,6 +109,7 @@ spread: PLTR PUT 82 | realized_pnl = +550.30 | WIN | 32일 보유
 Intermediate는 거래 단위 행을 주고, 마트는 비즈니스 질문에 바로 답합니다.
 
 **`mart_monthly_pnl`** — *"계좌별로 매달 성과가 어땠나?"*
+청산된 거래만, 청산한 달 기준으로 집계합니다. 현금흐름이 아니라 실현손익입니다. 크레딧 스프레드는 결과가 나오기 전에 프리미엄이 먼저 들어오기 때문에, 거래일 기준으로 현금을 합산하면 신규 진입이 많은 달이 실제보다 좋아 보입니다.
 ```sql
 sum(realized_pnl)                                            as net_pnl
 sum(net_pnl) over (partition by account_name order by month) as cumulative_pnl

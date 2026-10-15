@@ -52,6 +52,11 @@ python analysis.py
 # → Saves 9 charts to charts/
 ```
 
+**Overlapping exports are safe to combine.** Rows repeated across exports with
+overlapping date ranges are counted once, but identical rows *within* one export
+are kept: a split fill (same contract, price and day) shows up as identical rows
+and is a real trade, so a blanket de-duplication would silently drop it.
+
 ---
 
 ## Sample Charts

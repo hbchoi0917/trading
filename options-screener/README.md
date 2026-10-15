@@ -104,6 +104,11 @@ turn the protection off.
   stop) and compared on realized return per dollar of risk per day held, so
   a faster, smaller win can be correctly weighed against a slower, larger
   one instead of comparing raw dollar totals.
+- **Broker exports are cross-checked, not trusted blindly** — quarterly
+  transaction exports can silently omit rows, and legitimate split fills
+  look like duplicates. Monthly totals are reconciled against separate
+  monthly exports, and the opening and closing legs are matched against
+  each other to confirm that nothing was dropped or double-counted.
 
 ---
 
@@ -133,7 +138,7 @@ cp .env.example .env   # then fill in your credentials
 python screener.py
 ```
 
-Outputs `signals_YYYYMMDD.csv` + console table. Each row is a ticker that passed all filters, with RSI, BB position, IV Rank, IV/HV ratio, and a suggested expiry date.
+Outputs `signals_YYYYMMDD.csv` + console table. Each row is a ticker that passed all filters, with RSI, BB position, IV Rank / percentile, IV/HV ratio, a suggested expiry (monthly preferred, kept clear of earnings) and the next earnings date. Rows are sorted by `Signal_Strength`, a 0–100 score used only to rank signals that already passed, and every row carries `Cluster_Risk`, which is set when too many tickers fire on the same day. The log explains each rejected ticker (`no signal — …`) and any earnings lookup that failed.
 
 ---
 
@@ -146,6 +151,9 @@ Outputs `signals_YYYYMMDD.csv` + console table. Each row is a ticker that passed
 | Delta target | `DELTA_TARGET` | Lower = further OTM = higher probability, lower premium |
 | DTE window | `DTE_MIN / DTE_MAX` | 21–45 days is typical for monthly spreads |
 | IV Rank floor | `IV_RANK_MIN` | Raise to be more selective on premium quality |
+| Earnings blackout | `EARNINGS_BUFFER_BEFORE / EARNINGS_BUFFER_AFTER` | Days before / after an announcement with no new entries |
+| Expiry vs. earnings | `EARNINGS_EXPIRY_BUFFER_DAYS` | Expiries this close to earnings (either side) are never chosen |
+| Cluster warning | `CLUSTER_WARN_THRESHOLD` | Same-day signal count that triggers the correlated-signals warning |
 
 ---
 

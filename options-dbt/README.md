@@ -109,6 +109,7 @@ spread: PLTR PUT 82 | realized_pnl = +550.30 | WIN | held 32 days
 Intermediate gives trade-level rows. Marts answer business questions directly.
 
 **`mart_monthly_pnl`** — *"How did each account perform each month?"*
+Closed trades only, bucketed by the month they closed — realized P&L, not cash flow. Opening a credit spread brings premium in before its outcome is known, so summing cash by transaction date flatters busy months.
 ```sql
 sum(realized_pnl)                                            as net_pnl
 sum(net_pnl) over (partition by account_name order by month) as cumulative_pnl

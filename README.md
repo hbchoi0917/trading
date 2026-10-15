@@ -16,7 +16,7 @@
 
 | Folder | Description |
 |--------|-------------|
-| [`options-screener/`](options-screener/) | **Demo screener** — scans a watchlist for put credit spread entry signals using RSI, Bollinger Bands, IV Rank, IV/HV ratio, and earnings blackout filters. Outputs a signals CSV. |
+| [`options-screener/`](options-screener/) | **Demo screener** — scans a watchlist for put credit spread entry signals using RSI, Bollinger Bands, IV Rank, IV/HV ratio, and an earnings blackout before and after announcements. Ranks passing signals, flags same-day clusters, and outputs a signals CSV. |
 | [`options-analysis/`](options-analysis/) | **Trade analysis** — pipeline + charts for analyzing personal options trade history (P&L, ticker breakdown, strategy split, efficiency). See its own [README](options-analysis/README.md). |
 | [`options-dbt/streamlit_app/`](options-dbt/streamlit_app/) | **Live dashboard** — interactive 3-page Streamlit app (DuckDB + Plotly). [**→ Open Dashboard**](https://options-trading-dash.streamlit.app/) |
 | [`deploy/`](deploy/) | **Server setup** — one-command Ubuntu EC2 setup, cron wrappers, log rotation. |
@@ -111,7 +111,8 @@ flowchart TD
   history?" (IV Rank); Pass 2 asks "is the market paying above recent
   realized volatility right now?" (IV/HV ratio). Both must pass; if IV data
   is unavailable, the filter fails open so a data outage never silently
-  blocks a valid entry.
+  blocks a valid entry — and a product whose IV data fails persistently is
+  paused rather than left trading without its quality gate.
 - **Data-driven ticker selection, re-weighted by realized return per
   trade** — the tradeable ticker set is periodically re-evaluated against
   the owner's own multi-quarter trading history, ranked by **realized P&L
@@ -225,8 +226,10 @@ flowchart TD
   strikes are still allowed when they don't net to zero
 - **Monthly drawdown circuit breaker** — all new entries pause automatically
   if month-to-date realized P&L breaches a configured loss limit
-- **Earnings blackout** — entries are skipped within a configurable window
-  around earnings announcements
+- **Earnings blackout** — no new entries in a configurable window before *and
+  after* an earnings announcement, and the chosen expiry is kept clear of the
+  earnings date on both sides. The earnings lookup fails open but logs why it
+  failed, so a broken data source can't silently turn the protection off
 - **Concentration guard** — simultaneous signals across correlated tickers
   are flagged as a single macro bet, not independent trades
 - **Cross-run duplicate-entry guard** — a ticker that already has a working
@@ -511,6 +514,24 @@ Analytics side: **dbt** · **DuckDB** · **Streamlit** · **Plotly** (see [`opti
 High-level themes from recent iterations (no thresholds, per-ticker parameters,
 or account figures — those stay private):
 
+- **Earnings blackout that can't switch itself off** — a change in the
+  market-data library's response format made the earnings lookup quietly
+  report "no earnings date" for every ticker, so the blackout looked active
+  but never fired. The lookup now handles both formats and logs every
+  failure instead of swallowing it. The blackout also covers the
+  post-announcement repricing window, not just the run-up, and expiries
+  next to an earnings date are never chosen.
+- **Broker exports cross-checked** — quarterly exports can silently omit
+  rows, and legitimate split fills look like duplicates. Monthly totals are
+  reconciled against separate monthly exports and opening/closing legs are
+  matched, so nothing is dropped or double-counted. The public analysis
+  script now keeps split fills when combining overlapping exports instead
+  of de-duplicating them away.
+- **Analytics correctness** — two derived fee columns in the dbt marts
+  subtracted fees a second time (the broker amount is already net of fees;
+  the dashboard's headline P&L was unaffected). The dbt project now builds
+  and passes all 48 data tests from a clean checkout, and the README is
+  available in Korean as well.
 - **Roster-scaled diversification** — the tradeable name set was widened
   substantially, with each addition checked against the owner's own
   multi-quarter trading history and ranked by realized return per trade
