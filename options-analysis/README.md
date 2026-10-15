@@ -26,22 +26,24 @@ options-analysis/
 
 ## Key Stats (Jan 2025 – Sep 2026)
 
+All figures are **realized P&L**: each close is matched to its opening trade
+(FIFO, per account and contract) and booked when the position closed.
+
 | Metric | Value |
 |---|---|
-| Monthly Win Rate (realized P&L) | **57%** (12 / 21 months profitable) |
-| Months with positive net cash flow | 17 / 21 — shown for contrast, not a P&L measure |
+| Realized P&L by year | **Profitable in both years** (2025, and 2026 through September) |
+| Year-over-year | 2026 through September is already **~4x** full-year 2025 |
+| Recent quarters | **2026 Q2 and Q3** are the two strongest quarters on record |
 | Primary Strategy | Put Credit Spreads |
 | Accounts | 4 (Individual + IRA types) |
 | Period | Jan 2025 – Sep 2026 |
 
-**Why two numbers.** Realized P&L matches every close to its opening trade
-(FIFO, per account and contract) and books the result in the month the
-position closed. Net cash flow just sums premium in and out by transaction
-date — and because a credit spread pays its premium up front, months with many
-new positions look profitable before their outcome is known. On this history
-the cash-flow view shows 17 green months against 12 on a realized basis, which
-is exactly why realized P&L is the performance metric. (Earlier versions of
-this README quoted a cash-flow-basis 78%.)
+**Why realized P&L, not cash flow.** Summing premium in and out by
+transaction date gives net cash flow, which is not P&L: a credit spread pays
+its premium up front, so months with many new positions look profitable
+before their outcome is known, and cash flow and realized P&L can point in
+opposite directions in the same month. (Earlier versions of this README quoted
+a cash-flow-basis win rate.)
 
 > Specific P&L figures are maintained in a private repository.
 

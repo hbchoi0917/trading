@@ -93,4 +93,4 @@
 | **AE** | Page 1 + "dbt lineage가 이 숫자를 만들었다" | 파이프라인 설계, surrogate key, spread matching 로직 |
 | **Senior DA** | Page 2 | "MSFT 손실을 어떻게 감지했고 rotation에서 제외했나" |
 | **BI Developer** | Page 1 + Page 3 | "mart → Sheets → Looker Studio 전체 스택을 혼자 구축했다" |
-| **BA** | Page 1 스크린샷만 | "현금흐름으로 보면 21개월 중 17개월이 플러스인데, 실현손익으로 보면 12개월" — 지표 자체를 검증한 경험을 숫자로 말하기 |
+| **BA** | Page 1 스크린샷만 | "실현손익 기준 두 해 모두 수익, 2026년은 9월까지 이미 2025년 전체의 약 4배" + 현금흐름이 아닌 실현손익으로 잰 이유 — 숫자와 지표 선택을 함께 말하기 |
