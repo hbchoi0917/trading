@@ -75,8 +75,9 @@ and is a real trade, so a blanket de-duplication would silently drop it.
 
 ## Sample Charts
 
-> Charts below are generated from synthetic data that reflects the narrative patterns in
-> [`insights_report.md`](insights_report.md). Actual P&L figures are in a private repository.
+> Charts below are generated from synthetic data in relative units, for illustration only —
+> their shape does not reproduce actual results (see [`insights_report.md`](insights_report.md)
+> for the realized-basis review). Actual P&L figures are in a private repository.
 > To generate from your own data, run `python analysis.py` after adding CSV exports to `data/`.
 
 ### Monthly P&L + Cumulative Growth

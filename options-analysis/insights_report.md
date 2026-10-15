@@ -1,212 +1,144 @@
 # Options Trading Insights Report
-**Period:** January 1, 2025 – May 29, 2026
+**Period:** January 2025 – September 2026 (21 months, manually traded) · **Basis:** realized P&L
 **Primary Strategy:** Put Credit Spreads + Covered Calls + Wheel
 
-> **Basis note (added Oct 2026).** This report was written in May 2026 on a
-> **net cash flow** basis — premium in and out summed by transaction date. The
-> month marks (✅/❌), best/worst months and quarter-over-quarter comparisons
-> below follow that basis. Cash flow overstates results while positions are
-> still open, because a credit spread pays its premium before its outcome is
-> known. On a **realized P&L** basis (FIFO-matched, booked in the month the
-> position closed) the same months score 10/18; through September 2026 it is
-> 12/21. Realized P&L is the performance metric used everywhere else in this
-> repo — see the [README](README.md).
+> Every result in this report is **realized P&L**: each close is matched to its
+> opening trade (FIFO, per account and contract) and booked when the position
+> closed. Option legs only — the stock side of assignments and covered calls,
+> dividends and interest are not included. Results are given as direction,
+> rank and ratio; specific dollar figures are kept in a private repository.
+> An earlier version of this report (May 2026) was written on a net-cash-flow
+> basis; see *Why realized P&L* in the [README](README.md).
 
 ---
 
 ## 1. Overall Performance
 
-| Metric | 2025 Full Year | 2026 YTD | Lifetime |
-|---|---|---|---|
-| **Monthly Win Rate (realized P&L)** | 58% (7/12) | 50% (3/6) | 56% (10/18) |
-| Months with positive net cash flow | 75% (9/12) | 83% (5/6) | 78% (14/18) |
-| **Primary Strategy** | Put Credit Spreads | Put Credit Spreads | Put Credit Spreads |
+| | 2025 | 2026 (Jan–Sep) |
+|---|---|---|
+| **Realized P&L** | Profitable | Profitable — already **~4x** full-year 2025 |
+| **Shape of the year** | Loss in H1, strong H2 | Loss in Q1, then the two strongest quarters on record |
+| **Primary strategy** | Put credit spreads | Put credit spreads |
 
-**2025 pattern:** H2 significantly outperformed H1. H1 was essentially flat — April tariff-driven drawdown erased all early gains. H2 recovered strongly, with Q4 being the dominant quarter.
-
-**2026 pattern:** Q1 delivered ~5x YoY improvement vs Q1 2025 despite two major blow-up events (MSFT, NFLX). Q2 finished with the best single month on record in May 2026, driven by COST and new entries MRVL and INTC.
+- **Puts carry the book.** Put-side realized P&L is strongly positive; the call
+  side (mostly covered calls, option leg only) is a net loss.
+- **Concentration.** COST alone is roughly a third of net realized P&L, and the
+  top three names (COST, NVDA, MU) a little over half. The anchor works, and it
+  is also the largest single-name dependency in the book.
 
 ---
 
-## 2. Monthly Trend
-
-### 2025
-
-| Month | Status |
-|---|---|
-| Jan | ✅ |
-| Feb | ❌ |
-| Mar | ✅ |
-| **Apr** | ❌ **Worst Month — tariff-driven market-wide drawdown** |
-| May | ✅ |
-| Jun | ✅ |
-| Jul | ❌ |
-| Aug | ✅ (breakeven) |
-| Sep | ✅ |
-| **Oct** | ✅ **Best Month (2025)** |
-| Nov | ✅ |
-| Dec | ✅ |
-
-### 2026 Q1
-
-| Month | Status | Notes |
-|---|---|---|
-| **Jan** | ✅ | Best Q1 month; TSLA, CLS, PLTR, META, COST all contributed |
-| Feb | ❌ | MSFT idiosyncratic drop overwhelmed 15+ winning positions |
-| Mar | ✅ | Recovery led by BA, COST, GOOGL, IWM |
-
-### 2026 Q2 (Apr–May Final)
-
-| Month | Status | Notes |
-|---|---|---|
-| Apr | ✅ | Modest gain; covered call drag offset put spread income |
-| **May** | ✅ | **Best single month on record** — COST, MRVL, INTC straddle led |
-
----
-
-## 3. Quarterly Trend
+## 2. Quarterly Trend
 
 | Quarter | Direction | Notes |
 |---|---|---|
-| 2025 Q1 | ↗ | Solid start |
-| 2025 Q2 | ↘ | April tariff drawdown |
+| 2025 Q1 | ↘ | Small net loss; February drag |
+| 2025 Q2 | ↘ | April tariff-driven drawdown — worst month of 2025 |
 | 2025 Q3 | ↗ | Recovery |
 | 2025 Q4 | ↗↗ | Strongest quarter of 2025 |
-| 2026 Q1 | ↗↗ | ~5x YoY; MSFT/NFLX losses absorbed |
-| **2026 Q2** | ↗↗↗ | **Best quarter on record; May all-time high month** |
+| 2026 Q1 | ↘ | February MSFT / NFLX blow-ups — worst month on record |
+| 2026 Q2 | ↗↗↗ | Second-strongest quarter on record; May led |
+| **2026 Q3** | ↗↗↗ | **Strongest quarter on record; August the best month on record** |
+
+Both years follow the same pattern: an early-year loss driven by one event
+(the April 2025 tariff drawdown, the February 2026 single-name blow-ups),
+followed by a strong recovery. The recovery in 2026 was larger and came faster.
 
 ---
 
-## 4. 2025 Top Performers
+## 3. Ticker Results (21 months, realized)
 
-| Ticker | Pattern | Notes |
-|---|---|---|
-| NVDA | Most active; consistent put spread winner | High IV, manageable downside |
-| HIMS | High-volatility, high-premium | Outsized premium relative to risk |
-| COST | Steady, low-risk wide strikes | Core anchor established in 2025 |
-| TSLA | Volatile but profitable | Premium justified the directional risk |
-| AVGO | Consistent performer | Semiconductor cycle alignment |
-| AMD | Good risk/reward | Solid IV environment |
-| NFLX | Consistent 2025 performer | Turned to major loss in 2026 Q1 |
-| MU | Semiconductor cycle plays | Timing aligned with recovery |
+### Largest contributors
 
----
-
-## 5. 2025 Underperformers
-
-| Ticker | Root Cause |
-|---|---|
-| PLTR | Sold calls too close to the money during parabolic rally |
-| META | Price breakout exceeded covered call strikes |
-| RGTI | Quantum computing volatility; spread width too narrow |
-| CLS | Celestica breakout; narrow spreads didn't protect |
-
----
-
-## 6. 2026 Q1 Breakdown
-
-### Winners
+In order: **COST, NVDA, MU, SOXX, STX, CLS, HIMS, AVGO, SPXW, DRAM, IWM, MARA.**
 
 | Ticker | Notes |
 |---|---|
-| COST | Top winner; high-premium spreads across multiple accounts |
-| TSLA | Consistent volatility-based spread success |
-| GOOGL | Multi-account execution; steady gains |
-| IWM | Core premium source; index spread, no assignment risk |
-| CLS | Full recovery from 2025 losses |
-| BA | Net positive despite assignment risk |
-| SPXW | Index PUT spreads; no assignment risk |
-| PLTR | Turned profitable after 2025 setbacks; improved strike discipline |
-| AVGO | Consistent performer |
-| NVDA | Steady contributor |
-| MU | Recovery from semiconductor cycle headwinds |
+| COST | Core anchor; steady, wide-strike put spreads across accounts |
+| NVDA | Most active name; consistent put spread winner |
+| MU | Semiconductor cycle; timing aligned with the recovery |
+| SOXX | Positive overall, though covered-call closes gave back part of the premium |
+| CLS | Recovered fully from its 2025 losses on narrow spreads |
+| HIMS | High volatility, high premium relative to risk |
+| SPXW / IWM | Index put spreads — no early-assignment risk |
+| DRAM | Rotation confirmed with both put spreads and covered calls |
+| MARA | Wheel (cash-secured put → assignment → covered call) net positive |
 
-### Losers
+### Largest detractors (worst first)
 
-| Ticker | Root Cause |
+| Ticker | Root cause |
 |---|---|
-| MSFT | Dropped sharply and independently in February with no broad market catalyst — idiosyncratic move. Stop-loss applied later than optimal; repeated roll attempts compounded the loss. Lesson: exit faster on single-name drops with no sector confirmation. **Excluded from rotation.** |
-| NFLX | Post-split M&A speculation overhang triggered sharp sustained decline — event-driven, outside normal options risk management. Position was already placed when the situation developed; no controllable entry error. **Excluded from rotation.** |
-| IONQ | High-volatility small-cap; sharp Feb–Mar drop forced early close |
-| RGTI | Quantum computing sector volatility continued from 2025 |
+| MSFT | Sharp, idiosyncratic February 2026 drop with no broad-market catalyst. The stop was applied later than optimal and repeated rolls compounded the loss. Lesson: exit faster on single-name drops with no sector confirmation. **Excluded from rotation.** |
+| NFLX | Event-driven decline on post-split M&A speculation — outside normal options risk management. (The 10-for-1 split is handled in the data by matching pre- and post-split strikes as one contract.) **Excluded from rotation.** |
+| EWY | Covered calls during the KRW/EWY rally: buy-to-close cost exceeded the premium. Option leg only — gains on the shares are not in this figure. |
+| AMAT | Includes a position still open at the end of September; not final. |
+| RGTI | Quantum-computing volatility; spreads too narrow. **Excluded from rotation.** |
+| PLTR | Calls sold too close to the money during the 2025 rally, then put-spread rolls. Improved in early 2026 but still a net loss over the period. |
+| IONQ | High-volatility small cap; sharp February–March drop forced an early close. **Excluded from rotation.** |
+| INTC | Short-dated straddle-style trades after a catalyst. The May review read these as working; on a realized basis through September the name is a small net loss — revisit before repeating. |
 
 ---
 
-## 7. 2026 Q2 Breakdown (Apr–May Final)
+## 4. Key Insights
 
-### Winners
+### ✅ What's working
+1. **COST as core anchor** — the largest contributor by a wide margin. Watch
+   the concentration that comes with it.
+2. **Index put spreads (SPXW, IWM)** — positive with no early-assignment risk.
+3. **Exclusion discipline** — MSFT, NFLX, IONQ and RGTI were removed after
+   confirmed blow-ups. All four rank among the largest detractors, which
+   validates the exclusions.
+4. **Recovery speed** — the 2026 drawdown was deeper than 2025's, and the
+   recovery that followed was larger and faster.
+5. **Wheel on high-premium names** — MARA validated the approach with
+   acceptable assignment risk.
 
-| Ticker | Notes |
-|---|---|
-| COST | Dominant Q2 performer; largest single-ticker quarter; all accounts active |
-| DRAM | High-premium put/call covered calls; consistent across all accounts |
-| CLS | Continued strength; multiple successful spread cycles |
-| MU | Semiconductor recovery trade working well |
-| MRVL | New entry in late May; strong debut across all accounts |
-| INTC | Straddle-style trade (short put + short call, 1-week DTE); post-breakout IV compression play |
-| NVDA | Steady core contributor |
-| ASML | Premium-rich put spreads; good risk/reward |
-| SNDK | Small but consistent |
-| META | Recovered from early Q2 drag; net positive by month end |
+### ⚠️ Lessons: covered calls
+Calls are the weak side of the book (net loss, option leg only).
+1. **GOOGL** — buy-to-close cost exceeded the initial premium in a rally;
+   rolling forward at the same strike recovers the drag through cumulative
+   premium.
+2. **EWY** — holding through the rally and selling the stock above the strike
+   beat an early buy-to-close.
+3. **QQQM** — absorb the buy-to-close, sell the stock above the strike, rebuy
+   the shares, re-sell the call; track option and stock P&L separately.
+4. **Account concentration** — covered-call drag sat mostly in one account;
+   shifting that allocation toward put spreads balances it.
 
-### Q2 Drag
-
-| Ticker | Notes |
-|---|---|
-| TSLA | April decline; put spread rolls added costs in May; reduce size going forward |
-| EWY | Covered calls on 100 shares; BTC cost exceeded initial premium during KRW/EWY rally; holding through rally proved more profitable than early BTC |
-| GOOGL | Covered calls on 100 shares; BTC cost exceeded premium on rally; rolled short call forward — ongoing premium collection offsetting drag over time |
-| CRWD | Put spreads caught downside move; tight strikes punished |
-| QQQM | Covered call on 100 shares; BTC cost exceeded initial premium during April rally; held through rally and sold shares above strike — stock gain partially offset option drag; new 100 shares purchased for continued rotation |
-| PLTR | Minor drag from put spread rolls; manageable |
-
----
-
-## 8. Key Insights
-
-### ✅ What's Working
-1. **COST as core anchor** — dominant across all accounts; JUL expiry spreads already deployed for Q3
-2. **DRAM rotation confirmed** — both put and covered call structures working across all accounts
-3. **MRVL added to rotation** — strong debut in final week of May; structurally similar to COST
-4. **INTC straddle trade** — short-dated post-catalyst IV compression play generating solid return
-5. **META drag reversed** — rolling discipline converted early Q2 loss to net positive
-6. **Ticker exclusion discipline** — MSFT, NFLX, IONQ, RGTI removed after confirmed blow-up events; none re-entered in Q2; exclusion is working
-7. **MARA wheel strategy** — CSP → assignment → covered call rotation validated as net positive; wheel approach confirmed viable on high-premium tickers with acceptable assignment risk
-
-### ⚠️ Lessons: Covered Call Management
-1. **GOOGL** — BTC cost exceeded initial premium during Q2 rally; rolling forward at same strike recovers drag over time via cumulative premium; continue rolling
-2. **EWY** — holding through rally and selling stock above strike proved more profitable than early BTC; apply same patience to Jun 26 position
-3. **QQQM** — wheel-adjacent approach: absorb BTC cost → sell stock above strike → rebuy shares → re-sell call; track option P&L separately from stock gain/loss
-4. **Account concentration risk** — covered call drag concentrated in one account; put spread allocation needs to increase to balance
-
-### ⚠️ Lessons: Spread Management
-1. **TSLA sizing** — multiple put spread cycles catching downside moves; reduce contract count or widen strikes; avoid covered calls given directional volatility
-2. **PLTR discipline** — minor drag from put spread rolls; strike selection needs wider OTM buffer given volatility profile
+### ⚠️ Lessons: spread management
+1. **Single-name drops** — exit faster when a name falls with no sector
+   confirmation (MSFT).
+2. **TSLA sizing** — repeated put spread cycles caught downside moves; reduce
+   contract count or widen strikes, and avoid covered calls.
+3. **PLTR strike buffer** — volatility needs a wider OTM buffer.
+4. **Short-dated straddles (INTC)** — keep opportunistic and small until the
+   realized result turns positive.
 
 ---
 
-## 9. Action Plan
+## 5. Standing Rules
 
-### Q3 2026 Positioning
-- [ ] **COST** — maintain as largest allocation; 3–4 spreads/month per account; JUL strikes already deployed
-- [ ] **DRAM** — continue rotation; both puts and covered calls viable; monitor bid/ask liquidity
-- [ ] **MRVL** — scale cautiously; strong debut; add 1 contract/account if momentum holds
-- [ ] **INTC** — opportunistic short-dated plays on post-catalyst IV; limit to 1-week DTE
-- [ ] **TSLA** — put spreads only; avoid covered calls entirely; reduce contract count
-- [ ] **GOOGL** — continue covered call rolling; roll at expiry or 80%+ profit
-- [ ] **EWY** — hold Jun 26 $212.5 covered call; re-evaluate after Jun expiry
-- [ ] **QQQM** — continue covered call rotation on new 100 shares; track option P&L separately
-- [ ] **MARA** — CSP/covered call wheel viable; max 2 contracts
-- [ ] **MSFT / NFLX / IONQ / RGTI** — do not re-enter; excluded from rotation
-
-### Risk Management Rules
-1. **Max risk per spread**: spread width × contracts × 100, capped per position
-2. **DTE discipline**: open at 28–45 DTE; close at 80% profit OR 12 DTE — whichever comes first
-3. **Drawdown circuit breaker**: pause new positions for 1 week if monthly loss threshold hit
-4. **High-beta position limit**: IONQ, RGTI — excluded; MARA — wheel approach viable, max 2 contracts
-5. **Call selling rule**: only sell calls when stock is below its 52-week midpoint
-6. **MSFT rule**: *(inactive — excluded from rotation)*
+1. **Exclusions** — MSFT, NFLX, IONQ, RGTI stay out of rotation.
+2. **Max risk per spread** — spread width × contracts × 100, capped per position.
+3. **DTE discipline** — open at 28–45 DTE; close at the profit target or the DTE
+   threshold, whichever comes first.
+4. **Drawdown circuit breaker** — pause new positions when the monthly loss
+   threshold is hit.
+5. **High-beta names** — wheel only, with a small contract cap.
+6. **Call selling** — only sell calls when the stock is below its 52-week midpoint.
 
 ---
 
-*Report updated May 30, 2026. Specific P&L figures maintained in private repository. Option P&L reflects premium cash flows only; stock-level gains/losses from covered call assignments are not captured in transaction export.*
+## Data Notes
+
+- Built from Fidelity transaction exports. Months where a quarterly export
+  silently omitted rows were rebuilt from monthly re-exports, and duplicate
+  rows were resolved without dropping legitimate split fills.
+- Closes for positions opened before January 2025 are excluded from realized
+  P&L.
+- A few contracts with no expiration record were treated as expired worthless.
+- Positions still open at the end of September are not in realized P&L; they
+  were reconciled against the broker's position screen.
+- Pre-tax figures; not a tax calculation.
+
+*Report updated October 2026 from exports through September 30, 2026.*

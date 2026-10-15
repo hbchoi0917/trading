@@ -67,8 +67,8 @@ python analysis.py
 
 ## 샘플 차트
 
-> 아래 차트는 [`insights_report.md`](insights_report.md)(영문)의 흐름을 반영한 합성 데이터로 만든 것이며,
-> 실제 손익 수치는 private 레포에 있습니다. 본인 데이터로 만들려면 `data/`에 CSV export를 넣고
+> 아래 차트는 설명용 합성 데이터(상대 단위)로 만든 것이라, 모양이 실제 결과를 재현하지 않습니다.
+> 실현손익 기준 리뷰는 [`insights_report.md`](insights_report.md)(영문)를, 실제 손익 수치는 private 레포를 참고하세요. 본인 데이터로 만들려면 `data/`에 CSV export를 넣고
 > `python analysis.py`를 실행하세요.
 
 ### 월별 손익 + 누적 성장
