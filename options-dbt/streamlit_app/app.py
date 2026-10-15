@@ -69,6 +69,8 @@ st.sidebar.caption(
 st.sidebar.markdown("[View the code on GitHub →](https://github.com/hbchoi0917/trading)")
 with st.sidebar.expander("How it's built"):
     st.markdown(
+        "**Scope:** manual-trading analytics (Fidelity exports). The automated system "
+        "(Tastytrade) is tracked separately in its own ledger.\n\n"
         "1. **Fidelity CSV exports**: raw option legs\n"
         "2. **dbt staging**: parse OCC symbols, keep split fills\n"
         "3. **dbt intermediate**: legs grouped into trade cycles\n"

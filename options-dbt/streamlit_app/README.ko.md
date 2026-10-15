@@ -4,6 +4,9 @@
 
 dbt 분석 파이프라인 위에 Streamlit + DuckDB + Plotly로 만든 대시보드입니다.
 
+**범위:** 수동 매매 분석(Fidelity export)을 다룹니다. 자동매매 시스템(Tastytrade)은 자체 원장(ledger)에서
+따로 관리합니다.
+
 **데이터:** 파이프라인은 실제 Fidelity export(비공개)를 처리하도록 만들어졌습니다. 레포에 커밋된
 `sample_options_trading.duckdb`는 **완전한 합성 데이터**입니다. 모든 행을 `make_synthetic_sample.py`가
 고정 시드로 무작위 생성하고 dbt 마트와 같은 스키마를 쓰기 때문에, 실제 거래·금액·계좌를 노출하지 않고도
