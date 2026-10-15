@@ -49,7 +49,7 @@
 | 제외 티커 하이라이트 | Table | mart_ticker_performance | Filter: is_excluded=true, 컬럼: ticker/total_pnl/total_trades |
 
 **인사이트 텍스트 박스 추가:**
-> "MSFT (-$10,556) and NFLX (-$6,238) were excluded from rotation after Q1 2026 blow-ups.
+> "MSFT and NFLX were excluded from rotation after Q1 2026 blow-ups (their losses come straight from `total_pnl`; keep dollar figures out of public screenshots).
 > Remaining 48 tickers show 50%+ win rate on average."
 
 ---
@@ -93,4 +93,4 @@
 | **AE** | Page 1 + "dbt lineage가 이 숫자를 만들었다" | 파이프라인 설계, surrogate key, spread matching 로직 |
 | **Senior DA** | Page 2 | "MSFT 손실을 어떻게 감지했고 rotation에서 제외했나" |
 | **BI Developer** | Page 1 + Page 3 | "mart → Sheets → Looker Studio 전체 스택을 혼자 구축했다" |
-| **BA** | Page 1 스크린샷만 | "$48,995 lifetime P&L, 78% monthly win rate" — 숫자로 말하기 |
+| **BA** | Page 1 스크린샷만 | "현금흐름으로 보면 21개월 중 17개월이 플러스인데, 실현손익으로 보면 12개월" — 지표 자체를 검증한 경험을 숫자로 말하기 |
