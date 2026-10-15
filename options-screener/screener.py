@@ -27,7 +27,8 @@ Filters applied (all must pass):
   4. ATR% > minimum         (adequate premium-generating volatility)
   5. Volume > 50-day avg    (confirm selling pressure, not just drift)
   6. IV dual-pass           (Pass 1: IV Rank >= threshold; Pass 2: IV/HV >= 1.0)
-  7. No earnings blackout   (configurable window around announcement)
+  7. No earnings blackout   (window before AND after the announcement, and the
+                             chosen expiry is kept clear of the earnings date)
 
 Methodology notes (see README.md for rationale):
   - Today's daily bar is patched with live intraday data before screening,
@@ -37,6 +38,12 @@ Methodology notes (see README.md for rationale):
   - Broad-market index tickers (INDEX_TICKERS) skip the RSI/BB momentum
     gates: for premium sellers on cash-settled indices, IV Rank determines
     the edge; only trend confirmation + the IV dual-pass are required.
+  - Earnings protection fails open, but never silently: a failed lookup logs
+    its reason. (A lookup that quietly returns "no date" turns the whole
+    blackout off without anyone noticing.)
+  - Several signals on the same day usually share one macro cause. The
+    cluster check warns when too many fire at once — treat them as correlated,
+    not as independent trades.
 
 Output: signals_YYYYMMDD.csv + console table
 
@@ -94,7 +101,15 @@ ATR_MIN_PCT = 1.0   # skip if ATR% is below this — premium too thin
 IV_RANK_MIN = 25    # IV dual-pass, Pass 1: skip if IV Rank below this
 IV_HV_MIN   = 1.0   # IV dual-pass, Pass 2: skip if IV/HV below this
 
-EARNINGS_BUFFER_DAYS = 3  # illustrative — tune the blackout window to your strategy
+# Earnings protection — all illustrative, tune to your strategy.
+EARNINGS_BUFFER_BEFORE      = 3  # no new entries this many days BEFORE the announcement
+EARNINGS_BUFFER_AFTER       = 1  # ...and this many days AFTER (post-announcement repricing)
+EARNINGS_EXPIRY_BUFFER_DAYS = 5  # never pick an expiry within this many days of earnings,
+                                 # before OR after (expiring just after earnings means the
+                                 # last days of the trade are the repricing)
+
+# Several simultaneous signals usually mean one macro event, not independent trades.
+CLUSTER_WARN_THRESHOLD = 5
 
 # Target delta range for the short put leg.
 # Lower delta = further OTM = lower premium but higher probability of profit.
@@ -230,7 +245,7 @@ def patch_intraday_bar(df: pd.DataFrame, ticker: str) -> None:
             ticker, period="1d", interval="5m",
             progress=False, group_by=False,
         ))
-        if intra.empty:
+        if intra.empty or "Close" not in intra.columns or len(intra) < 2:
             return
         bar = {
             "Open":   float(intra["Open"].iloc[0]),
@@ -278,16 +293,23 @@ def compute_iv_rank(ticker: str) -> dict:
     Estimate IV Rank and IV/HV ratio for a ticker.
 
     IV Rank (0–100): where current implied vol sits within its 52-week range.
+    IV Percentile (0–100): share of the past year's days with lower vol.
     IV/HV ratio: implied vol relative to 30-day realized vol (historical volatility).
       > 1.0 means options are priced above recent realized moves — desirable for sellers.
 
     IV is approximated from ATM option mid-prices using Brenner-Subrahmanyam:
         IV ≈ (option_mid / spot) × sqrt(2π / T)
+    The 52-week "IV history" is proxied by the rolling 30-day realized-vol series,
+    because yfinance does not expose historical implied vol.
 
     Returns None values on data issues — callers treat None as fail-open
     (a data outage does not block a valid entry signal).
     """
-    empty = {"iv_rank": None, "iv_hv_ratio": None, "hv_30": None, "skipped_reason": None}
+    empty = {
+        "iv_current": None, "iv_rank": None, "iv_pct": None,
+        "iv_52w_high": None, "iv_52w_low": None,
+        "hv_30": None, "iv_hv_ratio": None, "skipped_reason": None,
+    }
     try:
         t = yf.Ticker(ticker)
         today = datetime.today().date()
@@ -308,9 +330,11 @@ def compute_iv_rank(ticker: str) -> dict:
         if isinstance(hist.columns, pd.MultiIndex):
             hist.columns = hist.columns.droplevel(0)
         hist.columns = [c.capitalize() for c in hist.columns]
-        if hist.empty:
+        if hist.empty or "Close" not in hist.columns:
             return {**empty, "skipped_reason": "no price data"}
         spot = float(hist["Close"].iloc[-1])
+        if math.isnan(spot) or spot <= 0:
+            return {**empty, "skipped_reason": f"invalid spot price: {spot}"}
 
         # ATM option mid-price
         chain = t.option_chain(str(near_exp))
@@ -350,44 +374,122 @@ def compute_iv_rank(ticker: str) -> dict:
         if hi <= lo:
             return {**empty, "hv_30": hv_30, "iv_hv_ratio": iv_hv, "skipped_reason": "zero IV range"}
         iv_rank = round(max(0.0, min(100.0, (iv_cur - lo) / (hi - lo) * 100)), 1)
+        iv_pct = round(float((rvol < iv_cur).mean() * 100), 1)
 
-        return {"iv_rank": iv_rank, "iv_hv_ratio": iv_hv, "hv_30": hv_30, "skipped_reason": None}
+        return {
+            "iv_current": iv_cur, "iv_rank": iv_rank, "iv_pct": iv_pct,
+            "iv_52w_high": round(hi, 1), "iv_52w_low": round(lo, 1),
+            "hv_30": hv_30, "iv_hv_ratio": iv_hv, "skipped_reason": None,
+        }
 
     except Exception as e:
         log.warning(f"[IV] {ticker}: {e}")
         return {**empty, "skipped_reason": str(e)}
 
 
+def iv_filters_suppress(ticker: str, iv: dict) -> bool:
+    """
+    The IV dual-pass. True means the signal should be SUPPRESSED.
+    Fail-open on missing data (None): a data outage must not silently block a
+    valid entry, but it is logged so it is visible.
+    """
+    rank, ratio = iv.get("iv_rank"), iv.get("iv_hv_ratio")
+    if rank is None and ratio is None:
+        log.warning(f"{ticker}: IV data unavailable ({iv.get('skipped_reason')}) — proceeding without IV filters")
+        return False
+    if rank is not None and rank < IV_RANK_MIN:
+        log.info(f"{ticker}: IV Rank {rank} < {IV_RANK_MIN} — premium cheap, skip")
+        return True
+    if ratio is not None and ratio < IV_HV_MIN:
+        log.info(f"{ticker}: IV/HV {ratio} < {IV_HV_MIN} — skip")
+        return True
+    return False
+
+
 # ── Earnings blackout ─────────────────────────────────────────────────────────
+def _parse_earnings_dates(cal) -> list[date]:
+    """
+    Candidate earnings dates from whatever yfinance's Ticker.calendar returned.
+
+    Newer yfinance versions return a dict ({"Earnings Date": [date, ...], ...});
+    older ones returned a DataFrame. Code written for one shape fails on the
+    other (a dict has no .empty), and if that failure is swallowed the lookup
+    quietly reports "no earnings date" for every ticker — which switches the
+    whole blackout off. Both shapes are handled here.
+    """
+    raw = None
+    if isinstance(cal, dict):
+        raw = cal.get("Earnings Date")
+    elif cal is not None and hasattr(cal, "empty") and not cal.empty:
+        if "Earnings Date" in cal.columns:
+            raw = cal["Earnings Date"].tolist()
+        elif "Earnings Date" in cal.index:
+            raw = cal.loc["Earnings Date"].tolist()
+    if raw is None:
+        return []
+    if not isinstance(raw, (list, tuple, set)):
+        raw = [raw]
+    out = []
+    for v in raw:
+        try:
+            if pd.isna(v):
+                continue
+            out.append(pd.Timestamp(v).date())
+        except Exception:
+            continue
+    return sorted(out)
+
+
 def get_earnings_date(ticker: str) -> date | None:
+    """
+    The next earnings date, or None. yfinance can list a small range; the
+    earliest date that is not already more than a day old is used (a date from
+    yesterday still matters: the blackout extends past the announcement).
+    A failed lookup returns None (never blocks the screen) but logs why.
+    """
     if ticker in _ETF_TICKERS:
         return None
     try:
-        cal = yf.Ticker(ticker).calendar
-        if cal is None or cal.empty:
-            return None
-        col = "Earnings Date"
-        if col in cal.columns:
-            val = cal[col].iloc[0]
-        elif col in cal.index:
-            val = cal.loc[col].iloc[0]
-        else:
-            return None
-        return pd.Timestamp(val).date() if val and not pd.isna(val) else None
-    except Exception:
+        cutoff = datetime.today().date() - timedelta(days=1)
+        upcoming = [d for d in _parse_earnings_dates(yf.Ticker(ticker).calendar) if d >= cutoff]
+        return upcoming[0] if upcoming else None
+    except Exception as e:
+        log.warning(f"{ticker}: earnings date lookup failed ({type(e).__name__}: {e})")
         return None
 
 
-def in_earnings_blackout(earnings_date: date | None, buffer_days: int = EARNINGS_BUFFER_DAYS) -> bool:
+def in_earnings_blackout(
+    earnings_date: date | None,
+    before_days: int = EARNINGS_BUFFER_BEFORE,
+    after_days: int = EARNINGS_BUFFER_AFTER,
+) -> bool:
+    """True while today is within `before_days` before to `after_days` after earnings."""
     if earnings_date is None:
         return False
     today = datetime.today().date()
-    return (earnings_date - timedelta(days=buffer_days)) <= today <= earnings_date
+    return (earnings_date - timedelta(days=before_days)) <= today <= (earnings_date + timedelta(days=after_days))
+
+
+def near_earnings(expiry: date, earnings_date: date | None,
+                  buffer_days: int = EARNINGS_EXPIRY_BUFFER_DAYS) -> bool:
+    """True if an expiry falls within `buffer_days` of earnings, before or after."""
+    return earnings_date is not None and abs((expiry - earnings_date).days) <= buffer_days
 
 
 # ── Expiry selection ──────────────────────────────────────────────────────────
+def is_monthly_expiry(exp: date) -> bool:
+    """Standard monthly options expire on the third Friday (holiday shifts aside)."""
+    return exp.weekday() == 4 and 15 <= exp.day <= 21
+
+
 def get_target_expiry(ticker: str, earnings_date: date | None = None):
-    """Return (expiry_date, dte) within DTE_MIN–DTE_MAX, skipping earnings conflicts."""
+    """
+    Return (expiry_date, dte, is_monthly) within DTE_MIN–DTE_MAX, or None.
+
+    Expiries near earnings (EARNINGS_EXPIRY_BUFFER_DAYS, before or after) are
+    skipped. A monthly expiry is preferred over a weekly one (usually deeper
+    open interest and tighter spreads).
+    """
     today = datetime.today().date()
     start, end = today + timedelta(days=DTE_MIN), today + timedelta(days=DTE_MAX)
     try:
@@ -398,11 +500,54 @@ def get_target_expiry(ticker: str, earnings_date: date | None = None):
         ])
     except Exception:
         return None
-    for exp in avail:
-        if earnings_date and abs((exp - earnings_date).days) <= 5:
-            continue
-        return exp, (exp - today).days
-    return None
+    usable = [e for e in avail if not near_earnings(e, earnings_date)]
+    if not usable:
+        return None
+    for exp in usable:
+        if is_monthly_expiry(exp):
+            return exp, (exp - today).days, True
+    exp = usable[0]
+    return exp, (exp - today).days, False
+
+
+# ── Signal quality + concentration ────────────────────────────────────────────
+def get_support_level(df: pd.DataFrame, lookback: int = 20) -> tuple[float, float]:
+    """(recent low, % distance of the close above it) — a rough sanity check on the short strike."""
+    low = float(df["Low"].tail(lookback).min())
+    close = float(df["Close"].iloc[-1])
+    return low, (close - low) / close * 100
+
+
+def calculate_signal_strength(rsi: float, bb_pos: float, vol_surge: float, atr_pct: float) -> int:
+    """
+    0–100 ranking score used ONLY to order signals that already passed every
+    filter — more oversold, nearer the lower band, heavier volume, and richer
+    volatility score higher. The weights are illustrative, not validated.
+    """
+    score = 0
+    score += 30 if rsi < 25 else 25 if rsi < 30 else 20 if rsi < 35 else 10
+    score += 30 if bb_pos < 0.15 else 25 if bb_pos < 0.25 else 20 if bb_pos < 0.35 else 10
+    score += 25 if vol_surge > 2.0 else 20 if vol_surge > 1.5 else 15 if vol_surge > 1.2 else 10
+    score += 15 if atr_pct > 3.0 else 12 if atr_pct > 2.0 else 10 if atr_pct > 1.5 else 5
+    return score
+
+
+def check_cluster_risk(signals: list[dict]) -> dict:
+    """
+    Flag concentration: many tickers signalling on the same day are probably
+    reacting to the same event. Warns; never removes a signal.
+    """
+    tickers = [s["Ticker"] for s in signals]
+    n = len(tickers)
+    risk = n >= CLUSTER_WARN_THRESHOLD
+    shown = ", ".join(tickers[:10]) + (f" ... +{n - 10} more" if n > 10 else "")
+    if risk:
+        note = (f"⚠️  CONCENTRATION RISK: {n} tickers triggered together ({shown}). They likely share "
+                f"macro exposure — treat as correlated, not independent. Consider sizing down or "
+                f"taking only the highest-conviction names.")
+    else:
+        note = f"✓ Cluster check passed: {n} signal(s)" + (f" ({shown})" if n else "")
+    return {"signal_count": n, "cluster_risk": risk, "note": note}
 
 
 # ── Per-ticker screening ──────────────────────────────────────────────────────
@@ -422,7 +567,10 @@ def screen_ticker(ticker: str, regime: dict) -> dict | None:
 
         earnings = get_earnings_date(ticker)
         if in_earnings_blackout(earnings):
-            log.info(f"{ticker}: earnings blackout ({earnings}), skipping")
+            log.info(
+                f"{ticker}: earnings blackout ({earnings}; "
+                f"-{EARNINGS_BUFFER_BEFORE}d/+{EARNINGS_BUFFER_AFTER}d), skipping"
+            )
             return None
 
         # Indicators
@@ -445,6 +593,9 @@ def screen_ticker(ticker: str, regime: dict) -> dict | None:
         atr_pct = float(df[atr_col].iloc[-1]) / close * 100
         volume  = float(df["Volume"].iloc[-1])
         avg_vol = float(df["AVG_VOL_50"].iloc[-1])
+        vol_surge = volume / avg_vol if avg_vol and not math.isnan(avg_vol) else float("nan")
+        macd_hist = float(df["MACDh_12_26_9"].iloc[-1]) if "MACDh_12_26_9" in df.columns else float("nan")
+        support, dist_support = get_support_level(df)
 
         # RSI on hourly bars; fall back to daily if intraday data unavailable
         hourly_rsi = get_hourly_rsi(ticker)
@@ -479,17 +630,21 @@ def screen_ticker(ticker: str, regime: dict) -> dict | None:
         # Pass 1 — is IV elevated vs. its own 52-week history? (IV Rank)
         # Pass 2 — is the market paying above recent realized vol? (IV/HV)
         iv = compute_iv_rank(ticker)
-        if iv["iv_rank"] is not None and iv["iv_rank"] < IV_RANK_MIN:
-            log.info(f"{ticker}: IV Rank {iv['iv_rank']} < {IV_RANK_MIN} — premium cheap, skip")
-            return None
-        if iv["iv_hv_ratio"] is not None and iv["iv_hv_ratio"] < IV_HV_MIN:
-            log.info(f"{ticker}: IV/HV {iv['iv_hv_ratio']} < {IV_HV_MIN} — skip")
+        if iv_filters_suppress(ticker, iv):
             return None
 
         expiry = get_target_expiry(ticker, earnings)
+        if expiry is None:
+            # Either nothing listed in the window, or every expiry sits next to
+            # earnings. A signal with no tradeable expiry is not a signal.
+            reason = "every expiry in the window is within the earnings buffer" if earnings else "no expiry in window"
+            log.info(f"{ticker}: no signal — {reason}")
+            return None
 
+        strength = calculate_signal_strength(rsi, bb_pos, vol_surge, atr_pct)
         return {
             "Ticker":        ticker,
+            "Signal_Strength": strength,
             "Price":         round(close, 2),
             "RSI":           round(rsi, 1),
             "RSI_Interval":  rsi_interval,
@@ -497,14 +652,20 @@ def screen_ticker(ticker: str, regime: dict) -> dict | None:
             "BB_Position":   round(bb_pos, 2),
             "BB_Threshold":  bb_thr,
             "ATR_%":         round(atr_pct, 2),
+            "Vol_Surge":     round(vol_surge, 2) if not math.isnan(vol_surge) else None,
             "SMA_200":       round(sma200, 2),
+            "Support":       round(support, 2),
+            "Distance_to_Support_%": round(dist_support, 1),
+            "MACD_Histogram": round(macd_hist, 3) if not math.isnan(macd_hist) else None,
             "VIX_Regime":    regime["name"],
-            "IV_Rank":       iv["iv_rank"],
-            "IV_HV_Ratio":   iv["iv_hv_ratio"],
-            "HV_30":         iv["hv_30"],
+            "IV_Rank":       iv.get("iv_rank"),
+            "IV_Pct":        iv.get("iv_pct"),
+            "IV_HV_Ratio":   iv.get("iv_hv_ratio"),
+            "HV_30":         iv.get("hv_30"),
             "Delta_Target":  f"{DELTA_TARGET[0]}–{DELTA_TARGET[1]}",
-            "Expiry_Date":   str(expiry[0]) if expiry else "N/A",
-            "Expiry_DTE":    expiry[1] if expiry else None,
+            "Expiry_Date":   str(expiry[0]),
+            "Expiry_DTE":    expiry[1],
+            "Is_Monthly":    expiry[2],
             "Earnings_Date": str(earnings) if earnings else "N/A",
             "Scan_Date":     datetime.now().strftime("%Y-%m-%d"),
         }
@@ -540,12 +701,18 @@ def run_screener():
             signals.append(result)
             log.info(
                 f"✓ {ticker}: RSI {result['RSI']} | BB {result['BB_Position']} | "
-                f"IV Rank {result['IV_Rank']} | Expiry {result['Expiry_Date']} (DTE {result['Expiry_DTE']})"
+                f"IV Rank {result['IV_Rank']} | Strength {result['Signal_Strength']}/100 | "
+                f"Expiry {result['Expiry_Date']} (DTE {result['Expiry_DTE']})"
             )
 
     log.info("=" * 60)
+    cluster = check_cluster_risk(signals)
+    log.info(cluster["note"])
     if signals:
+        signals.sort(key=lambda s: s["Signal_Strength"], reverse=True)
         df = pd.DataFrame(signals).set_index("Ticker")
+        df["Cluster_Risk"] = cluster["cluster_risk"]
+        df["Scan_Time"] = datetime.now().strftime("%H:%M:%S")
         output = f"signals_{datetime.now():%Y%m%d}.csv"
         df.to_csv(output)
         log.info(f"{len(signals)} signal(s) → {output}")

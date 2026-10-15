@@ -21,8 +21,13 @@ All conditions must pass for a signal to be generated:
 | Mean reversion | Bollinger Band position (lower band proximity) |
 | Volatility | ATR% > minimum; volume > 50-day average |
 | Premium quality | IV Rank ≥ 25; IV/HV ratio ≥ 1.0 |
-| Earnings | Skipped within a configurable window around announcements |
+| Earnings | Blackout window before and after announcements (see below) |
 | FOMC | Warning on rate-decision days |
+
+**Earnings blackout** — no new entries in a configurable window before *and after* an
+earnings announcement, and the chosen expiry is kept clear of the earnings date on both sides.
+The earnings lookup fails open but logs why it failed, so a broken data source can't silently
+turn the protection off.
 
 **VIX regime adjustment** — RSI and BB thresholds shift across four regimes
 (LOW / NORMAL / ELEVATED / HIGH) so entry criteria stay calibrated to market conditions.
