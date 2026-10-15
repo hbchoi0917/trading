@@ -16,6 +16,11 @@ def load_and_clean(file_paths):
             df = pd.read_csv(fp, skiprows=2)
             if 'Run Date' not in df.columns:
                 df = pd.read_csv(fp)
+            # A split fill (same contract, price and day) appears as identical
+            # rows within one export, and those are real trades. Number repeats
+            # within each file so only rows repeated ACROSS overlapping exports
+            # are dropped below — a plain drop_duplicates() would delete fills.
+            df['_dup_seq'] = df.groupby(list(df.columns), dropna=False).cumcount()
             dfs.append(df)
         except Exception as e:
             print(f"Error loading {fp}: {e}")
@@ -23,7 +28,7 @@ def load_and_clean(file_paths):
     raw['Run Date'] = pd.to_datetime(raw['Run Date'], format='%m/%d/%Y', errors='coerce')
     df = raw.dropna(subset=['Run Date']).copy()
     df = df[(df['Run Date'] >= '2025-01-01') & (df['Run Date'] <= '2026-12-31')]
-    return df.drop_duplicates()
+    return df.drop_duplicates().drop(columns='_dup_seq')
 
 def parse_action_type(action):
     action = str(action).upper()
