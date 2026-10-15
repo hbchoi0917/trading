@@ -51,7 +51,10 @@ page = st.sidebar.radio(
 st.sidebar.divider()
 st.sidebar.caption("**Stack:** dbt · DuckDB · Streamlit · Plotly")
 st.sidebar.caption("**Data:** Synthetic sample data — real trade history is private")
-st.sidebar.caption("**Accounts:** 4 · **Tickers:** 48 · **Trades:** 162")
+st.sidebar.caption(
+    f"**Accounts:** {accounts['account_name'].nunique()} · "
+    f"**Tickers:** {tickers['ticker'].nunique()} · **Trades:** {len(trades):,}"
+)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PAGE 1: Portfolio Overview
@@ -205,7 +208,7 @@ elif page == "Ticker Performance":
     # Full table with search
     st.markdown("**Full Ticker Table**")
     search = st.text_input("Search ticker", "")
-    display = tickers if not search else tickers[tickers["ticker"].str.contains(search.upper())]
+    display = tickers if not search else tickers[tickers["ticker"].str.contains(search.upper(), regex=False, na=False)]
     display_fmt = display[[
         "ticker", "option_type", "total_trades", "wins", "losses",
         "win_rate_pct", "total_pnl", "avg_pnl_per_trade", "avg_holding_days"
