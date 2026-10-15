@@ -443,9 +443,9 @@ def _parse_earnings_dates(cal) -> list[date]:
 def get_earnings_date(ticker: str) -> date | None:
     """
     The next earnings date, or None. yfinance can list a small range; the
-    earliest date still inside the post-announcement window is used (a recent
-    past date still matters: the blackout extends EARNINGS_BUFFER_AFTER days
-    past the announcement, so the cutoff must track that setting).
+    earliest date not older than EARNINGS_BUFFER_AFTER days is used, so the
+    blackout can still see an announcement it has not finished covering
+    (a hard-coded one-day cutoff would silently shorten a longer after-window).
     A failed lookup returns None (never blocks the screen) but logs why.
     """
     if ticker in _ETF_TICKERS:
