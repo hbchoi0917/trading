@@ -4,7 +4,10 @@
 
 dbt 분석 파이프라인 위에 Streamlit + DuckDB + Plotly로 만든 대시보드입니다.
 
-**데이터:** 공개 데모는 **합성 샘플 데이터**(4개 계좌 · 48개 종목 · 162건 거래, 2025년 1월 – 2026년 5월)로 돌아갑니다. 실제 18개월 거래 이력은 비공개이고, `DUCKDB_PATH`를 dbt로 빌드한 DB로 지정하면 같은 대시보드를 실데이터로 볼 수 있습니다. 라이브 데모의 수치는 예시일 뿐 실제 성과와는 무관합니다.
+**데이터:** 파이프라인은 실제 Fidelity export(비공개)를 처리하도록 만들어졌습니다. 레포에 커밋된
+`sample_options_trading.duckdb`는 **완전한 합성 데이터**입니다. 모든 행을 `make_synthetic_sample.py`가
+고정 시드로 무작위 생성하고 dbt 마트와 같은 스키마를 쓰기 때문에, 실제 거래·금액·계좌를 노출하지 않고도
+앱을 실행하고 배포할 수 있습니다.
 
 **스택:**
 ```
@@ -31,6 +34,9 @@ DUCKDB_PATH=/path/to/options_trading.duckdb streamlit run app.py
 
 # 샘플 데이터 (공개)
 DUCKDB_PATH=sample_options_trading.duckdb streamlit run app.py
+
+# 합성 샘플 다시 생성 (고정 시드라 매번 같은 데이터)
+python make_synthetic_sample.py sample_options_trading.duckdb
 ```
 
 ## Streamlit Cloud 배포

@@ -195,7 +195,8 @@ options-dbt/
 │   └── profiles.yml                           DuckDB connection via env_var
 └── streamlit_app/
     ├── app.py                                 3-page interactive dashboard
-    ├── sample_options_trading.duckdb          Pre-built marts (162 sample trades)
+    ├── sample_options_trading.duckdb          Fully synthetic marts (make_synthetic_sample.py)
+    ├── make_synthetic_sample.py               Generates the synthetic sample DB (fixed seed)
     └── requirements.txt
 ```
 

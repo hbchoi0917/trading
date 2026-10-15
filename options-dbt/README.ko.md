@@ -195,7 +195,8 @@ options-dbt/
 │   └── profiles.yml                           env_var로 DuckDB 경로 지정
 └── streamlit_app/
     ├── app.py                                 3페이지 인터랙티브 대시보드
-    ├── sample_options_trading.duckdb          미리 빌드한 마트 (샘플 거래 162건)
+    ├── sample_options_trading.duckdb          완전 합성 마트 (make_synthetic_sample.py)
+    ├── make_synthetic_sample.py               합성 샘플 DB 생성기 (고정 시드)
     └── requirements.txt
 ```
 
