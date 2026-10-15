@@ -60,6 +60,11 @@ st.sidebar.caption(
     f"**Tickers:** {tickers['ticker'].nunique()} · **Trades:** {len(trades):,}"
 )
 
+# Shown on every page (above the page branch, so it persists across navigation)
+st.info("Demo data: this public dashboard runs on fully synthetic, randomly generated trades "
+        "(see make_synthetic_sample.py). Real performance is kept private; the figures in my "
+        "portfolio PDF come from the private dataset.")
+
 # ─────────────────────────────────────────────────────────────────────────────
 # PAGE 1: Portfolio Overview
 # ─────────────────────────────────────────────────────────────────────────────
