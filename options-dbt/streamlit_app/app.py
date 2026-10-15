@@ -51,8 +51,12 @@ page = st.sidebar.radio(
 st.sidebar.divider()
 st.sidebar.caption("**Stack:** dbt · DuckDB · Streamlit · Plotly")
 st.sidebar.caption("**Data:** Synthetic sample data — real trade history is private")
+N_ACCOUNTS = accounts["account_name"].nunique()
+PERIOD = (f"{pd.to_datetime(trades['open_date']).min():%b %Y} – "
+          f"{pd.to_datetime(trades['close_date']).max():%b %Y}")
+
 st.sidebar.caption(
-    f"**Accounts:** {accounts['account_name'].nunique()} · "
+    f"**Accounts:** {N_ACCOUNTS} · "
     f"**Tickers:** {tickers['ticker'].nunique()} · **Trades:** {len(trades):,}"
 )
 
@@ -62,7 +66,7 @@ st.sidebar.caption(
 
 if page == "Portfolio Overview":
     st.title("Portfolio Overview")
-    st.caption("Demo with synthetic sample data — figures are illustrative  ·  Jan 2025 – May 2026  ·  4 Accounts")
+    st.caption(f"Demo with synthetic sample data — figures are illustrative  ·  {PERIOD}  ·  {N_ACCOUNTS} Accounts")
 
     # KPI row
     total_pnl   = accounts["lifetime_pnl"].sum()
@@ -144,7 +148,7 @@ if page == "Portfolio Overview":
 
 elif page == "Ticker Performance":
     st.title("Ticker Performance")
-    st.caption("Demo with synthetic sample data — figures are illustrative · P&L breakdown by ticker · Jan 2025 – May 2026")
+    st.caption(f"Demo with synthetic sample data — figures are illustrative · P&L breakdown by ticker · {PERIOD}")
 
     col_left, col_right = st.columns(2)
 
@@ -231,7 +235,7 @@ elif page == "Ticker Performance":
 
 elif page == "Account Summary":
     st.title("Account Summary")
-    st.caption("Demo with synthetic sample data — figures are illustrative · Lifetime performance across 4 accounts")
+    st.caption(f"Demo with synthetic sample data — figures are illustrative · Lifetime performance across {N_ACCOUNTS} accounts · {PERIOD}")
 
     # Account KPI cards
     cols = st.columns(len(accounts))
