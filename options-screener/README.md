@@ -4,7 +4,9 @@
 
 A runnable put credit spread screener that scans a watchlist daily for entry candidates.
 
-> **Demo / educational baseline.** Customization is required before live trading.
+> **Demo / educational baseline.** This file shows the structure of the filters; the
+> production system's rules and thresholds differ (see Methodology Notes below for how
+> the live entry conditions actually work). Customization is required before live trading.
 > Full automation (order execution, position monitoring, cloud deployment) requires
 > additional broker API integration. See notes in [`screener.py`](screener.py).
 
@@ -20,7 +22,7 @@ All conditions must pass for a signal to be generated:
 | Momentum | RSI (14) — threshold adjusts with VIX regime |
 | Mean reversion | Bollinger Band position (lower band proximity) |
 | Volatility | ATR% > minimum; volume > 50-day average |
-| Premium quality | IV Rank ≥ 25; IV/HV ratio ≥ 1.0 |
+| Premium quality | IV Rank ≥ 25 (approximated from realized volatility, see below); IV/HV ratio ≥ 1.0 |
 | Earnings | Blackout window before and after announcements (see below) |
 | FOMC | Warning on rate-decision days |
 
@@ -52,19 +54,24 @@ turn the protection off.
   sellers, IV Rank determines whether there is edge to capture. Index
   entries require only trend confirmation (long-term moving average) plus
   the IV dual-pass filter.
-- **IV dual-pass filter** — Pass 1 asks "is IV elevated vs. its own 52-week
-  history?" (IV Rank); Pass 2 asks "is the market paying above recent
-  realized volatility right now?" (IV/HV ratio). Both must pass; if IV data
-  is unavailable, the filter fails open so a data outage never silently
-  blocks a valid entry — and a product whose IV data fails persistently is
-  paused rather than left trading without its quality gate.
-- **Screening conditions are tiered by conviction, not applied uniformly** —
-  a small set of names with an established track record use a simplified,
-  volatility-and-premium-quality-based entry condition instead of the full
-  directional-timing pattern (oversold-dip-in-an-uptrend) applied to newer or
-  less-proven names. This trades some directional selectivity for entry
-  frequency where the trade-off has already been validated against real
-  results, while newer candidates still have to earn that treatment.
+- **IV dual-pass filter, and its limits** — Pass 1 compares today's implied
+  volatility with a 52-week range; Pass 2 compares it with recent realized
+  volatility (IV/HV ratio). Two limits are stated plainly. First, the free
+  data source has no history of implied volatility, so the 52-week range is
+  that of *realized* volatility: the "rank" is an approximation and reads
+  higher than a true IV Rank. Second, in practice the IV/HV ratio does most
+  of the filtering; after a selloff the rank passes almost everywhere. If IV
+  data is unavailable the filter fails open for single names and fails
+  closed for the index product, whose only quality gate it is. Replacing the
+  proxy with the broker's own IV metrics is planned.
+- **Most traded names use a simple entry condition** — the full
+  directional-timing pattern (an oversold dip in an uptrend) is applied to
+  names still under observation. Names cleared for trading enter on a
+  volatility condition plus the premium, earnings, overheat and risk-cap
+  gates. This was a deliberate trade of selectivity for entry frequency, and
+  it means the live book behaves close to an always-on premium-selling
+  position in the tradable list. Whether to restore a trend or selloff gate
+  is an open question under review, not a settled design.
 
 ### Selection & calibration
 
@@ -77,12 +84,22 @@ turn the protection off.
   conditions loosen elsewhere; a single bad month is distinguished from a
   sustained pattern before either confirming an exclusion or admitting a
   new name.
+- **Structural fit, not just track record** — a candidate's typical daily
+  price range is compared with the spread width the risk caps allow. When one
+  day's move is many times the width, a breached spread runs to near-maximum
+  loss before a stop can act, so a strong historical record alone doesn't
+  earn a slot; option open interest is checked as well. Names are demoted
+  as readily as they are promoted when the automated record doesn't carry
+  over from the manual one
 - **Thresholds are calibrated from observed near-misses, not guessed** —
   screening and credit floors are revisited using logged rejection data
   across multiple sessions. A threshold is loosened only when rejected
   candidates cluster just under it; when rejections are spread far below it
   (e.g. a volume filter catching genuinely low-conviction moves), the filter
-  is judged to be working as designed and left alone.
+  is judged to be working as designed and left alone. Thresholds that
+  interact (entry delta and the credit floor) are checked together against
+  live quotes before either moves, and off-hours or non-monotonic quote
+  snapshots are discarded rather than used.
 
 ### Measuring results
 
@@ -109,6 +126,16 @@ turn the protection off.
   look like duplicates. Monthly totals are reconciled against separate
   monthly exports, and the opening and closing legs are matched against
   each other to confirm that nothing was dropped or double-counted.
+- **Results are broken down, not just summed** — a read-only report splits
+  realized results by close reason, underlying, entry-credit bucket and
+  month, measures capital use against the risk budget, and tracks fill
+  slippage by close type. It is what showed the losing bucket coinciding
+  exactly with thin-credit entries, and the floor turning the book into a
+  single name.
+- **Cohorts across rule changes** — entries opened after a rule change are
+  reported separately from earlier ones, utilization is read against the cap
+  in force at the time, and a change is judged only after enough closes
+  have accumulated.
 
 ---
 

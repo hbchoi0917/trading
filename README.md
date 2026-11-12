@@ -30,7 +30,7 @@ This pipeline automates the full lifecycle of a put credit spread strategy:
 1. **Screen** — identify high-probability entry candidates using 10+ technical and volatility indicators
 2. **Execute** — place vertical spread orders on Tastytrade during peak intraday liquidity windows, when bid-ask spreads are tightest (market-open and near-close entries are avoided — inflated IV and wide spreads degrade fill quality)
 3. **Monitor** — auto-close positions at profit target or DTE threshold
-4. **Alert** — send Telegram / Gmail notifications on every entry, close, and error event
+4. **Alert** — send Gmail notifications on every entry, close, and error event
 5. **Covered Calls** — separate alert module for manual CC management on Fidelity positions
 
 ```mermaid
@@ -61,30 +61,29 @@ Designed to run unattended on a cloud server (AWS EC2).
 
 ## Screening Logic
 
-Tickers are organized into tiers by liquidity and volatility profile. All signals must pass momentum, mean-reversion, volatility, and earnings blackout filters. RSI and Bollinger Band thresholds shift automatically across four VIX regimes (LOW / NORMAL / ELEVATED / HIGH).
-
-Three entry paths reflect different levels of established conviction, not a
-single uniform bar:
+Tickers are organized into tiers by liquidity and volatility profile, and
+RSI and Bollinger Band thresholds shift automatically across four VIX regimes
+(LOW / NORMAL / ELEVATED / HIGH). Which entry path a name takes depends on
+whether it is cleared for trading:
 
 ```mermaid
 flowchart TD
-    T[Candidate ticker] --> Q{Conviction tier}
-    Q -->|Standard equities / ETFs| S["Full stack:<br/>RSI + Bollinger + trend<br/>+ earnings blackout + IV dual-pass"]
-    Q -->|Established, high-conviction| H["Simplified bar:<br/>volatility + IV dual-pass only"]
+    T[Candidate ticker] --> Q{Status}
+    Q -->|Cleared for trading| S["Simple condition:<br/>volatility + IV dual-pass<br/>+ earnings, overheat, risk-cap gates"]
+    Q -->|Under observation| H["Full pattern:<br/>oversold dip in an uptrend<br/>(screened and priced, never ordered)"]
     Q -->|Broad-market index| I["Trend confirmation<br/>+ IV dual-pass only"]
 ```
 
-- **Equities / ETFs (standard)** — the full stack of momentum (hourly RSI),
-  mean-reversion (Bollinger position), trend, volatility, earnings blackout,
-  and the IV dual-pass premium-quality gate.
-- **Established, high-conviction names** — a smaller set of names with a
-  proven track record against real trading history trade the full
-  directional-timing pattern for a simplified, volatility-and-premium-quality
-  bar instead: is there enough movement to be worth selling into, and is the
-  premium not historically cheap right now. This deliberately trades some
-  directional selectivity for entry frequency, on names where that trade-off
-  has already been checked against real results — newer candidates still have
-  to earn it.
+- **Names cleared for trading (most of the tradable list)** — enter on a
+  volatility condition plus the premium (IV dual-pass), earnings, overheat and
+  risk-cap gates. This was a deliberate trade of directional selectivity for
+  entry frequency, and it means the live book behaves close to an always-on
+  premium-selling position in the tradable list. Whether to restore a trend or
+  selloff gate is an open question under review, not a settled design.
+- **Names under observation** — the full directional-timing pattern (hourly
+  RSI oversold, Bollinger position, long-term trend) on top of the same gates.
+  They are screened and priced but never ordered; each refusal records what
+  would have been traded, so the cost of excluding a name is measurable.
 - **Broad-market indices** — European-style, cash-settled options carry no early
   assignment risk, so RSI timing is dropped as an entry gate; entries require
   only long-term trend confirmation plus the IV dual-pass filter. For a premium
@@ -107,12 +106,16 @@ flowchart TD
   sellers, IV Rank determines whether there is edge to capture. Index
   entries require only trend confirmation (long-term moving average) plus
   the IV dual-pass filter.
-- **IV dual-pass filter** — Pass 1 asks "is IV elevated vs. its own 52-week
-  history?" (IV Rank); Pass 2 asks "is the market paying above recent
-  realized volatility right now?" (IV/HV ratio). Both must pass; if IV data
-  is unavailable, the filter fails open so a data outage never silently
-  blocks a valid entry — and a product whose IV data fails persistently is
-  paused rather than left trading without its quality gate.
+- **IV dual-pass filter, and its limits** — Pass 1 compares today's implied
+  volatility with a 52-week range; Pass 2 compares it with recent realized
+  volatility (IV/HV ratio). Two limits are stated plainly. First, the free
+  data source has no history of implied volatility, so the 52-week range is
+  that of *realized* volatility: the "rank" is an approximation and reads
+  higher than a true IV Rank. Second, in practice the IV/HV ratio does most
+  of the filtering; after a selloff the rank passes almost everywhere. If IV
+  data is unavailable the filter fails open for single names and fails
+  closed for the index product, whose only quality gate it is. Replacing the
+  proxy with the broker's own IV metrics is planned.
 - **Data-driven ticker selection, re-weighted by realized return per
   trade** — the tradeable ticker set is periodically re-evaluated against
   the owner's own multi-quarter trading history, ranked by **realized P&L
@@ -177,19 +180,19 @@ closed without hesitation.
 flowchart TD
     subgraph PRE["Before Entry"]
         direction LR
-        P1[Buying power] --> P2[Risk caps:<br/>per-spread / total / per-ticker]
-        P2 --> P3[Credit floor + quote ceiling<br/>+ netting guard]
+        P1["Buying power +<br/>account value"] --> P2["Risk caps, as a share of account value:<br/>per-spread / total / per-name / sector"]
+        P2 --> P3["Credit floor + quote ceiling<br/>+ netting guard + overheat filter"]
     end
     subgraph LIVE["While Open"]
         direction LR
         L1[Profit target]
-        L2[Moneyness-aware<br/>stop loss]
-        L3[Staged expiration<br/>handling]
+        L2["Moneyness-aware<br/>stop loss"]
+        L3["Staged expiration<br/>handling"]
     end
     subgraph BOOK["Execution & Bookkeeping"]
         direction LR
-        A1[Fill confirmation<br/>+ slippage tracking]
-        A2[Expiry / ledger<br/>reconciliation]
+        A1["Fill confirmation<br/>+ slippage tracking"]
+        A2["Expiry / ledger<br/>reconciliation"]
     end
     PRE --> LIVE --> BOOK
 ```
@@ -207,14 +210,52 @@ flowchart TD
 - **Layered open-risk caps** — beyond the per-position cap, the system
   enforces a cap on total risk across all open positions AND a cap on risk
   concentrated in any single underlying, so no one name can dominate the
-  book. As more independently-vetted, largely uncorrelated names are added,
-  the total budget can grow while the share any single name may claim shrinks
+  book. A third cap covers a group of names that move together (one sector),
+  because a per-name cap does not stop one sector bet spread over several
+  tickers. All of these caps are a share of the account's current value,
+  read at the start of every entry run, so they shrink with the account
+  after losses. If the account value can't be read, the run places nothing
+- **Caps checked at the worst fill, not the opening quote** — an entry that
+  is re-priced downward can fill for less credit, which means more risk.
+  Every cap is checked against the risk at the lowest price the order is
+  allowed to rest at
+- **Caps re-checked before every single entry** — each entry re-reads the
+  ledger and counts orders still working at the broker, so two overlapping
+  runs, or an order resting unfilled from an earlier run, can't slip past a
+  cap that each run alone would have respected. If the working-order lookup
+  fails, the entry is refused (fails closed)
+- **One position per name and expiration** — outside the few names designed
+  for laddering, a name can hold only one spread in a given expiration. The
+  same spread opened twice on different days is one position at double size
+- **No entries from an unreadable or missing ledger** — the caps are computed
+  from the ledger. If it can't be read, or the broker holds positions the
+  ledger has no record of, the run places nothing for that account and
+  alerts, instead of reading an empty book as room to trade
+- **Cross-run entry lock** — the check-then-order step and each
+  cancel-then-replace step run under a lock shared by all runs, and a fill
+  another run hasn't booked yet still counts against the caps
 - **Per-ticker contract limits** — high-volatility names are capped at
   reduced contract counts regardless of signal strength
 - **Per-instrument-class credit floor** — every entry must collect a minimum
   premium relative to its defined risk; index/cash-settled products get their
   own floor calibrated against what comparably low-risk names actually
-  collect, rather than an exemption
+  collect, rather than an exemption. The floor applies to every re-price as
+  an entry chases a fill, not only to the opening quote
+- **Delta target and credit floor set together** — for a vertical spread,
+  credit as a share of width roughly tracks the short strike's delta, so a
+  delta target and a credit floor chosen separately can quietly contradict
+  each other. That happened here: most of the tradable list could no longer
+  clear the floor, and the book drifted into a single name. Entry delta is
+  now set per instrument class at a level a live, read-only quote probe
+  showed clears the floor, one step further out of the money in a
+  downtrend; names whose daily price range dwarfs the spread width keep a
+  lower delta and enter only when premium is unusually rich
+- **Same-name stacking controls** — for the few names allowed more than one
+  entry a day, a new short strike must sit a minimum distance from every
+  open or working short in the same expiration, and further same-day entries
+  are allowed only on a fresh dip below the day's earlier entry prices. A
+  rising market can otherwise turn repeated signals into one position held
+  several times over at ever-higher strikes
 - **Quote sanity ceiling** — a vertical spread can never be worth more than
   its width. Any entry price computed above that bound (a sign of a wide or
   stale quote on a thinly traded option) is rejected locally instead of being
@@ -226,15 +267,28 @@ flowchart TD
   strikes are still allowed when they don't net to zero
 - **Monthly drawdown circuit breaker** — all new entries pause automatically
   if month-to-date realized P&L breaches a configured loss limit
-- **Earnings blackout** — no new entries in a configurable window before *and
-  after* an earnings announcement, and the chosen expiry is kept clear of the
-  earnings date on both sides. The earnings lookup fails open but logs why it
-  failed, so a broken data source can't silently turn the protection off
+- **Earnings blackout** — entries are skipped within a configurable window
+  around earnings announcements. The date is looked up again at order time,
+  and an unknown date blocks the entry rather than allowing it. When the
+  source gives a date range instead of a confirmed day, the blackout and the
+  expiry rules use both ends of the range
+- **Overheat filter** — no new put spread on a day when the underlying has
+  spiked up by more than its own typical daily range, or closed above its
+  upper volatility band. A short strike chosen on such a day sits just under
+  a stretched price
+- **Stale-data guards** — a signal older than a short time limit is dropped,
+  and a ticker with no price bar dated today is skipped rather than screened
+  on yesterday's close
+- **Market-hours guard** — no run sends a first order after the session has
+  closed, including on early-close days, which have their own pre-close
+  monitoring run
 - **Concentration guard** — simultaneous signals across correlated tickers
   are flagged as a single macro bet, not independent trades
-- **Cross-run duplicate-entry guard** — a ticker that already has a working
-  order at the broker is skipped on the next scheduled run (with a small,
-  explicit allowance for intentional laddering); the broker stays the authority
+- **Observe-only candidates, tradable names first** — names still under
+  evaluation are screened and priced but never ordered; the refusal records
+  exactly what would have been traded, so the cost of excluding a name is
+  measurable. When a run has more signals than slots, names cleared for
+  trading are always processed before observe-only ones
 - **Data-quality guards** — option quotes whose delta drifts too far from target
   (an incomplete streamer snapshot) or that are one-sided (missing bid or ask)
   are rejected before an order is ever built
@@ -255,13 +309,20 @@ flowchart TD
   triggered it. An unfilled close waits for the next run instead of
   accepting a fill that no longer meets the target
 - **Moneyness-aware stop loss** — positions are closed when the loss reaches
-  a multiple of the credit collected, but only if the short leg is actually
-  threatened. A mark-to-market spike on a position still safely out of the
-  money is volatility noise, not assignment risk, and closing it would turn a
-  likely max-profit expiry into a realized loss. When moneyness can't be
-  confirmed (e.g. the price feed fails), the stop fails safe and still fires.
-  A small buffer around the strike prevents a marginal, easily-reversible
-  breach from being treated like a real one
+  a multiple of the credit collected, but only if the short strike is
+  actually in the money. A mark-to-market spike on a position still out of
+  the money is volatility noise, not assignment risk, and closing it would
+  turn a likely max-profit expiry into a realized loss. Where that multiple
+  is beyond the spread's maximum loss (a wide, low-credit spread), a share of
+  the maximum loss is used instead, so every position has a reachable stop
+- **Unknown price is not treated as danger** — if the underlying's price
+  can't be read, the position is held and an alert is sent, and the check
+  runs again on the next pass. Only on expiration day does an unknown price
+  count as a reason to close
+- **Impossible quotes are not acted on** — when the two legs' marks
+  contradict each other (a spread priced below zero), profit and stop checks
+  are skipped for that run and an alert is sent. A must-close on expiration
+  day starts from the spread's intrinsic value rather than from the bad mark
 - **Near-expiry profit lock** — an out-of-the-money position that has
   already reached its profit target close to expiration is taken rather than
   held for the last few cents of decaying premium
@@ -282,8 +343,11 @@ flowchart TD
   as exercised. On expiration day itself a position must sit a clear margin
   beyond the strike to count as safe — a barely out-of-the-money short can
   still slip into the money before the bell or be exercised against on an
-  after-hours move (pin risk). A final pre-close check catches positions that
-  drift late in the last session
+  after-hours move (pin risk). A final pre-close check catches positions
+  that drift late in the last session
+- **Earnings-span alerts** — a position whose life spans an earnings date
+  (including a hand-placed roll) raises an observe-only alert when first
+  seen and daily in the final week before the report
 - **Unpriceable-position escalation** — if a position is ever missing a leg
   at the broker, it is never priced from the remaining leg alone (doing so
   can read a small position as a catastrophic loss). The system alerts and
@@ -294,14 +358,23 @@ flowchart TD
 
 ### Execution & bookkeeping
 
+- **Liquidity-aware opening price** — an entry's first limit is set by the
+  name's liquidity class, but never more than a small fixed amount above the
+  mid: on a wide quote, "most of the way to the ask" was far from any price
+  that could fill. It then steps to the mid in a few re-prices and on toward
+  the credit floor until it fills or the session ends
+- **Orders the broker took despite an error** — when a submit call fails
+  (timeout, dropped connection), the broker may still have accepted the
+  order. The system looks for an order on exactly those legs, in the same
+  direction, received after the failed call: a working one is cancelled, a
+  filled one is booked
+- **Per-close bookkeeping** — each close is written to the ledger the moment
+  it happens, and one position's failure doesn't stop the others from being
+  evaluated
 - **Fill confirmation** — close orders are verified against live order status
   before being reported as filled; unfilled orders are re-priced toward the
   ask (price chasing), then cancelled and retried on the next run. Every
   close price, including the first attempt, is capped at the spread's width
-- **Double-fill prevention** — entry and close retry loops confirm a cancel
-  actually succeeded before placing a replacement; a failed cancel usually means
-  the order just filled, and blindly replacing it would double the position or
-  leave a naked leg
 - **Execution slippage tracking** — every close records what the live market
   implied it would cost alongside what it actually cost, so execution quality
   is measured from real fills rather than assumed
@@ -320,6 +393,12 @@ flowchart TD
 - **Position ledger** — every entry and close is recorded to a ledger that
   drives realized-P&L statistics (month-to-date, prior month, quarter-to-date)
   in summary notifications — see Position Tracking below
+- **Identifiers redacted** — account numbers appear only as their last four
+  digits in every alert and log line; files the jobs write are owner-only
+- **Double-fill prevention** — entry and close retry loops confirm a cancel
+  actually succeeded before placing a replacement; a failed cancel usually means
+  the order just filled, and blindly replacing it would double the position or
+  leave a naked leg
 - **Crash-safe ledger writes** — each fill is booked immediately and
   idempotently (keyed by order id) under a file lock with atomic replace, so a
   crash mid-run never corrupts or double-books the ledger
@@ -364,7 +443,10 @@ flowchart LR
   quantity per strike across both legs, and any divergence raises an alert
   that explicitly marks all downstream P&L as unreliable until a human
   resolves it. Manual interventions (e.g. a hand-placed roll) surface here
-  immediately and are booked back into the ledger as a close plus a new open.
+  immediately and are booked back into the ledger as a close plus a new open,
+  linked so the whole roll chain (realized plus still-open) can be judged as
+  one decision. The booking tool warns when a roll leaves a risk cap exceeded,
+  since a hand-placed order bypasses the entry checks.
 - **Expirations are retired, not left dangling** — a position that expires
   is closed out of the ledger once its outcome is confirmed, so it stops
   holding risk budget and its result lands in realized P&L.
@@ -497,6 +579,71 @@ out of scope for this strategy.
 
 ---
 
+## Change Management
+
+The system trades live capital unattended, so every change to its behaviour
+follows the same path:
+
+1. **Evidence first** — the ledger, broker data or logs; no change on a guess.
+   Where a change depends on live prices, a read-only probe measures them first.
+2. **Owner's explicit approval** — risk logic, caps and pricing change only
+   with a deliberate decision by the account owner.
+3. **Tests** — the full suite passes; cap values and the tradable list are
+   pinned by tests, so a silent drift fails the suite.
+4. **Records** — every change lands in a changelog and a decision log with its
+   reason and the data behind it, including corrections when an earlier
+   reading turns out wrong.
+5. **Live dry-run before deploy** — the change runs end to end against the
+   real broker in dry-run mode (orders are validated, never placed) from a
+   separate checkout, so the scheduled jobs keep running the deployed code.
+6. **Reviewed, then deployed** — merged after review and pulled on the
+   server; schedule changes are re-installed separately.
+
+Results are compared like with like: one change at a time where possible,
+entries after a change reported as their own cohort, and nothing judged
+before enough positions have closed.
+
+**Evaluation criteria are fixed before the results are in.** After a period
+with many rule changes, parameters were frozen for several weeks: bug fixes
+only, no threshold changes. The criteria that will judge that period were
+written down first: expectancy after fees, win rate against the breakeven
+win rate implied by the actual average win and loss, drawdown, and a
+comparison with simply holding the index on the same capital. A minimum
+number of closed trades is required before any of it counts as decisive.
+
+**The documentation is checked against the code.** A full read of the README
+against the code found places where the text still described the original
+design. The text was corrected to say what the code does.
+
+---
+
+## Verification
+
+- **Automated tests** — several hundred unit and scenario tests cover entry
+  gates, close triggers, ledger bookkeeping and the cron wrappers. Every
+  change must pass the full suite. Cap values and the tradable list are
+  pinned by tests.
+- **Full-code audits** — the whole codebase was read against the written
+  rules three times, in batches by severity. The audits found, among others:
+  a window in which two overlapping runs could enter the same position
+  twice; caps checked at an optimistic price; a failure alert that let a
+  failed job finish as a success; a count fallback that sat below a larger
+  cap and so let an entry through; and a risk whitelist that depended on an
+  environment variable being set.
+- **Pre-merge review of each change** — the review of one change found that
+  its own new alert helper turned off error handling in the calling script.
+  It was reproduced with a test and fixed before merge.
+- **Read-only diagnostics on the live host** — changes that depend on the
+  broker's real responses are checked with scripts that place no orders. One
+  such run showed that a single malformed item in the broker's option-chain
+  response made the client library reject the whole chain, which had been
+  blocking one product's entries. The chain is now parsed item by item.
+- **What tests can't show is said so** — a change verified only against a
+  simulated broker is recorded as "not verified live" until a diagnostic or
+  a real run confirms it.
+
+---
+
 ## Tech Stack
 
 - **[yfinance](https://pypi.org/project/yfinance/)** — market data and option chains
@@ -542,18 +689,19 @@ or account figures — those stay private):
   reduced rather than held flat, so a larger roster translates into real
   diversification rather than just a bigger ceiling for the same
   concentration.
-- **Tiered screening by conviction** — a subset of well-established names
-  now use a simplified volatility-and-premium-quality entry bar instead of
-  the full directional-timing pattern, trading some selectivity for entry
-  frequency on names where that trade-off has already been validated —
-  newer candidates still earn the full pattern first.
+- **Simple entry condition for the tradable list** — names cleared for trading
+  enter on a volatility-and-premium-quality condition plus the earnings,
+  overheat and risk-cap gates; the full directional-timing pattern now applies
+  only to names under observation, which are screened and priced but never
+  ordered. This trades selectivity for entry frequency, and whether to restore
+  a trend or selloff gate is under review.
 - **Moneyness-aware risk-management closes** — a time-based forced close
   now accounts for how far a position actually is from its strike, not just
   calendar proximity to expiration; a marginal, easily-reversible breach is
   no longer treated the same as a position genuinely at risk. Loss-limit
-  closes follow the same principle: the stop fires only when the short leg
-  is actually threatened, and still fires whenever moneyness can't be
-  confirmed.
+  closes follow the same principle: the stop fires only when the short strike
+  is actually in the money. If the underlying's price can't be read, the
+  position is held and an alert is sent, except on expiration day.
 - **Per-instrument-class credit floor** — the minimum acceptable premium
   relative to defined risk is no longer a full exemption for any instrument
   class; index/cash-settled products get their own floor, calibrated
