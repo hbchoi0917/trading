@@ -60,16 +60,16 @@ _pnl          _performance  _summary
 **Input:** Raw Fidelity CSV
 ```
 run_date   | action                                     | symbol         | amount
-2025-03-31 | YOU SOLD OPENING TRANSACTION PUT (PLTR)... | -PLTR250502P82 | 670.30
+2025-01-06 | YOU SOLD OPENING TRANSACTION PUT (AAPL)... | -AAPL250207P220 | 309.31
 ```
 
 **What staging does:** Column renaming, type casting, and symbol parsing only. No business logic.
 
 ```sql
 -- Extract ticker, expiry, strike, option type from OCC symbol
-regexp_extract(symbol, '-?([A-Z]+)\d{6}[PC]', 1)        as ticker       -- 'PLTR'
-strptime('20' || regexp_extract(symbol, '\d{6}', 0), '%Y%m%d') as expiry_date  -- 2025-05-02
-cast(regexp_extract(symbol, '[PC]([\d\.]+)', 1) as double)     as strike        -- 82.0
+regexp_extract(symbol, '-?([A-Z]+)\d{6}[PC]', 1)        as ticker       -- 'AAPL'
+strptime('20' || regexp_extract(symbol, '\d{6}', 0), '%Y%m%d') as expiry_date  -- 2025-02-07
+cast(regexp_extract(symbol, '[PC]([\d\.]+)', 1) as double)     as strike        -- 220.0
 case when action ilike '%OPENING%' then 'OPENING' end          as transaction_type
 case when action ilike '%YOU SOLD%' then 'SOLD'   end          as direction
 ```
@@ -83,10 +83,10 @@ case when action ilike '%YOU SOLD%' then 'SOLD'   end          as direction
 **The core problem:** Fidelity gives legs; we need spreads.
 
 ```
-leg 1: PLTR PUT 82 | SOLD OPENING   | +670.30  ← entry, premium received
-leg 2: PLTR PUT 82 | BOUGHT CLOSING | -120.00  ← exit, bought back
+leg 1: AAPL PUT 220 | SOLD OPENING   | +309.31  ← entry, premium received
+leg 2: AAPL PUT 220 | BOUGHT CLOSING |  -85.69  ← exit, bought back
               ↓ group by (account + ticker + expiry + option_type + strike)
-spread: PLTR PUT 82 | realized_pnl = +550.30 | WIN | held 32 days
+spread: AAPL PUT 220 | realized_pnl = +223.62 | WIN | held 18 days
 ```
 
 **Design decision documented in `int_spread_trades.sql`:**

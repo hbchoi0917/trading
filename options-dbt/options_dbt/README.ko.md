@@ -50,7 +50,8 @@ models/
 ```bash
 pip install dbt-duckdb
 
-# 샘플 데이터로 실행 (익명화된 37행, 엣지 케이스 전부 포함)
+# 샘플 데이터로 실행 (엣지 케이스를 담은 합성 데이터 52행;
+# 다시 만들려면: python scripts/make_synthetic_seed.py)
 dbt build --profiles-dir .
 
 # 전체 export로 실행 (seeds/fidelity_transactions.csv, gitignore 대상)

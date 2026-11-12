@@ -50,7 +50,8 @@ models/
 ```bash
 pip install dbt-duckdb
 
-# run with sample data (37 anonymized rows, all edge cases covered)
+# run with sample data (52 synthetic rows covering the edge cases;
+# regenerate with: python scripts/make_synthetic_seed.py)
 dbt build --profiles-dir .
 
 # run with the full export (seeds/fidelity_transactions.csv, gitignored)

@@ -60,16 +60,16 @@ _pnl          _performance  _summary
 **입력:** Fidelity CSV 원본
 ```
 run_date   | action                                     | symbol         | amount
-2025-03-31 | YOU SOLD OPENING TRANSACTION PUT (PLTR)... | -PLTR250502P82 | 670.30
+2025-01-06 | YOU SOLD OPENING TRANSACTION PUT (AAPL)... | -AAPL250207P220 | 309.31
 ```
 
 **Staging에서 하는 일:** 컬럼명 변경, 타입 변환, 심볼 파싱만 합니다. 비즈니스 로직은 넣지 않습니다.
 
 ```sql
 -- OCC 심볼에서 종목, 만기, 행사가, 옵션 유형 추출
-regexp_extract(symbol, '-?([A-Z]+)\d{6}[PC]', 1)        as ticker       -- 'PLTR'
-strptime('20' || regexp_extract(symbol, '\d{6}', 0), '%Y%m%d') as expiry_date  -- 2025-05-02
-cast(regexp_extract(symbol, '[PC]([\d\.]+)', 1) as double)     as strike        -- 82.0
+regexp_extract(symbol, '-?([A-Z]+)\d{6}[PC]', 1)        as ticker       -- 'AAPL'
+strptime('20' || regexp_extract(symbol, '\d{6}', 0), '%Y%m%d') as expiry_date  -- 2025-02-07
+cast(regexp_extract(symbol, '[PC]([\d\.]+)', 1) as double)     as strike        -- 220.0
 case when action ilike '%OPENING%' then 'OPENING' end          as transaction_type
 case when action ilike '%YOU SOLD%' then 'SOLD'   end          as direction
 ```
@@ -83,10 +83,10 @@ case when action ilike '%YOU SOLD%' then 'SOLD'   end          as direction
 **핵심 문제:** Fidelity는 레그를 주는데, 필요한 건 스프레드입니다.
 
 ```
-leg 1: PLTR PUT 82 | SOLD OPENING   | +670.30  ← 진입, 프리미엄 수령
-leg 2: PLTR PUT 82 | BOUGHT CLOSING | -120.00  ← 청산, 되사기
+leg 1: AAPL PUT 220 | SOLD OPENING   | +309.31  ← 진입, 프리미엄 수령
+leg 2: AAPL PUT 220 | BOUGHT CLOSING |  -85.69  ← 청산, 되사기
               ↓ (계좌 + 종목 + 만기 + 옵션 유형 + 행사가)로 그룹핑
-spread: PLTR PUT 82 | realized_pnl = +550.30 | WIN | 32일 보유
+spread: AAPL PUT 220 | realized_pnl = +223.62 | WIN | 18일 보유
 ```
 
 **`int_spread_trades.sql`에 적어둔 설계 결정:**
